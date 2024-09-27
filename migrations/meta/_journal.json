@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1727317630396,
+      "tag": "0000_sad_microbe",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1727401229175,
+      "tag": "0001_dear_kinsey_walden",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "transcoder",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e .env tsx src/index.ts",
+    "start": "node run dist/index.ts",
+    "format": "prettier . --check --cache --cache-location=node_modules/.cache/.prettiercache",
+    "format:fix": "prettier . --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.654.0",
+    "@aws-sdk/lib-storage": "^3.658.1",
+    "@hono/node-server": "^1.13.1",
+    "bullmq": "^5.13.2",
+    "db": "workspace:*",
+    "dotenv-cli": "^7.4.2",
+    "env": "workspace:*",
+    "execa": "^9.4.0",
+    "hono": "^4.6.2",
+    "nanoid": "^5.0.7",
+    "uploadthing": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.6.2",
+    "tsx": "^4.19.1"
+  }
+}
