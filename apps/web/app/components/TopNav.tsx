@@ -74,7 +74,7 @@ export default function TopNav() {
         <div className="flex gap-2 w-40 justify-end z-10">
           <SignedIn>
             <span className="md:flex hidden items-center">
-              <UserButton showName />
+              <UserButton />
             </span>
             <span className="flex md:hidden items-center">
               <UserButton />

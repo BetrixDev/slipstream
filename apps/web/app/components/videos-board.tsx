@@ -1,11 +1,11 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Eye, Copy, Loader2, HardDriveDownload, Trash, EyeOff, ListTodo } from "lucide-react";
 import { deleteVideoAtom, editVideoAtom } from "~/atoms";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { handleCopyLink, humanFileSize, formatSecondsToTimestamp } from "~/lib/utils";
-import { Link, useRevalidator } from "@remix-run/react";
+import { Link } from "@remix-run/react";
 import axios from "axios";
 import { useEffect } from "react";
 
@@ -52,6 +52,18 @@ type UploadedVideoProps = {
 function UploadedVideo(video: UploadedVideoProps) {
   const [, setDeleteVideo] = useAtom(deleteVideoAtom);
   const [, setEditVideo] = useAtom(editVideoAtom);
+
+  const { mutate: onDownloadClick } = useMutation({
+    mutationFn: async () => {
+      const { data } = await axios<{ url: string | null }>(`/api/downloadVideo/${video.id}`);
+
+      if (!data.url) {
+        throw new Error("Download URL is not available");
+      }
+
+      window.open(data.url);
+    },
+  });
 
   return (
     <Card
@@ -121,6 +133,7 @@ function UploadedVideo(video: UploadedVideoProps) {
         <Button
           variant="ghost"
           className="rounded-none grow flex items-center gap-2 justify-center hover:bg-black/50"
+          onClick={() => onDownloadClick()}
         >
           <HardDriveDownload className="h-4 w-4" /> Download
         </Button>

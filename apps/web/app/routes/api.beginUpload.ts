@@ -7,17 +7,17 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { json } from "@vercel/remix";
 import { z } from "zod";
 import { db } from "db";
-import { PLAN_STORAGE_SIZES } from "../../../../packages/cms/src/index";
+import { PLAN_STORAGE_SIZES } from "cms";
 
 const schema = z.object({
   contentLength: z.number(),
 });
 
-export async function loader(args: LoaderFunctionArgs) {
+export async function action(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
 
   if (!userId) {
-    return json(undefined, { status: 401 });
+    return json(null, { status: 401 });
   }
 
   const payload = schema.parse(await args.request.json());
@@ -27,7 +27,7 @@ export async function loader(args: LoaderFunctionArgs) {
   });
 
   if (!userData) {
-    return json(undefined, { status: 401 });
+    return json(null, { status: 401 });
   }
 
   if (
@@ -44,6 +44,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const objectKey = nanoid(25);
+  // TODO: add a check to make sure this object key doesn't already exist
 
   const s3WriteClient = new S3Client({
     endpoint: env.S3_MEDIA_ENDPOINT,
