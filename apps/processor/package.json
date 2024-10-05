@@ -1,5 +1,5 @@
 {
-  "name": "transcoder",
+  "name": "processor",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -19,9 +19,12 @@
     "dotenv-cli": "^7.4.2",
     "env": "workspace:*",
     "execa": "^9.4.0",
+    "glob": "^11.0.0",
     "hono": "^4.6.2",
     "nanoid": "^5.0.7",
-    "uploadthing": "^7.0.2"
+    "sharp": "^0.33.5",
+    "uploadthing": "^7.0.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.6.2",

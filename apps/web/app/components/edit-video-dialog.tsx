@@ -29,7 +29,7 @@ function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
 
 export function EditVideoDialog() {
   const queryClient = useQueryClient();
-  const { revalidate } = useRevalidator();
+  const revalidator = useRevalidator();
   const [editVideo, setEditVideo] = useAtom(editVideoAtom);
 
   const videosQueryData = queryClient.getQueryData(["videos"]) as {
@@ -67,7 +67,7 @@ export function EditVideoDialog() {
     },
     onError: () => {
       toast.error("An error occurred while editing the video.");
-      revalidate();
+      revalidator.revalidate();
     },
     onSuccess: async (e) => {
       if (!e) {

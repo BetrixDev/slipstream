@@ -3,16 +3,18 @@ import { Hono } from "hono";
 import { db, eq, videos } from "db";
 import { env } from "env/transcoder";
 import { customAlphabet } from "nanoid";
-import { createReadStream, createWriteStream } from "fs";
-import { DeleteObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { createWriteStream } from "fs";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { pipeline } from "stream";
 import util from "util";
 import { serve } from "@hono/node-server";
 import { bearerAuth } from "hono/bearer-auth";
 import { execa } from "execa";
-import { Upload } from "@aws-sdk/lib-storage";
-import { stat, rm, readFile } from "fs/promises";
+import { stat, rm } from "fs/promises";
 import { UTApi } from "uploadthing/server";
+import { logger } from "hono/logger";
+import sharp from "sharp";
+import { glob } from "glob";
 
 const nanoid = customAlphabet("1234567890abcdef", 20);
 
@@ -29,6 +31,14 @@ const s3VideosClient = new S3Client({
   region: env.S3_VIDEOS_REGION,
 });
 
+const videoTranscodingQueue = new Queue("videoTranscoding", {
+  connection: {
+    host: env.REDIS_HOST,
+    port: Number(env.REDIS_PORT),
+    password: env.REDIS_PASSWORD,
+  },
+});
+
 const videoUploadedQueue = new Queue("videoUploaded", {
   connection: {
     host: env.REDIS_HOST,
@@ -37,6 +47,45 @@ const videoUploadedQueue = new Queue("videoUploaded", {
   },
 });
 
+const videoTranscodingWorker = new Worker(
+  "videoTranscoding",
+  async (job) => {
+    // await execa(`ffmpeg`, [
+    //   "-y",
+    //   "-i",
+    //   downloadId,
+    //   "-vcodec",
+    //   "libx264",
+    //   "-crf",
+    //   "27",
+    //   "-preset",
+    //   "medium",
+    //   "-c:a",
+    //   "copy",
+    //   downloadId,
+    // ]);
+    // const videoUpload = new Upload({
+    //   client: s3VideosClient,
+    //   params: {
+    //     Bucket: env.S3_VIDEOS_BUCKET,
+    //     Key: `${videoId}`,
+    //     Body: createReadStream(downloadId),
+    //   },
+    // });
+    // videoUpload.on("httpUploadProgress", (progress) => {
+    //   console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
+    // });
+    // await videoUpload.done();
+  },
+  {
+    connection: {
+      host: env.REDIS_HOST,
+      port: Number(env.REDIS_PORT),
+      password: env.REDIS_PASSWORD,
+    },
+  },
+);
+
 const videoUploadedWorker = new Worker(
   "videoUploaded",
   async (job) => {
@@ -44,7 +93,7 @@ const videoUploadedWorker = new Worker(
 
     const videoId = job.data.videoId;
 
-    console.log("Transcoding video ", videoId);
+    console.log("Processing video ", videoId);
 
     const videoData = await db.query.videos.findFirst({
       where: (table, { eq }) => eq(table.id, videoId),
@@ -60,41 +109,52 @@ const videoUploadedWorker = new Worker(
 
     const getObjectCommand = new GetObjectCommand({
       Bucket: env.S3_VIDEOS_BUCKET,
-      Key: `${videoData.key}-processing`,
+      Key: videoData.key,
     });
 
     const data = await s3VideosClient.send(getObjectCommand);
 
     await pipelineAsync(data.Body as any, file);
 
-    await execa("ffmpeg", [
-      "-i",
-      downloadId,
-      "-vf",
-      "scale=320:240",
-      "-frames:v",
-      "1",
-      `${downloadId}-thumbnail-small.jpg`,
-    ]);
+    await execa("ffmpeg", ["-i", downloadId, "-vf", "fps=0.25", `${downloadId}_%04d.jpg`]);
 
-    await execa("ffmpeg", [
-      "-i",
-      downloadId,
-      "-vf",
-      "scale=1920:1080",
-      "-frames:v",
-      "1",
-      `${downloadId}-thumbnail-large.jpg`,
-    ]);
+    const frames = await glob(`${downloadId}_*.jpg`);
 
-    const smallThumbnailBuffer = await readFile(`${downloadId}-thumbnail-small.jpg`);
+    let brightestFrame = { file: frames[0], brightness: 0 };
+
+    for (const frame of frames) {
+      const { data } = await sharp(frame).grayscale().raw().toBuffer({
+        resolveWithObject: true,
+      });
+
+      let totalBrightness = 0;
+      for (let i = 0; i < data.length; i++) {
+        totalBrightness += data[i];
+      }
+      const averageBrightness = totalBrightness / data.length;
+
+      if (averageBrightness > brightestFrame.brightness) {
+        brightestFrame = {
+          file: frame,
+          brightness: averageBrightness,
+        };
+      }
+    }
+
+    sharp.cache(false);
+    const image = sharp(brightestFrame.file);
+
+    const smallThumbnailBuffer = await image
+      .resize(1280, 720, { fit: "cover" })
+      .jpeg({ quality: 75 })
+      .toBuffer();
     const smallThumbnailFile = new File(
       [smallThumbnailBuffer],
       `${videoData.key}-thumbnail-small.jpg`,
       { type: "image/jpeg" },
     );
 
-    const largeThumbnailBuffer = await readFile(`${downloadId}-thumbnail-large.jpg`);
+    const largeThumbnailBuffer = await image.jpeg({ quality: 100 }).toBuffer();
     const largeThumbnailFile = new File(
       [largeThumbnailBuffer],
       `${videoData.key}-thumbnail-large.jpg`,
@@ -117,43 +177,26 @@ const videoUploadedWorker = new Worker(
       console.error("Failed to upload thumbnails to UploadThing", e);
     }
 
-    await execa(`ffmpeg`, [
-      "-i",
-      downloadId,
-      "-vcodec",
-      "libx264",
-      "-crf",
-      "27",
-      "-preset",
-      "medium",
-      "-c:a",
-      "copy",
-      `${downloadId}-transcoded.mp4`,
-    ]);
+    image.emit("close");
 
     let fileSizeBytes = undefined;
 
     try {
-      const stats = await stat(`${downloadId}-transcoded.mp4`);
+      const stats = await stat(downloadId);
       fileSizeBytes = stats.size;
     } catch {
       console.log("Failed to get file size");
     }
 
-    const videoUpload = new Upload({
-      client: s3VideosClient,
-      params: {
-        Bucket: env.S3_VIDEOS_BUCKET,
-        Key: `${videoId}`,
-        Body: createReadStream(`${downloadId}-transcoded.mp4`),
-      },
+    await videoTranscodingQueue.add(`${videoId}-transcode`, {
+      videoId,
     });
 
-    videoUpload.on("httpUploadProgress", (progress) => {
-      console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
-    });
+    const { all } = await execa({
+      all: true,
+    })`ffprobe -i ${downloadId} -show_entries format=duration -v quiet -of csv=p=0`;
 
-    await videoUpload.done();
+    const videoDurationSeconds = Math.round(Number(all.trim()));
 
     await db
       .update(videos)
@@ -162,23 +205,16 @@ const videoUploadedWorker = new Worker(
         smallThumbnailUrl: smallThumbnailUrl,
         largeThumbnailUrl: largeThumbnailUrl,
         fileSizeBytes,
+        videoLengthSeconds: videoDurationSeconds,
       })
       .where(eq(videos.id, videoId));
 
     console.log("Cleaning up files");
 
     try {
-      const deleteOldVideoCommand = new DeleteObjectCommand({
-        Bucket: env.S3_VIDEOS_BUCKET,
-        Key: `${videoData.key}-processing`,
-      });
-
       await Promise.all([
-        s3VideosClient.send(deleteOldVideoCommand),
-        rm(`${downloadId}-thumbnail-small.jpg`),
-        rm(`${downloadId}-thumbnail-large.jpg`),
-        rm(`${downloadId}-transcoded.mp4`),
-        rm(downloadId),
+        ...frames.map((f) => rm(f, { force: true, maxRetries: 3, recursive: true })),
+        rm(downloadId, { force: true, maxRetries: 3, recursive: true }),
       ]);
     } catch (e) {
       console.error("Failed to clean up files", e);
@@ -207,11 +243,12 @@ videoUploadedWorker.on("failed", (job, err) => {
 
 const api = new Hono();
 
+api.use(logger());
 api.use("/api/*", bearerAuth({ token: env.API_SECRET }));
 
 api.get("/hc", (c) => c.text("Hono!"));
 
-api.put("/api/video", async (c) => {
+api.put("/api/videoUploaded", async (c) => {
   const { videoId } = await c.req.json();
 
   if (!videoId) {
@@ -219,10 +256,12 @@ api.put("/api/video", async (c) => {
     return c.text("bad request");
   }
 
-  await videoUploadedQueue.add("transcode", { videoId });
+  await videoUploadedQueue.add(`${videoId}-initial-process`, {
+    videoId,
+  });
 
   c.status(200);
-  return c.text("New video added to queue");
+  return c.text("Video processing has been queued");
 });
 
 serve({ ...api, port: Number(env.API_PORT), hostname: env.API_HOST }, (info) => {

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { LoaderFunctionArgs } from "@vercel/remix";
+import type { LoaderFunctionArgs, MetaFunction } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { redirect, type SerializeFrom } from "@remix-run/node";
 import { Card } from "~/components/ui/card";
-import { Await, Link, useLoaderData, useRevalidator } from "@remix-run/react";
-import { Upload, Eye, Copy } from "lucide-react";
+import { Await, useLoaderData, useRevalidator } from "@remix-run/react";
+import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
-import { db } from "db";
-import { Suspense, useState } from "react";
+import { db, eq, sql, videos } from "db";
+import { Suspense, useEffect, useState } from "react";
 import { Progress } from "~/components/ui/progress";
 import TopNav from "~/components/TopNav";
 import { Separator } from "~/components/ui/separator";
@@ -19,22 +19,26 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "~/components/ui/dialog";
 import { Skeleton } from "~/components/ui/skeleton";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
 import { defer } from "@vercel/remix";
 import { DeleteVideoDialog } from "~/components/delete-video-dialog";
-import { useAtom } from "jotai";
-import { deleteVideoAtom, editVideoAtom } from "~/atoms";
 import { EditVideoDialog } from "~/components/edit-video-dialog";
+import { VideosBoard } from "~/components/videos-board";
+import { humanFileSize } from "~/lib/utils";
+import { Footer } from "~/components/Footer";
+import { createSwapy } from "swapy";
 
-function humanFileSize(size: number) {
-  const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
-  return +(size / Math.pow(1024, i)).toFixed(2) * 1 + " " + ["B", "kB", "MB", "GB", "TB"][i];
-}
+export const meta: MetaFunction = () => {
+  return [
+    {
+      title: "Your Videos | Flowble",
+    },
+  ];
+};
 
 export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
@@ -54,17 +58,31 @@ export async function loader(args: LoaderFunctionArgs) {
         title: true,
         id: true,
         isPrivate: true,
+        smallThumbnailUrl: true,
+        videoLengthSeconds: true,
+        isProcessing: true,
       },
     })
     .execute();
 
+  const userTotalVideoStorage = db
+    .select({
+      totalVideoStorage: sql<number>`sum(${videos.fileSizeBytes})`,
+    })
+    .from(videos)
+    .where(eq(videos.authorId, userId))
+    .execute();
+
+  console.log("called this loader");
+
   return defer({
     videos: userVideos,
+    userTotalVideoStorage,
   });
 }
 
 function VideosDashboard() {
-  const { revalidate } = useRevalidator();
+  const revalidator = useRevalidator();
   const { videos } = useLoaderData<typeof loader>();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -86,41 +104,43 @@ function VideosDashboard() {
           ? (eventFormData.get("title") as string)
           : file.name;
 
-      const uploadFormData = new FormData();
-
-      Object.entries(presigned.data.fields).forEach(([key, value]) => {
-        uploadFormData.set(key, value);
-      });
-      uploadFormData.set("file", eventFormData.get("file")!);
-
       setUploadingTitle(videoTitle);
       setUploadProgress(0);
       setUploadSize(file.size);
       setIsDialogOpen(false);
 
-      await axios(presigned.data.url, {
+      await axios(presigned.data.url!, {
         onUploadProgress: (e) => {
           setUploadProgress((e.progress ?? 0) * 100);
         },
-        data: uploadFormData,
-        method: "POST",
+        data: file,
+        method: "PUT",
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/octet-stream",
         },
       });
 
       await axios("/api/uploadComplete", {
         method: "POST",
         data: {
-          key: presigned.data.fields.key,
+          key: presigned.data.key,
           title: videoTitle,
         },
       });
     },
     onSuccess: () => {
-      revalidate();
+      console.log("success");
+      revalidator.revalidate();
     },
-    onError: (e) => {
+    onError: (e: AxiosError) => {
+      if (e.status === 413) {
+        toast.error("Not enough storage space!", {
+          description:
+            "You do not have enough storage space left in your current plan to upload a video this large. Please delete videos or upload your plan to continue.",
+          action: "View Plans",
+        });
+      }
+
       toast.error("Failed to upload video", {
         description: "Please try again later",
       });
@@ -137,17 +157,16 @@ function VideosDashboard() {
           <div className="flex gap-2 items-center justify-between">
             <h1 className="text-2xl font-bold">Your Videos</h1>
             <Dialog onOpenChange={setIsDialogOpen} open={isDialogOpen}>
-              <DialogTrigger>
-                <Button
-                  variant="ghost"
-                  className="relative inline-flex h-12 overflow-hidden rounded-md p-[1px] focus:outline-none focus:ring-2 hover:ring-2 focus:ring-offset-2"
-                >
-                  <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
-                  <span className="text-lg inline-flex h-full w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-background px-3 py-1 font-medium text-primary backdrop-blur-3xl">
-                    <Upload /> Upload a Video
-                  </span>
-                </Button>
-              </DialogTrigger>
+              <Button
+                onMouseDown={() => setIsDialogOpen(true)}
+                variant="ghost"
+                className="relative inline-flex h-12 overflow-hidden rounded-md p-[1px] focus:outline-none focus:ring-2 hover:ring-2 focus:ring-offset-2"
+              >
+                <span className="absolute inset-[-1000%] animate-[spin_5s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+                <span className="text-lg inline-flex h-full w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-background px-3 py-1 font-medium text-primary backdrop-blur-3xl">
+                  <Upload /> Upload a Video
+                </span>
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Upload a video</DialogTitle>
@@ -182,8 +201,8 @@ function VideosDashboard() {
             </Dialog>
           </div>
           <Separator />
-          <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="container flex flex-col gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {isUploading && (
                 <Card className="relative bg-card rounded-lg overflow-hidden shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg group aspect-video border-border/50 hover:border-border">
                   <Skeleton className="absolute inset-0">
@@ -204,108 +223,15 @@ function VideosDashboard() {
                 </Card>
               )}
               <Suspense fallback={<Skeleton className="rounded-lg w-full aspect-video" />}>
-                <Await resolve={videos}>
-                  {(videos) => <VideosLayoutWrapper videos={videos as any} />}
-                </Await>
+                <Await resolve={videos}>{(videos) => <VideosBoard videos={videos as any} />}</Await>
               </Suspense>
             </div>
           </div>
         </main>
+        <Footer />
       </div>
     </>
   );
-}
-
-type VideosLayoutWrapperProps = {
-  videos: { id: string; title: string; views: string; fileSizeBytes: number }[];
-};
-
-function VideosLayoutWrapper({ videos }: VideosLayoutWrapperProps) {
-  const [, setDeleteVideo] = useAtom(deleteVideoAtom);
-  const [, setEditVideo] = useAtom(editVideoAtom);
-
-  const { data } = useQuery({
-    queryKey: ["videos"],
-    initialData: videos,
-  });
-
-  function handleCopyLink(link: string, title: string) {
-    navigator.clipboard.writeText(`${window.location.origin}/p/${link}`);
-    toast.success("Link copied to clipboard", {
-      description: title,
-    });
-  }
-
-  return data.map((video) => (
-    <Card
-      key={video.id}
-      className="relative bg-card rounded-lg overflow-hidden shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg group aspect-video border-border/50 hover:border-border flex flex-col justify-between"
-    >
-      <div className="absolute inset-0">
-        <img
-          src="https://png.pngtree.com/background/20230616/original/pngtree-faceted-abstract-background-in-3d-with-shimmering-iridescent-metallic-texture-of-picture-image_3653595.jpg"
-          alt={`${video.title} thumbnail`}
-          className="transition-transform duration-200 ease-in-out group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
-      </div>
-      <div className="absolute right-0 bg-black/50 p-1 rounded-md backdrop-blur-md text-xs">
-        {humanFileSize(video.fileSizeBytes)}
-      </div>
-      <div className="relative z-10 p-4 h-full flex flex-col justify-end">
-        <Link to={`/p/${video.id}`}>
-          <Button
-            variant="link"
-            className="text-lg font-semibold line-clamp-2 text-white transition-colors duration-300 ease-in-out p-0"
-          >
-            {video.title}
-          </Button>
-        </Link>
-        <div className="flex gap-1">
-          <div className="flex items-center text-sm font-medium text-white gap-1">
-            <Eye className="w-4 h-4" />
-            {video.views.toLocaleString()} views
-          </div>
-          <Button
-            variant="link"
-            className="text-white flex items-center gap-1"
-            onClick={() => handleCopyLink(video.id, video.title)}
-          >
-            <Copy className="w-4 h-4" /> Copy Link
-          </Button>
-        </div>
-      </div>
-      <div className="z-10 bg-black/15 backdrop-blur-md border-t-[1px] flex">
-        <Button variant="ghost" className="rounded-none grow">
-          Embed
-        </Button>
-        <Button
-          variant="ghost"
-          className="rounded-none grow"
-          onClick={() => {
-            setEditVideo({
-              id: video.id,
-              name: video.title,
-            });
-          }}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="ghost"
-          className="rounded-none grow"
-          onClick={() => {
-            setDeleteVideo({
-              id: video.id,
-              name: video.title,
-            });
-          }}
-        >
-          Delete
-        </Button>
-      </div>
-    </Card>
-  ));
 }
 
 export default VideosDashboard;

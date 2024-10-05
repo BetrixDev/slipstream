@@ -5,10 +5,13 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db, videos } from "db";
 import { json } from "@vercel/remix";
+import { env } from "env/web";
+import axios from "axios";
 
 const schema = z.object({
   key: z.string(),
   title: z.string(),
+  shouldCompress: z.boolean().default(false),
 });
 
 export async function action(args: ActionFunctionArgs) {
@@ -21,16 +24,16 @@ export async function action(args: ActionFunctionArgs) {
   const data = schema.parse(await args.request.json());
 
   const headObjectCommand = new HeadObjectCommand({
-    Bucket: process.env.S3_VIDEOS_BUCKET!,
+    Bucket: env.S3_MEDIA_BUCKET,
     Key: data.key,
   });
 
   const s3RootClient = new S3Client({
-    endpoint: process.env.S3_VIDEOS_ENDPOINT,
-    region: process.env.S3_VIDEOS_REGION,
+    endpoint: env.S3_MEDIA_ENDPOINT,
+    region: env.S3_MEDIA_BUCKET,
     credentials: {
-      accessKeyId: process.env.S3_ROOT_ACCESS_KEY,
-      secretAccessKey: process.env.S3_ROOT_SECRET_KEY,
+      accessKeyId: env.S3_ROOT_ACCESS_KEY,
+      secretAccessKey: env.S3_ROOT_SECRET_KEY,
     },
   });
 
@@ -58,5 +61,29 @@ export async function action(args: ActionFunctionArgs) {
     title: data.title,
   });
 
-  return json({ success: true });
+  try {
+    await axios.put(
+      `${env.PROCESSOR_API_URL}/videoUploaded`,
+      {
+        videoId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${env.PROCESSOR_SECRET_KEY}`,
+        },
+      },
+    );
+  } catch (e) {
+    console.error(e);
+    return json({ message: "Failed to process video" }, { status: 500 });
+  }
+
+  return json({
+    success: true,
+    video: {
+      id: videoId,
+      title: data.title,
+      fileSizeBytes: response.ContentLength,
+    },
+  });
 }

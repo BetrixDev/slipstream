@@ -8,7 +8,7 @@ import { useRevalidator } from "@remix-run/react";
 
 export function DeleteVideoDialog() {
   const queryClient = useQueryClient();
-  const { revalidate } = useRevalidator();
+  const revalidator = useRevalidator();
   const [deleteVideo, setDeleteVideo] = useAtom(deleteVideoAtom);
 
   const { mutate } = useMutation({
@@ -39,7 +39,7 @@ export function DeleteVideoDialog() {
       });
     },
     onError: (e) => {
-      revalidate();
+      revalidator.revalidate();
       toast.error("Failed to delete video.", { description: e.message });
     },
     onSuccess: async (e) => {
@@ -75,7 +75,7 @@ export function DeleteVideoDialog() {
           <DialogDescription>
             Are you sure you want to delete <span className="font-medium">{deleteVideo.name}</span>?
           </DialogDescription>
-          <div className="flex gap-2">
+          <div className="flex gap-2 h-12 items-end">
             <Button
               className="grow"
               onClick={() => {

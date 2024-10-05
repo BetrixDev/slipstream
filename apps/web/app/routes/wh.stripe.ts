@@ -26,6 +26,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (event.type === "customer.subscription.created") {
-    event.data.object.customer.toString();
+    console.log(event.data.object.customer.toString());
   }
 }

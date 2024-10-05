@@ -1,5 +1,6 @@
 import { SignUp } from "@clerk/remix";
 import { MetaFunction } from "@vercel/remix";
+import { Footer } from "~/components/Footer";
 
 export const meta: MetaFunction = () => {
   return [
@@ -38,8 +39,11 @@ export const meta: MetaFunction = () => {
 
 export default function SignUpPage() {
   return (
-    <div className="h-screen flex justify-center items-center">
-      <SignUp />
+    <div className="h-screen flex flex-col justify-center items-center">
+      <div className="grow flex items-center justify-center">
+        <SignUp />
+      </div>
+      <Footer />
     </div>
   );
 }

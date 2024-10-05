@@ -6,7 +6,7 @@ import { db, videos, and, eq } from "db";
 const schema = z.object({
   id: z.string(),
   title: z.string().optional(),
-  isPublic: z.boolean().optional(),
+  isPrivate: z.boolean().optional(),
 });
 
 export async function action(args: ActionFunctionArgs) {
@@ -30,7 +30,7 @@ export async function action(args: ActionFunctionArgs) {
     .update(videos)
     .set({
       title: body.title,
-      isPrivate: !body.isPublic,
+      isPrivate: body.isPrivate,
     })
     .where(and(eq(videos.id, body.id), eq(videos.authorId, userId)));
 

@@ -7,7 +7,8 @@
     "lint": "turbo lint",
     "format": "prettier . \"!apps/** !packages/** !tooling/**\" --check --cache --cache-location=node_modules/.cache/.prettiercache",
     "format:fix": "prettier . \"!apps/** !packages/** !tooling/**\" --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
-    "generate-migration": "cd packages/db && pnpm run generate"
+    "generate-migration": "cd packages/db && pnpm run generate",
+    "migrate-dev": "node --env-file=packages/db/.env packages/db/migrate.js"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

@@ -19,6 +19,7 @@ import { HeroHighlight } from "~/components/ui/hero-highlight";
 import { Tabs } from "~/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { db } from "db";
+import { Footer } from "~/components/Footer";
 
 export const meta: MetaFunction = () => {
   return [
@@ -89,7 +90,15 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 const Pricing: React.FC = () => {
-  const tiers = [
+  const tiers: {
+    name: string;
+    price: number;
+    annualPrice?: number;
+    description: string;
+    monthlyPaymentLink?: string;
+    annualPaymentLink?: string;
+    features: { text: string; infoTip?: React.ReactNode }[];
+  }[] = [
     {
       name: "Free",
       price: 0,
@@ -98,7 +107,7 @@ const Pricing: React.FC = () => {
         {
           text: "1GB of storage space",
           infoTip:
-            "Storage space is dertermined based on the total sum of video file sizes. After uploading a video, the video is automatically converted to a more efficient format in the background to save space. No percieved quality will be lost.",
+            "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account",
         },
         {
           text: "Basic analytics",
@@ -128,35 +137,26 @@ const Pricing: React.FC = () => {
     },
     {
       name: "Pro",
-      price: 2,
-      annualPrice: 20,
+      price: 3,
+      annualPrice: 33,
       description: "Great for anyone who needs more storage",
       monthlyPaymentLink: "https://buy.stripe.com/28o4j69XadRP1C8144",
       annualPaymentLink: "https://buy.stripe.com/9AQ2aY2uIdRPa8EaEF",
       features: [
         { text: "Everything in Free Tier" },
         { text: "100GB of storage space" },
-        // { text: "Upload multiple videos at once" },
         { text: "Infinite video retention" },
         { text: "Ad-free experience" },
       ],
     },
     {
       name: "Premium",
-      price: 10,
-      annualPrice: 100,
+      price: 12,
+      annualPrice: 132,
       monthlyPaymentLink: "https://buy.stripe.com/eVa7vi6KYbJHeoUbIK",
       annualPaymentLink: "https://buy.stripe.com/28oeXKc5i3dbdkQeUX",
       description: "For professionals looking to reach everyone",
-      features: [
-        { text: "Everything in Pro Tier" },
-        { text: "1TB of storage space" },
-        {
-          text: "Ability to compress any video",
-          infoTip:
-            "Compressing a video on the server will give your viewers a better viewing experience allowing the video to load faster at no percieved quality loss",
-        },
-      ],
+      features: [{ text: "Everything in Pro Tier" }, { text: "1TB of storage space" }],
     },
   ];
 
@@ -279,6 +279,7 @@ const Pricing: React.FC = () => {
             ))}
           </div>
         </div>
+        <Footer />
       </div>
     </HeroHighlight>
   );

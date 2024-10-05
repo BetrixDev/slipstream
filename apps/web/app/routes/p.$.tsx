@@ -8,6 +8,7 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
+import { env } from "env/web";
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
@@ -95,47 +96,46 @@ export async function loader(args: LoaderFunctionArgs) {
     const { userId } = await getAuth(args);
 
     if (userId === null || videoData.authorId !== userId) {
-      return json(undefined, { status: 403 });
+      return json(null, { status: 403 });
     }
   }
 
   const s3ReadOnlyClient = new S3Client({
-    region: process.env.S3_VIDEOS_REGION,
-    endpoint: process.env.S3_VIDEOS_ENDPOINT,
+    region: env.S3_MEDIA_REGION,
+    endpoint: env.S3_MEDIA_ENDPOINT,
     credentials: {
-      accessKeyId: process.env.S3_READ_ONLY_ACCESS_KEY!,
-      secretAccessKey: process.env.S3_READ_ONLY_SECRET_KEY!,
+      accessKeyId: env.S3_READ_ONLY_ACCESS_KEY,
+      secretAccessKey: env.S3_READ_ONLY_SECRET_KEY,
     },
   });
 
   const command = new GetObjectCommand({
-    Bucket: process.env.S3_VIDEOS_BUCKET!,
-    Key: videoData.isProcessing ? videoData.key + "-processing" : videoData.key,
+    Bucket: env.S3_MEDIA_BUCKET,
+    Key: videoData.key,
   });
 
-  const url = await getSignedUrl(s3ReadOnlyClient, command, {
+  const url = await getSignedUrl(s3ReadOnlyClient as any, command, {
     expiresIn: 300,
   });
 
-  return json(
-    {
-      url,
-      views: videoData.views,
-      title: videoData.title,
-      isProcessing: videoData.isProcessing,
-      largeThumbnailUrl: videoData.largeThumbnailUrl,
-      isPrivate: videoData.isPrivate,
-    },
-    {
-      headers: {
-        "Cache-Control": "private, max-age=3600, immutable",
-      },
-    },
-  );
+  return json({
+    url,
+    views: videoData.views,
+    title: videoData.title,
+    isProcessing: videoData.isProcessing,
+    largeThumbnailUrl: videoData.largeThumbnailUrl,
+    isPrivate: videoData.isPrivate,
+  });
 }
 
 export default function VideoPlayerRouter() {
-  const { url, title, views } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (!loaderData) {
+    return <div>This video is private</div>;
+  }
+
+  const { url, title, views, largeThumbnailUrl } = loaderData;
 
   return (
     <div className="h-screen flex flex-col">

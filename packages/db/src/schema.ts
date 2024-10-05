@@ -7,9 +7,10 @@ export const users = sqliteTable(
     id: text("id").primaryKey(),
     email: text("email").notNull(),
     createdAt: int("created_at").notNull(),
-    accountTier: text("account_tier", { enum: ["free", "pro", "premium"] })
+    accountTier: text("account_tier", { enum: ["free", "pro", "premium", "ultimate"] })
       .notNull()
       .default("free"),
+    totalStorageUsed: real("totalStorageUsed").notNull().default(0),
   },
   (table) => ({ userId_idx: index("userId_idx").on(table.id) }),
 );
@@ -27,6 +28,8 @@ export const videos = sqliteTable(
     key: text("key").notNull(),
     smallThumbnailUrl: text("small_thumbnail_url"),
     largeThumbnailUrl: text("large_thumbnail_url"),
+    smallThumbnailKey: text("small_thumbnail_key"),
+    largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: int("created_at")
       .notNull()
       .$defaultFn(() => Date.now()),

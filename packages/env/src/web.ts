@@ -18,9 +18,12 @@ const webEnvSchema = z.object({
   S3_READ_ONLY_SECRET_KEY: z.string(),
   S3_WRITE_ONLY_ACCESS_KEY: z.string(),
   S3_WRITE_ONLY_SECRET_KEY: z.string(),
-  S3_VIDEOS_BUCKET: z.string(),
-  S3_VIDEOS_REGION: z.string(),
-  S3_VIDEOS_ENDPOINT: z.string(),
+  S3_MEDIA_BUCKET: z.string(),
+  S3_MEDIA_REGION: z.string(),
+  S3_MEDIA_ENDPOINT: z.string(),
+  PROCESSOR_API_URL: z.string(),
+  PROCESSOR_SECRET_KEY: z.string(),
+  UPLOADTHING_TOKEN: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);
