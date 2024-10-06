@@ -162,7 +162,9 @@ const videoUploadedWorker = new Worker(
     );
 
     let smallThumbnailUrl: string | undefined = undefined;
+    let smallThumbnailKey: string | undefined = undefined;
     let largeThumbnailUrl: string | undefined = undefined;
+    let largeThumbnailKey: string | undefined = undefined;
 
     try {
       console.log("Uploading thumbnails to UploadThing");
@@ -171,6 +173,8 @@ const videoUploadedWorker = new Worker(
 
       smallThumbnailUrl = small.data?.url;
       largeThumbnailUrl = large.data?.url;
+      smallThumbnailKey = small.data?.key;
+      largeThumbnailKey = large.data?.key;
 
       console.log("Uploaded thumbnails");
     } catch (e) {
@@ -204,6 +208,8 @@ const videoUploadedWorker = new Worker(
         isProcessing: false,
         smallThumbnailUrl: smallThumbnailUrl,
         largeThumbnailUrl: largeThumbnailUrl,
+        smallThumbnailKey: smallThumbnailKey,
+        largeThumbnailKey: largeThumbnailKey,
         fileSizeBytes,
         videoLengthSeconds: videoDurationSeconds,
       })
