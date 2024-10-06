@@ -4,7 +4,7 @@ export const PLAN_STORAGE_SIZES: {
   premium: number;
   ultimate: number;
 } = {
-  free: 1024 * 1024 * 1024,
+  free: 5 * 1024 * 1024 * 1024,
   pro: 100 * 1024 * 1024 * 1024,
   premium: 1024 * 1024 * 1024 * 1024,
   ultimate: Infinity,

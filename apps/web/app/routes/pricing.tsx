@@ -105,7 +105,7 @@ const Pricing: React.FC = () => {
       description: "Perfect for sharing videos between friends",
       features: [
         {
-          text: "1GB of storage space",
+          text: "5GB of storage space",
           infoTip:
             "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account",
         },
