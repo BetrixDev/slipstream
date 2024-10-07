@@ -22,6 +22,7 @@ import { useSetAtom } from "jotai";
 import { isUploadDialogOpenAtom } from "~/atoms";
 import { UploadVideoDialogContainer } from "~/components/upload-video-dialog";
 import { UploadingVideosContainer } from "~/components/uploading-videos-container";
+import { FullPageDropzone } from "~/components/full-page-dropzone";
 
 export const meta: MetaFunction = () => {
   return [
@@ -75,6 +76,7 @@ function VideosDashboard() {
 
   return (
     <>
+      <FullPageDropzone />
       <UploadVideoDialogContainer />
       <DeleteVideoDialog />
       <EditVideoDialog />
