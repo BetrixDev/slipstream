@@ -32,10 +32,10 @@ export const videos = sqliteTable(
     largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: int("created_at")
       .notNull()
-      .$defaultFn(() => Date.now()),
+      .$defaultFn(() => new Date().getUTCMilliseconds()),
     updatedAt: int("updated_at")
       .notNull()
-      .$defaultFn(() => Date.now()),
+      .$defaultFn(() => new Date().getUTCMilliseconds()),
     isPrivate: int("is_private", { mode: "boolean" }).notNull().default(false),
     views: int("views").notNull().default(0),
     fileSizeBytes: real("file_size_bytes").notNull(),

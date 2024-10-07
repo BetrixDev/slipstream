@@ -2,7 +2,7 @@ import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { ActionFunctionArgs, json } from "@remix-run/node";
 import { z } from "zod";
-import { db, videos, and, eq } from "db";
+import { db, videos, and, eq, users, sql } from "db";
 import { env } from "env/web";
 import { UTApi } from "uploadthing/server";
 
@@ -69,6 +69,10 @@ export async function action(args: ActionFunctionArgs) {
           s3Client.send(command),
           utApi.deleteFiles(thumbnailsToDelete),
           tx.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
+          tx
+            .update(users)
+            .set({ totalStorageUsed: sql`${users.totalStorageUsed} - ${videoData.fileSizeBytes}` })
+            .where(eq(users.id, userId)),
         ]);
       } catch (e) {
         console.log(e);

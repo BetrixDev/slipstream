@@ -2,7 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { Button } from "~/components/ui/button";
 import { Link } from "@remix-run/react";
 import { Input } from "~/components/ui/input";
-import { Share2, Upload, Zap } from "lucide-react";
+import { Clapperboard, Share2, Upload, Zap } from "lucide-react";
 import TopNav from "~/components/TopNav";
 import { SignUpButton } from "@clerk/remix";
 import { HeroHighlight } from "~/components/ui/hero-highlight";
@@ -77,24 +77,24 @@ export default function Index() {
               </h2>
               <div className="grid gap-10 sm:grid-cols-1 lg:grid-cols-3">
                 <div className="flex flex-col items-center space-y-3 text-center">
-                  <Upload className="h-12 w-12 text-blue-300" />
+                  <Upload className="h-12 w-12 text-pink-600" />
                   <h3 className="text-xl font-bold">Quick Uploads</h3>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Upload your videos in seconds with our streamlined interface.
+                    Upload your videos in seconds with our streamlined interface
                   </p>
                 </div>
                 <div className="flex flex-col items-center space-y-3 text-center">
-                  <Share2 className="h-12 w-12 text-emerald-600" />
+                  <Share2 className="h-12 w-12 text-rose-400" />
                   <h3 className="text-xl font-bold">Instant Sharing</h3>
                   <div className="text-gray-500 dark:text-gray-400">
-                    Share videos with anyone immediately after uploading.
+                    Share videos with anyone immediately after uploading
                   </div>
                 </div>
                 <div className="flex flex-col items-center space-y-3 text-center ">
-                  <Zap className="h-12 w-12 text-primary text-yellow-300" />
-                  <h3 className="text-xl font-bold">Lightning Fast</h3>
+                  <Clapperboard className="h-12 w-12 text-primary text-pink-600" />
+                  <h3 className="text-xl font-bold">Trim Videos</h3>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Experience rapid video loading and smooth playback.
+                    Trim any video before upload to speed up upload time
                   </p>
                 </div>
               </div>

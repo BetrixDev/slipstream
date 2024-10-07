@@ -8,8 +8,9 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import { Analytics } from "@vercel/analytics/react";
 import styles from "./tailwind.css?url";
 import sonnerStyles from "./sonner.css?url";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
+import { useState } from "react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -61,7 +62,7 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

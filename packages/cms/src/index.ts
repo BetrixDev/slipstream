@@ -9,3 +9,5 @@ export const PLAN_STORAGE_SIZES: {
   premium: 1024 * 1024 * 1024 * 1024,
   ultimate: Infinity,
 };
+
+export const FREE_PLAN_VIDEO_RETENION_DAYS = 100;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { Eye, Copy, Loader2, HardDriveDownload, Trash, EyeOff, ListTodo } from "lucide-react";
 import { deleteVideoAtom, editVideoAtom } from "~/atoms";
 import { Button } from "./ui/button";
@@ -8,6 +8,7 @@ import { handleCopyLink, humanFileSize, formatSecondsToTimestamp } from "~/lib/u
 import { Link } from "@remix-run/react";
 import axios from "axios";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export type VideoBoardProps = {
   videos: {
@@ -50,8 +51,8 @@ type UploadedVideoProps = {
 };
 
 function UploadedVideo(video: UploadedVideoProps) {
-  const [, setDeleteVideo] = useAtom(deleteVideoAtom);
-  const [, setEditVideo] = useAtom(editVideoAtom);
+  const setDeleteVideo = useSetAtom(deleteVideoAtom);
+  const setEditVideo = useSetAtom(editVideoAtom);
 
   const { mutate: onDownloadClick } = useMutation({
     mutationFn: async () => {
@@ -62,6 +63,10 @@ function UploadedVideo(video: UploadedVideoProps) {
       }
 
       window.open(data.url);
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error("Unable to download video at this time", { description: video.title });
     },
   });
 
@@ -156,6 +161,7 @@ function UploadedVideo(video: UploadedVideoProps) {
             setDeleteVideo({
               id: video.id,
               name: video.title,
+              contentLength: video.fileSizeBytes,
             });
           }}
         >
@@ -205,8 +211,6 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
     },
     refetchInterval: 1000 * 3,
   });
-
-  console.log(data);
 
   return (
     <div className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full h-2/3 flex flex-col gap-2 items-center justify-center">

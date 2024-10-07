@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
+import MotionNumber from "motion-number";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -9,6 +10,21 @@ export function cn(...inputs: ClassValue[]) {
 export function humanFileSize(size: number) {
   const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   return +(size / Math.pow(1024, i)).toFixed(2) * 1 + " " + ["B", "kB", "MB", "GB", "TB"][i];
+}
+
+type HumanFileSizeMotionProps = {
+  size: number;
+};
+
+export function HumanFileSizeMotion({ size }: HumanFileSizeMotionProps) {
+  const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+
+  return (
+    <span className="m-1 flex items-center">
+      <MotionNumber value={+(size / Math.pow(1024, i)).toFixed(2) * 1} />
+      {["B", "kB", "MB", "GB", "TB"][i]}
+    </span>
+  );
 }
 
 export function formatSecondsToTimestamp(seconds: number) {

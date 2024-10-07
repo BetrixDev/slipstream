@@ -16,7 +16,7 @@ type FormData = {
   isPrivate?: boolean;
 };
 
-function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
+export function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
   return (
     <span className="text-sm text-destructive">
       {field.state.meta.isTouched && field.state.meta.errors.length ? (

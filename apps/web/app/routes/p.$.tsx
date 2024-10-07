@@ -3,12 +3,13 @@ import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { db } from "db";
 import { Button } from "~/components/ui/button";
-import { Eye, SquareArrowOutUpRight, Video } from "lucide-react";
+import { Eye, Share2, SquareArrowOutUpRight, ThumbsUp, Video } from "lucide-react";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { env } from "env/web";
+import { Card, CardContent } from "~/components/ui/card";
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
@@ -153,22 +154,29 @@ export default function VideoPlayerRouter() {
           </Button>
         </Link>
       </header>
-      <div className="h-32 flex items-center justify-center">
-        <div className="border w-[600px] h-24 text-muted flex items-center justify-center">
-          Advertisment goes here
+      <div className="flex gap-4 p-4 max-w-full">
+        <div className="basis[75%]">
+          <video
+            className="rounded-md w-full h-full"
+            src={url}
+            controls
+            poster={largeThumbnailUrl ?? ""}
+          />
         </div>
-      </div>
-      <div className="grow flex flex-col items-center">
-        <div className="min-w-[280px] min-h-[200px] h-[calc(100vh-20rem)] aspect-video relative group flex justify-center items-center">
-          <video className="max-h-full" src={url} controls />
-          <div className="absolute bottom-[-4rem] h-16 w-full flex items-center px-4">
-            <div>
-              <h1 className="font-medium text-xl">{title}</h1>
-              <h6 className="flex gap-2">
-                <Eye /> {views.toLocaleString()} views
-              </h6>
-            </div>
-          </div>
+        <div className="grow flex flex-col gap-4">
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <h1 className="text-2xl font-bold">{title}</h1>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Uploaded on May 15, 2023</span>
+                <span className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  {views.toLocaleString()} views
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="min-h-96"></Card>
         </div>
       </div>
     </div>

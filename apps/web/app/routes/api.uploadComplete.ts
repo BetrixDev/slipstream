@@ -76,6 +76,7 @@ export async function action(args: ActionFunctionArgs) {
     return json(
       {
         success: false,
+        message: "Storage limit reached",
       },
       { status: 413 },
     );

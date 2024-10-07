@@ -26,6 +26,11 @@ export function DeleteVideoDialog() {
         videosQueryData.filter((video) => video.id !== deleteVideo.id),
       );
 
+      queryClient.setQueryData<number>(
+        ["totalStorageUsed"],
+        (prev) => (prev ?? 0) - deleteVideo.contentLength,
+      );
+
       const videoId = deleteVideo.id;
 
       setDeleteVideo(undefined);
