@@ -49,6 +49,7 @@ export const videos = sqliteTable(
   (table) => ({
     authorId_idx: index("authorId_idx").on(table.authorId),
     videoId_idx: index("videoId_idx").on(table.id),
+    createdAt_idx: index("createdAt_idx").on(table.createdAt),
   }),
 );
 

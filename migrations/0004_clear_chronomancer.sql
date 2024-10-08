@@ -1,0 +1,1 @@
+CREATE INDEX `createdAt_idx` ON `videos` (`created_at`);
