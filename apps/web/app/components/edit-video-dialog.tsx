@@ -91,7 +91,11 @@ export function EditVideoDialog() {
       isPrivate: videoData?.isPrivate,
     },
     onSubmit: async ({ value }) => {
-      updateVideo(value);
+      if (!form.state.isPristine) {
+        updateVideo(value);
+      } else {
+        setEditVideo(undefined);
+      }
       form.reset();
     },
   });
@@ -117,7 +121,6 @@ export function EditVideoDialog() {
           className="flex flex-col gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            e.stopPropagation();
             form.handleSubmit();
           }}
         >
@@ -129,7 +132,7 @@ export function EditVideoDialog() {
             children={(field) => {
               return (
                 <div>
-                  <Label htmlFor={field.name}>Video Title</Label>
+                  <Label htmlFor={field.name}>Title</Label>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -172,7 +175,13 @@ export function EditVideoDialog() {
             >
               Cancel
             </Button>
-            <Button className="grow bg-blue-600 text-white" type="submit">
+            <Button
+              className="grow bg-blue-600 text-white"
+              type="button"
+              onMouseDown={() => {
+                form.handleSubmit();
+              }}
+            >
               Save Changes
             </Button>
           </div>
