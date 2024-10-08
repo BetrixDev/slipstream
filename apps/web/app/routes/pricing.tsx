@@ -110,6 +110,14 @@ const Pricing: React.FC = () => {
             "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account",
         },
         {
+          text: "No size or length limits",
+        },
+        {
+          text: "Native video quality",
+          infoTip:
+            "We provide native video quality for all devices. We will still create additional processed versions of your video to enable smoother playback and slower connections.",
+        },
+        {
           text: "Basic analytics",
           infoTip: "Basic analytics includes total views on a video",
         },
@@ -192,7 +200,7 @@ const Pricing: React.FC = () => {
           <div className="mt-8 grid gap-8 lg:grid-cols-3 lg:gap-x-8">
             {tiers.map((tier) => (
               <div key={tier.name}>
-                <Card className="flex flex-col bg-background shadow-lg justify-between h-[480px] border-4 border-blue-400 dark:border-blue-800">
+                <Card className="flex flex-col bg-background shadow-lg justify-between h-[500px] border-4 border-blue-400 dark:border-blue-800">
                   <CardHeader>
                     <CardTitle className="text-2xl font-bold">
                       {tier.name === "Premium" ? (
