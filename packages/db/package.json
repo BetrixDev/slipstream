@@ -19,6 +19,7 @@
   "type": "module",
   "dependencies": {
     "@libsql/client": "^0.11.0",
+    "dayjs": "^1.11.13",
     "drizzle-orm": "^0.33.0"
   },
   "devDependencies": {

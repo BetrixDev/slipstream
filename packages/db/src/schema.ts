@@ -1,5 +1,9 @@
 import { relations } from "drizzle-orm";
 import { index, int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+
+dayjs.extend(utc);
 
 export const users = sqliteTable(
   "users",
@@ -32,10 +36,10 @@ export const videos = sqliteTable(
     largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: int("created_at")
       .notNull()
-      .$defaultFn(() => new Date().getUTCMilliseconds()),
+      .$defaultFn(() => dayjs.utc().valueOf()),
     updatedAt: int("updated_at")
       .notNull()
-      .$defaultFn(() => new Date().getUTCMilliseconds()),
+      .$defaultFn(() => dayjs.utc().valueOf()),
     isPrivate: int("is_private", { mode: "boolean" }).notNull().default(false),
     views: int("views").notNull().default(0),
     fileSizeBytes: real("file_size_bytes").notNull(),

@@ -30,8 +30,13 @@ export const useUploadingVideosStore = create<UploadingVideosState & UploadingVi
     addVideo: (video) =>
       set((state) => ({
         uploadingVideos: [
+          {
+            ...video,
+            uploadProgress: 0,
+            videoSizeBytes: video.file.size,
+            id: nanoid(10),
+          },
           ...state.uploadingVideos,
-          { ...video, uploadProgress: 0, videoSizeBytes: video.file.size, id: nanoid(10) },
         ],
       })),
     removeVideo: (id) =>
@@ -115,6 +120,7 @@ async function handleVideoUpload(video: UploadingVideo) {
             id: string;
             title: string;
             fileSizeBytes: number;
+            createdAt: number;
           };
         }
     >("/api/uploadComplete", {
@@ -131,10 +137,14 @@ async function handleVideoUpload(video: UploadingVideo) {
     }
 
     queryClient.setQueryData<VideoBoardProps["videos"]>(["videos"], (prev) => {
-      return [
+      const videos = [
         { ...uploadCompleteData.video, views: 0, isProcessing: true, isPrivate: false },
-        ...(prev ?? []),
+        ...(prev ?? ([] as any)),
       ];
+
+      videos.sort((a, b) => b.createdAt - a.createdAt);
+
+      return videos;
     });
   } catch (error) {
     console.log("Error", error);

@@ -58,6 +58,7 @@ export async function loader(args: LoaderFunctionArgs) {
             smallThumbnailUrl: true,
             videoLengthSeconds: true,
             isProcessing: true,
+            createdAt: true,
           },
         },
       },
