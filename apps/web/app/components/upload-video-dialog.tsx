@@ -58,7 +58,13 @@ function UploadVideoDialog() {
         <DialogHeader>
           <DialogTitle>Upload a Video</DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-2">
+        <form
+          className="flex flex-col gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+        >
           <form.Field
             name="title"
             children={(field) => {
@@ -81,8 +87,7 @@ function UploadVideoDialog() {
           <form.Field
             name="file"
             validators={{
-              onChangeAsync: ({ value }) => {
-                console.log(value);
+              onChange: ({ value }) => {
                 const fileSize = value?.size ?? 0;
 
                 const totalStorageUsed =
@@ -93,6 +98,11 @@ function UploadVideoDialog() {
 
                 if (fileSize + totalStorageUsed > totalStorageAvailable) {
                   return "You do not have enough storage available";
+                }
+              },
+              onSubmit: ({ value }) => {
+                if (!value) {
+                  return "You must have a file selected to upload";
                 }
               },
             }}

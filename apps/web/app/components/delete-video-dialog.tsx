@@ -83,7 +83,7 @@ export function DeleteVideoDialog() {
           <div className="flex gap-2 h-12 items-end">
             <Button
               className="grow"
-              onClick={() => {
+              onMouseDown={() => {
                 setDeleteVideo(undefined);
               }}
             >
@@ -92,7 +92,7 @@ export function DeleteVideoDialog() {
             <Button
               className="grow"
               variant="destructive"
-              onClick={() => {
+              onMouseDown={() => {
                 mutate();
               }}
             >
