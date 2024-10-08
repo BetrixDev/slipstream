@@ -92,20 +92,23 @@ export async function action(args: ActionFunctionArgs) {
     videoId = nanoid(8);
   }
 
-  await db.batch([
+  const [, [videoData]] = await db.batch([
     db
       .update(users)
       .set({
         totalStorageUsed: userData.totalStorageUsed + response.ContentLength,
       })
       .where(eq(users.id, userId)),
-    db.insert(videos).values({
-      authorId: userId,
-      id: videoId,
-      key: data.key,
-      fileSizeBytes: response.ContentLength,
-      title: data.title,
-    }),
+    db
+      .insert(videos)
+      .values({
+        authorId: userId,
+        id: videoId,
+        key: data.key,
+        fileSizeBytes: response.ContentLength,
+        title: data.title,
+      })
+      .returning(),
   ]);
 
   try {
@@ -128,9 +131,10 @@ export async function action(args: ActionFunctionArgs) {
   return json({
     success: true,
     video: {
-      id: videoId,
-      title: data.title,
-      fileSizeBytes: response.ContentLength,
+      id: videoData.id,
+      title: videoData.title,
+      fileSizeBytes: videoData.fileSizeBytes,
+      createdAt: videoData.createdAt,
     },
   });
 }
