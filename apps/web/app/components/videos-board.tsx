@@ -20,6 +20,7 @@ export type VideoBoardProps = {
     videoLengthSeconds?: number;
     isProcessing: boolean;
     isPrivate: boolean;
+    createdAt: number;
   }[];
 };
 
