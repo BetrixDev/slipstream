@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { LoaderFunctionArgs, MetaFunction } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { redirect } from "@remix-run/node";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { asc, db, desc, videos } from "db";
+import { db, desc, videos } from "db";
 import { Suspense } from "react";
 import TopNav from "~/components/TopNav";
 import { Separator } from "~/components/ui/separator";
@@ -48,7 +47,7 @@ export async function loader(args: LoaderFunctionArgs) {
       },
       with: {
         videos: {
-          orderBy: asc(videos.createdAt),
+          orderBy: desc(videos.createdAt),
           columns: {
             fileSizeBytes: true,
             views: true,

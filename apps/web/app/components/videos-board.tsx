@@ -9,6 +9,7 @@ import { Link } from "@remix-run/react";
 import axios from "axios";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { RelativeDate } from "./relative-date";
 
 export type VideoBoardProps = {
   videos: {
@@ -49,6 +50,7 @@ type UploadedVideoProps = {
   smallThumbnailUrl: string;
   videoLengthSeconds?: number;
   isPrivate: boolean;
+  createdAt: number;
 };
 
 function UploadedVideo(video: UploadedVideoProps) {
@@ -121,18 +123,24 @@ function UploadedVideo(video: UploadedVideoProps) {
             {video.title}
           </Button>
         </Link>
-        <div className="flex gap-1">
-          <div className="flex items-center text-sm font-medium text-white gap-1">
-            <Eye className="w-4 h-4" />
-            {video.views.toLocaleString()} views
+        <div className="flex justify-between">
+          <div className="flex gap-1">
+            <div className="flex items-center text-sm font-medium text-white gap-1">
+              <Eye className="w-4 h-4" />
+              {video.views.toLocaleString()} views
+            </div>
+            <Button
+              variant="link"
+              className="text-white flex items-center gap-1"
+              onMouseDown={() => handleCopyLink(video.id, video.title)}
+            >
+              <Copy className="w-4 h-4" /> Copy Link
+            </Button>
           </div>
-          <Button
-            variant="link"
-            className="text-white flex items-center gap-1"
-            onMouseDown={() => handleCopyLink(video.id, video.title)}
-          >
-            <Copy className="w-4 h-4" /> Copy Link
-          </Button>
+          <RelativeDate
+            timestamp={video.createdAt}
+            className="text-sm font-medium text-white flex items-center"
+          />
         </div>
       </div>
       <div className="z-10 bg-black/15 backdrop-blur-md border-t-[1px] flex">
@@ -181,36 +189,32 @@ type ThumbnailPlaceholderProps = {
 function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
   const queryClient = useQueryClient();
 
-  const { data } = useQuery({
+  useQuery({
     queryKey: ["processingVideo", props.id],
-    retry: 3,
+    retry: 20,
+    refetchInterval: 1000 * 3,
     queryFn: async () => {
-      const { data } = await axios<{ smallThumbnailUrl: string | null }>(
+      const { data } = await axios<{ smallThumbnailUrl?: string }>(
         `/api/checkVideoProcessingStatus/${props.id}`,
       );
 
       if (data.smallThumbnailUrl) {
-        const videos: VideoBoardProps["videos"] = queryClient.getQueryData(["videos"]) ?? [];
+        queryClient.setQueryData<VideoBoardProps["videos"]>(["videos"], (videos) => {
+          return (videos ?? []).map((v) => {
+            if (v.id === props.id) {
+              return {
+                ...v,
+                smallThumbnailUrl: data.smallThumbnailUrl,
+              };
+            }
 
-        const newVideos = videos.map((v) => {
-          if (v.id === props.id) {
-            return {
-              ...v,
-              smallThumbnailUrl: data.smallThumbnailUrl,
-            };
-          } else {
             return v;
-          }
+          });
         });
-
-        console.log(newVideos);
-
-        queryClient.setQueryData(["videos"], newVideos);
       }
 
       return data.smallThumbnailUrl;
     },
-    refetchInterval: 1000 * 3,
   });
 
   return (
