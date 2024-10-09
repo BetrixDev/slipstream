@@ -23,7 +23,11 @@ export function RelativeDate({ timestamp, ...props }: RelativeDateProps) {
       if (Date.now() - timestamp < 1000 * 60 * 60 * 24 * 7) {
         return dayjsInstance.fromNow();
       } else {
-        return dayjsInstance.format("YYYY-MM-DD");
+        return new Date(dayjsInstance.valueOf()).toLocaleString(undefined, {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        });
       }
     },
   });
