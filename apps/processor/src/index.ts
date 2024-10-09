@@ -31,24 +31,24 @@ const s3VideosClient = new S3Client({
   region: env.S3_VIDEOS_REGION,
 });
 
-const videoTranscodingQueue = new Queue("videoTranscoding", {
+const videoTranscodingQueue = new Queue("{videoTranscoding}", {
   connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
+    host: env.CACHE_REDIS_HOST,
+    port: Number(env.CACHE_REDIS_PORT),
+    password: env.CACHE_REDIS_PASSWORD,
   },
 });
 
-const videoUploadedQueue = new Queue("videoUploaded", {
+const videoUploadedQueue = new Queue("{videoUploaded}", {
   connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
+    host: env.CACHE_REDIS_HOST,
+    port: Number(env.CACHE_REDIS_PORT),
+    password: env.CACHE_REDIS_PASSWORD,
   },
 });
 
 const videoTranscodingWorker = new Worker(
-  "videoTranscoding",
+  "{videoTranscoding}",
   async (job) => {
     // await execa(`ffmpeg`, [
     //   "-y",
@@ -79,15 +79,15 @@ const videoTranscodingWorker = new Worker(
   },
   {
     connection: {
-      host: env.REDIS_HOST,
-      port: Number(env.REDIS_PORT),
-      password: env.REDIS_PASSWORD,
+      host: env.CACHE_REDIS_HOST,
+      port: Number(env.CACHE_REDIS_PORT),
+      password: env.CACHE_REDIS_PASSWORD,
     },
   },
 );
 
 const videoUploadedWorker = new Worker(
-  "videoUploaded",
+  "{videoUploaded}",
   async (job) => {
     const start = Date.now();
 
@@ -183,7 +183,7 @@ const videoUploadedWorker = new Worker(
 
     image.emit("close");
 
-    let fileSizeBytes = undefined;
+    let fileSizeBytes: number | undefined = undefined;
 
     try {
       const stats = await stat(downloadId);
@@ -205,7 +205,6 @@ const videoUploadedWorker = new Worker(
     await db
       .update(videos)
       .set({
-        isProcessing: false,
         smallThumbnailUrl: smallThumbnailUrl,
         largeThumbnailUrl: largeThumbnailUrl,
         smallThumbnailKey: smallThumbnailKey,
@@ -232,10 +231,11 @@ const videoUploadedWorker = new Worker(
   },
   {
     connection: {
-      host: env.REDIS_HOST,
-      port: Number(env.REDIS_PORT),
-      password: env.REDIS_PASSWORD,
+      host: env.CACHE_REDIS_HOST,
+      port: Number(env.CACHE_REDIS_PORT),
+      password: env.CACHE_REDIS_PASSWORD,
     },
+    concurrency: 5,
   },
 );
 
@@ -252,7 +252,7 @@ const api = new Hono();
 api.use(logger());
 api.use("/api/*", bearerAuth({ token: env.API_SECRET }));
 
-api.get("/hc", (c) => c.text("Hono!"));
+api.get("/hc", (c) => c.text("Processor service is running"));
 
 api.put("/api/videoUploaded", async (c) => {
   const { videoId } = await c.req.json();
@@ -271,5 +271,7 @@ api.put("/api/videoUploaded", async (c) => {
 });
 
 serve({ ...api, port: Number(env.API_PORT), hostname: env.API_HOST }, (info) => {
-  console.log(`Listening on ${env.API_PROTOCOL}://${env.API_HOST}:${info.port}`);
+  console.log(
+    `Processor service is listening on ${env.API_PROTOCOL}://${env.API_HOST}:${info.port}`,
+  );
 });

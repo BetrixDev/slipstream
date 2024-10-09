@@ -1,15 +1,29 @@
 /* eslint-disable jsx-a11y/media-has-caption */
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { Link, redirect, useLoaderData } from "@remix-run/react";
 import { db } from "db";
 import { Button } from "~/components/ui/button";
-import { Eye, Share2, SquareArrowOutUpRight, ThumbsUp, Video } from "lucide-react";
+import { Eye, SquareArrowOutUpRight, UserRoundIcon, Video } from "lucide-react";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { env } from "env/web";
 import { Card, CardContent } from "~/components/ui/card";
+import { createSigner } from "fast-jwt";
+import { getClientIPAddress } from "remix-utils/get-client-ip-address";
+import dayjs from "dayjs";
+import { useEffect } from "react";
+import axios from "axios";
+
+const s3ReadOnlyClient = new S3Client({
+  region: env.S3_MEDIA_REGION,
+  endpoint: env.S3_MEDIA_ENDPOINT,
+  credentials: {
+    accessKeyId: env.S3_READ_ONLY_ACCESS_KEY,
+    secretAccessKey: env.S3_READ_ONLY_SECRET_KEY,
+  },
+});
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
@@ -69,6 +83,22 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   return tags;
 };
 
+export async function action(args: ActionFunctionArgs) {
+  const videoId = args.params["*"];
+
+  if (!videoId) {
+    return json({ success: false }, { status: 400 });
+  }
+
+  const { userId } = await getAuth(args);
+
+  if (!userId) {
+    return json({ success: false }, { status: 401 });
+  }
+
+  return json({ success: true });
+}
+
 export async function loader(args: LoaderFunctionArgs) {
   const videoId = args.params["*"];
 
@@ -86,6 +116,7 @@ export async function loader(args: LoaderFunctionArgs) {
       authorId: true,
       isProcessing: true,
       largeThumbnailUrl: true,
+      videoLengthSeconds: true,
     },
   });
 
@@ -93,21 +124,28 @@ export async function loader(args: LoaderFunctionArgs) {
     return json(undefined, { status: 404 });
   }
 
-  if (videoData.isPrivate) {
-    const { userId } = await getAuth(args);
+  const { userId } = await getAuth(args);
 
+  if (videoData.isPrivate) {
     if (userId === null || videoData.authorId !== userId) {
-      return json(null, { status: 403 });
+      return redirect("/");
     }
   }
 
-  const s3ReadOnlyClient = new S3Client({
-    region: env.S3_MEDIA_REGION,
-    endpoint: env.S3_MEDIA_ENDPOINT,
-    credentials: {
-      accessKeyId: env.S3_READ_ONLY_ACCESS_KEY,
-      secretAccessKey: env.S3_READ_ONLY_SECRET_KEY,
-    },
+  const ipAddress = getClientIPAddress(args.request);
+
+  const identifier = ipAddress ?? userId ?? videoId;
+
+  const signSync = createSigner({
+    key: env.JWT_SIGNING_SECRET,
+    clockTimestamp: dayjs.utc().valueOf(),
+    notBefore: (videoData.videoLengthSeconds ?? 30) / 2,
+  });
+
+  const token = signSync({
+    videoId: videoId,
+    identifier,
+    videoDuration: videoData.videoLengthSeconds ?? 30,
   });
 
   const command = new GetObjectCommand({
@@ -126,6 +164,8 @@ export async function loader(args: LoaderFunctionArgs) {
     isProcessing: videoData.isProcessing,
     largeThumbnailUrl: videoData.largeThumbnailUrl,
     isPrivate: videoData.isPrivate,
+    videoLengthSeconds: videoData.videoLengthSeconds,
+    token,
   });
 }
 
@@ -137,6 +177,28 @@ export default function VideoPlayerRouter() {
   }
 
   const { url, title, views, largeThumbnailUrl } = loaderData;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const timeout = setTimeout(
+      () => {
+        axios("/api/view", {
+          method: "POST",
+          headers: {
+            Authorization: loaderData.token,
+          },
+          signal: controller.signal,
+        });
+      },
+      (loaderData.videoLengthSeconds ?? 30) * 1000,
+    );
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, []);
 
   return (
     <div className="h-screen flex flex-col">
@@ -155,7 +217,7 @@ export default function VideoPlayerRouter() {
         </Link>
       </header>
       <div className="flex gap-4 p-4 max-w-full">
-        <div className="basis[75%]">
+        <div className="basis[50%]">
           <video
             className="rounded-md w-full h-full"
             src={url}

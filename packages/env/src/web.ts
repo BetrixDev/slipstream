@@ -23,7 +23,10 @@ const webEnvSchema = z.object({
   S3_MEDIA_ENDPOINT: z.string(),
   PROCESSOR_API_URL: z.string(),
   PROCESSOR_SECRET_KEY: z.string(),
+  VIEWS_API_URL: z.string(),
+  VIEWS_SECRET_KEY: z.string(),
   UPLOADTHING_TOKEN: z.string(),
+  JWT_SIGNING_SECRET: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);

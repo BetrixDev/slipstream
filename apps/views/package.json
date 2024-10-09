@@ -1,0 +1,30 @@
+{
+  "name": "views",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e .env tsx src/index.ts",
+    "start": "node run dist/index.ts",
+    "format": "prettier . --check --cache --cache-location=node_modules/.cache/.prettiercache",
+    "format:fix": "prettier . --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "dependencies": {
+    "@hono/node-server": "^1.13.1",
+    "bullmq": "^5.17.1",
+    "dayjs": "^1.11.13",
+    "db": "workspace:*",
+    "dotenv-cli": "^7.4.2",
+    "env": "workspace:*",
+    "fast-jwt": "^4.0.5",
+    "hono": "^4.6.2",
+    "ioredis": "^5.4.1",
+    "nanoid": "^5.0.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.6.2",
+    "tsx": "^4.19.1"
+  }
+}
