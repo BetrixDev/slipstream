@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.654.0",
     "@aws-sdk/lib-storage": "^3.658.1",
+    "@axiomhq/js": "^1.2.0",
     "@hono/node-server": "^1.13.1",
     "bullmq": "^5.13.2",
     "db": "workspace:*",

@@ -15,8 +15,13 @@ import { UTApi } from "uploadthing/server";
 import { logger } from "hono/logger";
 import sharp from "sharp";
 import { glob } from "glob";
+import { Axiom } from "@axiomhq/js";
 
 const nanoid = customAlphabet("1234567890abcdef", 20);
+
+const axiom = new Axiom({
+  token: env.AXIOM_TOKEN,
+});
 
 const utApi = new UTApi({ token: env.UPLOADTHING_TOKEN });
 
@@ -248,6 +253,12 @@ videoUploadedWorker.on("failed", (job, err) => {
 });
 
 const api = new Hono();
+
+api.use(
+  logger((message) => {
+    axiom.ingest(env.AXIOM_DATASET, [message]);
+  }),
+);
 
 api.use("/api/*", bearerAuth({ token: env.API_SECRET }));
 

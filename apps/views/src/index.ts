@@ -1,4 +1,4 @@
-import { Queue, Worker } from "bullmq";
+import { MetricsTime, Queue, Worker } from "bullmq";
 import { env } from "env/views";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
@@ -7,6 +7,11 @@ import { db, eq, sql, videos } from "db";
 import { createVerifier } from "fast-jwt";
 import { serve } from "@hono/node-server";
 import dayjs from "dayjs";
+import { Axiom } from "@axiomhq/js";
+
+const axiom = new Axiom({
+  token: env.AXIOM_TOKEN,
+});
 
 const cacheRedis = new Redis({
   host: env.CACHE_REDIS_HOST,
@@ -25,23 +30,39 @@ const incrementViewsQueue = new Queue("{incrementViewsQueue}", {
 const incrementViewsWorker = new Worker(
   "{incrementViewsQueue}",
   async (job) => {
+    function ingestLog(message: string, data?: any) {
+      axiom.ingest(env.AXIOM_DATASET, [
+        {
+          message,
+          ...data,
+          queueName: job.queueName,
+          jobId: job.id,
+          jobData: job.data,
+          timestamp: dayjs().utc().valueOf(),
+        },
+      ]);
+    }
+
     const { videoId } = job.data;
 
     if (!videoId) {
-      console.log("no video id");
+      ingestLog("no video id");
       return;
     }
 
-    console.log(`Incrementing views for ${videoId}`);
+    ingestLog(`Attempting to increment views for video ${videoId}`, { videoId });
 
     const viewsToAdd = await cacheRedis.get(`views:${videoId}`);
 
-    console.log(`Incrementing views for ${videoId} by ${viewsToAdd}`);
-
     if (!viewsToAdd) {
-      console.log(`No views to increment for ${videoId}`);
+      ingestLog(`No views to increment for ${videoId}, returning early`);
       return;
     }
+
+    ingestLog(`Attempting to increment views for video ${videoId} by ${viewsToAdd} views`, {
+      videoId,
+      viewsToAdd,
+    });
 
     const result = await db
       .update(videos)
@@ -52,7 +73,7 @@ const incrementViewsWorker = new Worker(
       throw new Error(`Unknown error when attempting to set views for ${videoId} to database`);
     }
 
-    console.log(`Incremented views for ${videoId} by ${viewsToAdd}`);
+    ingestLog(`Incremented views for ${videoId} by ${viewsToAdd}`);
 
     await cacheRedis.del(`views:${videoId}`);
   },
@@ -67,14 +88,36 @@ const incrementViewsWorker = new Worker(
 );
 
 incrementViewsWorker.on("completed", (job) => {
-  console.log(`${job.id} has completed!`);
+  axiom.ingest(env.AXIOM_DATASET, [
+    {
+      message: `job id ${job.id} has completed for queue ${job.queueName}`,
+      jobId: job.id,
+      queueName: job.queueName,
+      createdAt: job.timestamp,
+    },
+  ]);
 });
 
 incrementViewsWorker.on("failed", (job, err) => {
   console.log(`${job?.id} has failed with ${err.message}`);
+  axiom.ingest(env.AXIOM_DATASET, [
+    {
+      message: `job id ${job?.id} has failed for queue ${job?.queueName}`,
+      jobId: job?.id,
+      queueName: job?.queueName,
+      failedReason: job?.failedReason,
+      createdAt: job?.timestamp,
+    },
+  ]);
 });
 
 const api = new Hono();
+
+api.use(
+  logger((message) => {
+    axiom.ingest(env.AXIOM_DATASET, [message]);
+  }),
+);
 
 api.get("/hc", (c) => c.text("Views service is running"));
 

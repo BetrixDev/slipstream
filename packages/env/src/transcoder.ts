@@ -16,6 +16,8 @@ const transcoderEnvSchema = z.object({
   API_PORT: z.string(),
   API_HOST: z.string(),
   API_PROTOCOL: z.string(),
+  AXIOM_TOKEN: z.string(),
+  AXIOM_DATASET: z.string(),
 });
 
 export const env = transcoderEnvSchema.parse(process.env);

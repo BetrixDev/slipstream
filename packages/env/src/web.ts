@@ -27,6 +27,8 @@ const webEnvSchema = z.object({
   VIEWS_SECRET_KEY: z.string(),
   UPLOADTHING_TOKEN: z.string(),
   JWT_SIGNING_SECRET: z.string(),
+  AXIOM_TOKEN: z.string(),
+  AXIOM_DATASET: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);
