@@ -15,7 +15,7 @@ export function UploadingVideosContainer() {
           <Skeleton className="absolute inset-0">
             <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
           </Skeleton>
-          <div className="absolute right-0 bg-black/50 p-1 rounded-md backdrop-blur-md text-xs">
+          <div className="absolute right-0 bg-black/50 p-1 m-1 rounded-md backdrop-blur-md text-xs">
             {humanFileSize(video.videoSizeBytes)}
           </div>
           <div className="relative z-10 p-4 h-full flex flex-col justify-end">

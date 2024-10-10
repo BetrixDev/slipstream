@@ -77,21 +77,21 @@ export default function Index() {
               </h2>
               <div className="grid gap-10 sm:grid-cols-1 lg:grid-cols-3">
                 <div className="flex flex-col items-center space-y-3 text-center">
-                  <Upload className="h-12 w-12 text-pink-600" />
+                  <Upload className="h-12 w-12 text-blue-500" />
                   <h3 className="text-xl font-bold">Quick Uploads</h3>
                   <p className="text-gray-500 dark:text-gray-400">
                     Upload your videos in seconds with our streamlined interface
                   </p>
                 </div>
                 <div className="flex flex-col items-center space-y-3 text-center">
-                  <Share2 className="h-12 w-12 text-rose-400" />
+                  <Share2 className="h-12 w-12 text-blue-400" />
                   <h3 className="text-xl font-bold">Instant Sharing</h3>
                   <div className="text-gray-500 dark:text-gray-400">
                     Share videos with anyone immediately after uploading
                   </div>
                 </div>
                 <div className="flex flex-col items-center space-y-3 text-center ">
-                  <Clapperboard className="h-12 w-12 text-primary text-pink-600" />
+                  <Clapperboard className="h-12 w-12 text-blue-500" />
                   <h3 className="text-xl font-bold">Trim Videos</h3>
                   <p className="text-gray-500 dark:text-gray-400">
                     Trim any video before upload to speed up upload time

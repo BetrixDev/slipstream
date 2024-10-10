@@ -148,7 +148,7 @@ async function handleVideoUpload(video: UploadingVideo) {
     });
   } catch (error) {
     console.log("Error", error);
-    toast.error(`Failed to upload video ${video.title}`);
+    toast.error("Failed to upload video", { description: video.title });
 
     queryClient.setQueryData<number>(["totalStorageUsed"], (prev) => (prev ?? 0) - video.file.size);
   } finally {

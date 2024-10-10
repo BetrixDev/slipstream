@@ -15,6 +15,7 @@ import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import axios from "axios";
+import { WordyDate } from "~/components/wordy-date";
 
 const s3ReadOnlyClient = new S3Client({
   region: env.S3_MEDIA_REGION,
@@ -117,6 +118,7 @@ export async function loader(args: LoaderFunctionArgs) {
       isProcessing: true,
       largeThumbnailUrl: true,
       videoLengthSeconds: true,
+      createdAt: true,
     },
   });
 
@@ -166,6 +168,8 @@ export async function loader(args: LoaderFunctionArgs) {
     largeThumbnailUrl: videoData.largeThumbnailUrl,
     isPrivate: videoData.isPrivate,
     videoLengthSeconds: videoData.videoLengthSeconds,
+    createdAt: videoData.createdAt,
+    isViewerAuthor: videoData.authorId === userId,
     token,
   });
 }
@@ -177,7 +181,7 @@ export default function VideoPlayerRouter() {
     return <div>This video is private</div>;
   }
 
-  const { url, title, views, largeThumbnailUrl } = loaderData;
+  const { url, title, views, largeThumbnailUrl, createdAt, isViewerAuthor } = loaderData;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -203,35 +207,30 @@ export default function VideoPlayerRouter() {
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="max-h-16 h-16 flex justify-between items-center px-6">
+      <header className="max-h-16 h-16 flex justify-between items-center px-4">
         <Link className="flex items-center" to="/">
           <button className="flex-shrink-0 flex items-center z-10">
             <Video className="h-8 w-8 text-blue-500 mt-1" />
             <span className="ml-2 text-2xl font-bold">Flowble</span>
           </button>
         </Link>
-        <Link className="flex items-center" to="/">
-          <Button variant="outline" className="text-md flex gap-2 items-center">
+        <Link className="flex items-center" to={isViewerAuthor ? "/videos" : "/"}>
+          <Button variant="outline" className="text-md flex gap-2 items-center rounded-lg h-10">
             <SquareArrowOutUpRight className="w-5 h-5" />
             Go to Flowble
           </Button>
         </Link>
       </header>
-      <div className="flex gap-4 p-4 max-w-full">
-        <div className="basis[50%]">
-          <video
-            className="rounded-md w-full h-full"
-            src={url}
-            controls
-            poster={largeThumbnailUrl ?? ""}
-          />
-        </div>
-        <div className="grow flex flex-col gap-4">
+      <div className="flex gap-4 p-4 max-w-full h-full flex-col xl:flex-row">
+        <Card className="grow"></Card>
+        <div className="flex flex-col gap-4 min-w-96">
           <Card>
             <CardContent className="p-4 space-y-4">
               <h1 className="text-2xl font-bold">{title}</h1>
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Uploaded on May 15, 2023</span>
+                <span>
+                  Uploaded on <WordyDate timestamp={createdAt} />
+                </span>
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
                   {views.toLocaleString()} views
@@ -239,7 +238,7 @@ export default function VideoPlayerRouter() {
               </div>
             </CardContent>
           </Card>
-          <Card className="min-h-96"></Card>
+          <Card className="grow min-h-64"></Card>
         </div>
       </div>
     </div>

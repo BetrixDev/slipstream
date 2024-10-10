@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
-import { Eye, Copy, Loader2, HardDriveDownload, Trash, EyeOff, ListTodo } from "lucide-react";
+import { Eye, Copy, Loader2, HardDriveDownload, Trash, EyeOff, ListTodo, Play } from "lucide-react";
 import { deleteVideoAtom, editVideoAtom } from "~/atoms";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -96,7 +96,7 @@ function UploadedVideo(video: UploadedVideoProps) {
             {formatSecondsToTimestamp(video.videoLengthSeconds ?? 0)}s
           </span>
         )}
-        <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
+        <span className="p-1 bg-black/50 rounded-md rounded-tr-sm backdrop-blur-md">
           {humanFileSize(video.fileSizeBytes)}
         </span>
       </div>

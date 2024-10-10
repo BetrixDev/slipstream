@@ -107,7 +107,7 @@ const Pricing: React.FC = () => {
         {
           text: "5GB of storage space",
           infoTip:
-            "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account",
+            "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account.",
         },
         {
           text: "No size or length limits",
@@ -115,7 +115,7 @@ const Pricing: React.FC = () => {
         {
           text: "Native video quality",
           infoTip:
-            "We provide native video quality for all devices. We will still create additional processed versions of your video to enable smoother playback and slower connections.",
+            "This means that the quality of your uploaded videos is not affected by the device you are viewing them on. This also means that if you upload a 4k video, it will be played back at native 4k resolutions on all devices.",
         },
         {
           text: "Basic analytics",
@@ -153,6 +153,11 @@ const Pricing: React.FC = () => {
       features: [
         { text: "Everything in Free Tier" },
         { text: "100GB of storage space" },
+        {
+          text: "Automatic video transcoding",
+          infoTip:
+            "Videos are automatically transcoded into multiple smaller formats including the original to give users on slower connections a smoother viewing experience.",
+        },
         { text: "Infinite video retention" },
         { text: "Ad-free experience" },
       ],
