@@ -33,17 +33,17 @@ const s3VideosClient = new S3Client({
 
 const videoTranscodingQueue = new Queue("{videoTranscoding}", {
   connection: {
-    host: env.CACHE_REDIS_HOST,
-    port: Number(env.CACHE_REDIS_PORT),
-    password: env.CACHE_REDIS_PASSWORD,
+    host: env.QUEUE_REDIS_HOST,
+    port: Number(env.QUEUE_REDIS_PORT),
+    password: env.QUEUE_REDIS_PASSWORD,
   },
 });
 
 const videoUploadedQueue = new Queue("{videoUploaded}", {
   connection: {
-    host: env.CACHE_REDIS_HOST,
-    port: Number(env.CACHE_REDIS_PORT),
-    password: env.CACHE_REDIS_PASSWORD,
+    host: env.QUEUE_REDIS_HOST,
+    port: Number(env.QUEUE_REDIS_PORT),
+    password: env.QUEUE_REDIS_PASSWORD,
   },
 });
 
@@ -79,9 +79,9 @@ const videoTranscodingWorker = new Worker(
   },
   {
     connection: {
-      host: env.CACHE_REDIS_HOST,
-      port: Number(env.CACHE_REDIS_PORT),
-      password: env.CACHE_REDIS_PASSWORD,
+      host: env.QUEUE_REDIS_HOST,
+      port: Number(env.QUEUE_REDIS_PORT),
+      password: env.QUEUE_REDIS_PASSWORD,
     },
   },
 );
@@ -231,9 +231,9 @@ const videoUploadedWorker = new Worker(
   },
   {
     connection: {
-      host: env.CACHE_REDIS_HOST,
-      port: Number(env.CACHE_REDIS_PORT),
-      password: env.CACHE_REDIS_PASSWORD,
+      host: env.QUEUE_REDIS_HOST,
+      port: Number(env.QUEUE_REDIS_PORT),
+      password: env.QUEUE_REDIS_PASSWORD,
     },
     concurrency: 5,
   },
@@ -249,7 +249,6 @@ videoUploadedWorker.on("failed", (job, err) => {
 
 const api = new Hono();
 
-api.use(logger());
 api.use("/api/*", bearerAuth({ token: env.API_SECRET }));
 
 api.get("/hc", (c) => c.text("Processor service is running"));

@@ -136,10 +136,11 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const identifier = ipAddress ?? userId ?? videoId;
 
+  const utcTimestamp = dayjs.utc().valueOf();
+
   const signSync = createSigner({
     key: env.JWT_SIGNING_SECRET,
-    clockTimestamp: dayjs.utc().valueOf(),
-    notBefore: (videoData.videoLengthSeconds ?? 30) / 2,
+    clockTimestamp: utcTimestamp,
   });
 
   const token = signSync({
@@ -186,12 +187,12 @@ export default function VideoPlayerRouter() {
         axios("/api/view", {
           method: "POST",
           headers: {
-            Authorization: loaderData.token,
+            Authorization: `Bearer ${loaderData.token}`,
           },
           signal: controller.signal,
         });
       },
-      (loaderData.videoLengthSeconds ?? 30) * 1000,
+      ((loaderData.videoLengthSeconds ?? 30) / 2) * 1000,
     );
 
     return () => {

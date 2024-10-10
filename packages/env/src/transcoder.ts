@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 const transcoderEnvSchema = z.object({
-  CACHE_REDIS_HOST: z.string(),
-  CACHE_REDIS_PORT: z.string(),
-  CACHE_REDIS_PASSWORD: z.string(),
+  QUEUE_REDIS_HOST: z.string(),
+  QUEUE_REDIS_PORT: z.string(),
+  QUEUE_REDIS_PASSWORD: z.string(),
   S3_ROOT_ACCESS_KEY: z.string(),
   S3_ROOT_SECRET_KEY: z.string(),
   S3_VIDEOS_BUCKET: z.string(),
