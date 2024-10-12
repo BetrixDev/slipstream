@@ -33,8 +33,20 @@ function UploadVideoDialog() {
 
   const form = useForm<FormData>({
     onSubmit: ({ value }) => {
+      function getVideoTitleFromFileName(name: string) {
+        const title = name.split(".");
+
+        if (title.length > 1) {
+          title.length--;
+        }
+
+        return title.join(".");
+      }
+
       const videoTitle = (
-        (value.title?.trim().length ?? 0) > 0 ? value.title?.trim() : value.file.name
+        (value.title?.trim().length ?? 0) > 0
+          ? value.title?.trim()
+          : getVideoTitleFromFileName(value.file.name)
       ) as string;
 
       addVideo({ title: videoTitle, file: value.file });

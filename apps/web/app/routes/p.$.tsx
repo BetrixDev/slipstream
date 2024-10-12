@@ -1,8 +1,8 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, redirect, useLoaderData } from "@remix-run/react";
 import { db } from "db";
 import { Button } from "~/components/ui/button";
-import { Eye, SquareArrowOutUpRight, Video } from "lucide-react";
+import { Eye, Loader2, SquareArrowOutUpRight, Video } from "lucide-react";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { env } from "env/web";
@@ -94,22 +94,6 @@ type DownloadAuthorizationResponse = {
   bucketId: string;
   fileNamePrefix: string;
 };
-
-export async function action(args: ActionFunctionArgs) {
-  const videoId = args.params["*"];
-
-  if (!videoId) {
-    return json({ success: false }, { status: 400 });
-  }
-
-  const { userId } = await getAuth(args);
-
-  if (!userId) {
-    return json({ success: false }, { status: 401 });
-  }
-
-  return json({ success: true });
-}
 
 export async function loader(args: LoaderFunctionArgs) {
   const videoId = args.params["*"];
@@ -209,8 +193,16 @@ export default function VideoPlayerRouter() {
     return <div>This video is private</div>;
   }
 
-  const { url, title, views, largeThumbnailUrl, createdAt, isViewerAuthor, videoLengthSeconds } =
-    loaderData;
+  const {
+    url,
+    title,
+    views,
+    largeThumbnailUrl,
+    createdAt,
+    isViewerAuthor,
+    videoLengthSeconds,
+    isProcessing,
+  } = loaderData;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -252,7 +244,6 @@ export default function VideoPlayerRouter() {
       </header>
       <div className="flex gap-4 p-4 max-w-full h-full flex-col xl:flex-row">
         <div className="grow">
-          {/* <video src={url} controls /> */}
           <MediaPlayer
             src={url}
             viewType="video"
@@ -283,6 +274,12 @@ export default function VideoPlayerRouter() {
                   {views.toLocaleString()} views
                 </span>
               </div>
+              {isProcessing && (
+                <span className="text-sm text-muted flex gap-2">
+                  <Loader2 className="animate-spin" /> This video is still processing. Playback may
+                  less smooth than usual
+                </span>
+              )}
             </CardContent>
           </Card>
           <Separator />

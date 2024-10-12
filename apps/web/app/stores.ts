@@ -110,7 +110,6 @@ async function handleVideoUpload(video: UploadingVideo) {
         Authorization: uploadPreflight.token!,
         "X-Bz-File-Name": uploadPreflight.key!,
         "X-Bz-Content-Sha1": await computeSHA1Checksum(video.file),
-        // "X-Bz-Content-Sha1": "do_not_verify",
       },
       signal: abortController.signal,
     });

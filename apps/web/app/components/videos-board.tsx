@@ -115,7 +115,7 @@ function UploadedVideo(video: UploadedVideoProps) {
         </span>
       </div>
       <div className="relative z-10 p-4 h-full flex flex-col justify-end">
-        <Link to={`/p/${video.id}`}>
+        <Link to={`/p/${video.id}`} prefetch="intent">
           <Button
             variant="link"
             className="text-lg font-semibold line-clamp-2 text-white transition-colors duration-300 ease-in-out p-0"

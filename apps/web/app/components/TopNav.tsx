@@ -13,7 +13,7 @@ export default function TopNav() {
   return (
     <div className="sticky top-2 flex justify-center z-[9999]">
       <header className=" px-4 max-w-[48rem] w-[80%] bg-background/70 border rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm">
-        <Link className="flex items-center" to="/">
+        <Link className="flex items-center" to="/" prefetch="render">
           <Button variant="ghost" className="flex-shrink-0 flex items-center rounded-full">
             <Video className="h-8 w-8 text-blue-500" />
             <span className="ml-2 text-lg md:text-2xl font-bold">Flowble</span>
@@ -21,10 +21,18 @@ export default function TopNav() {
         </Link>
         <div className="grow flex justify-center items-center">
           <nav className="hidden md:flex mx-auto justify-center gap-4 sm:gap-6">
-            <Link className="text-sm font-medium hover:underline underline-offset-4" to="/pricing">
+            <Link
+              className="text-sm font-medium hover:underline underline-offset-4"
+              to="/pricing"
+              prefetch="render"
+            >
               Pricing
             </Link>
-            <Link className="text-sm font-medium hover:underline underline-offset-4" to="/videos">
+            <Link
+              className="text-sm font-medium hover:underline underline-offset-4"
+              to="/videos"
+              prefetch="intent"
+            >
               Your Videos
             </Link>
             <Link
@@ -38,7 +46,7 @@ export default function TopNav() {
           </nav>
           <div className="block md:hidden">
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
                 <Button variant="outline">Navigate</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
