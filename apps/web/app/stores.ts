@@ -83,31 +83,34 @@ async function handleVideoUpload(video: UploadingVideo) {
   uploadingVideosAbortControllers.set(video.id, abortController);
 
   try {
-    const presigned = await axios<SerializeFrom<typeof import("~/routes/api.beginUpload").action>>(
-      "/api/beginUpload",
-      {
-        method: "POST",
-        data: {
-          contentLength: video.file.size,
-        },
-        signal: abortController.signal,
+    const { data: uploadPreflight } = await axios<
+      SerializeFrom<typeof import("~/routes/api.beginUpload").action>
+    >("/api/beginUpload", {
+      method: "POST",
+      data: {
+        contentLength: video.file.size,
       },
-    );
+      signal: abortController.signal,
+    });
 
-    if (!presigned.data?.url) {
+    if (!uploadPreflight) {
       throw new Error("Malformed response data");
     }
 
     queryClient.setQueryData<number>(["totalStorageUsed"], (prev) => (prev ?? 0) + video.file.size);
 
-    await axios(presigned.data.url!, {
+    await axios(uploadPreflight.url!, {
       onUploadProgress: (e) => {
         useUploadingVideosStore.getState().setUploadProgress(video.id, (e.progress ?? 0) * 100);
       },
       data: video.file,
-      method: "PUT",
+      method: "POST",
       headers: {
-        "Content-Type": "application/octet-stream",
+        "Content-Type": "b2/x-auto",
+        Authorization: uploadPreflight.token!,
+        "X-Bz-File-Name": uploadPreflight.key!,
+        "X-Bz-Content-Sha1": await computeSHA1Checksum(video.file),
+        // "X-Bz-Content-Sha1": "do_not_verify",
       },
       signal: abortController.signal,
     });
@@ -126,7 +129,7 @@ async function handleVideoUpload(video: UploadingVideo) {
     >("/api/uploadComplete", {
       method: "POST",
       data: {
-        key: presigned.data.key,
+        key: uploadPreflight.key,
         title: video.title,
       },
       signal: abortController.signal,
@@ -154,4 +157,20 @@ async function handleVideoUpload(video: UploadingVideo) {
   } finally {
     useUploadingVideosStore.getState().removeVideo(video.id);
   }
+}
+
+async function computeSHA1Checksum(file: File): Promise<string> {
+  // Read the file as an ArrayBuffer
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Compute the SHA-1 hash
+  const hashBuffer = await crypto.subtle.digest("SHA-1", arrayBuffer);
+
+  // Convert the hash from ArrayBuffer to a hexadecimal string
+  const hashArray = new Uint8Array(hashBuffer);
+  const hashHex = Array.from(hashArray)
+    .map((b) => ("00" + b.toString(16)).slice(-2))
+    .join("");
+
+  return hashHex;
 }

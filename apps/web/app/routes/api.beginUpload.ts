@@ -1,13 +1,29 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { nanoid } from "nanoid";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { env } from "env/web";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { json } from "@vercel/remix";
 import { z } from "zod";
 import { db } from "db";
 import { PLAN_STORAGE_SIZES } from "cms";
+import axios from "axios";
+
+type AuthorizeAccountResponse = {
+  apiInfo: {
+    storageApi: {
+      apiUrl: string;
+      downloadUrl: string;
+      bucketName: string;
+    };
+  };
+  authorizationToken: string;
+};
+
+type GetUploadUrlResponse = {
+  bucketId: string;
+  uploadUrl: string;
+  authorizationToken: string;
+};
 
 const schema = z.object({
   contentLength: z.number(),
@@ -38,6 +54,7 @@ export async function action(args: LoaderFunctionArgs) {
       {
         key: null,
         url: null,
+        token: null,
       },
       { status: 413 },
     );
@@ -46,25 +63,27 @@ export async function action(args: LoaderFunctionArgs) {
   const objectKey = nanoid(25);
   // TODO: add a check to make sure this object key doesn't already exist
 
-  const s3WriteClient = new S3Client({
-    endpoint: env.S3_MEDIA_ENDPOINT,
-    region: env.S3_MEDIA_REGION,
-    credentials: {
-      accessKeyId: env.S3_WRITE_ONLY_ACCESS_KEY,
-      secretAccessKey: env.S3_WRITE_ONLY_SECRET_KEY,
-    },
-  });
-
-  const url = await getSignedUrl(
-    s3WriteClient as any,
-    new PutObjectCommand({
-      Bucket: env.S3_MEDIA_BUCKET,
-      Key: objectKey,
-    }),
+  const authorizeResponse = await axios<AuthorizeAccountResponse>(
+    "https://api.backblazeb2.com/b2api/v3/b2_authorize_account",
     {
-      expiresIn: 3600,
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${env.B2_VIDEOS_WRITE_APP_KEY_ID}:${env.B2_VIDEOS_WRITE_APP_KEY}`).toString("base64")}`,
+      },
     },
   );
 
-  return { url, key: objectKey };
+  const uploadUrlResponse = await axios<GetUploadUrlResponse>(
+    `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_upload_url?bucketId=${encodeURIComponent(env.VIDEOS_BUCKET_ID)}`,
+    {
+      headers: {
+        Authorization: authorizeResponse.data.authorizationToken,
+      },
+    },
+  );
+
+  return {
+    url: uploadUrlResponse.data.uploadUrl,
+    token: uploadUrlResponse.data.authorizationToken,
+    key: objectKey,
+  };
 }

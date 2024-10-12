@@ -1,11 +1,8 @@
-/* eslint-disable jsx-a11y/media-has-caption */
 import { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, redirect, useLoaderData } from "@remix-run/react";
 import { db } from "db";
 import { Button } from "~/components/ui/button";
-import { Eye, SquareArrowOutUpRight, UserRoundIcon, Video } from "lucide-react";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Eye, SquareArrowOutUpRight, Video } from "lucide-react";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { env } from "env/web";
@@ -16,15 +13,12 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import axios from "axios";
 import { WordyDate } from "~/components/wordy-date";
-
-const s3ReadOnlyClient = new S3Client({
-  region: env.S3_MEDIA_REGION,
-  endpoint: env.S3_MEDIA_ENDPOINT,
-  credentials: {
-    accessKeyId: env.S3_READ_ONLY_ACCESS_KEY,
-    secretAccessKey: env.S3_READ_ONLY_SECRET_KEY,
-  },
-});
+import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
+import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
+import { Separator } from "~/components/ui/separator";
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/audio.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
@@ -84,6 +78,23 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   return tags;
 };
 
+type AuthorizeAccountResponse = {
+  apiInfo: {
+    storageApi: {
+      apiUrl: string;
+      downloadUrl: string;
+      bucketName: string;
+    };
+  };
+  authorizationToken: string;
+};
+
+type DownloadAuthorizationResponse = {
+  authorizationToken: string;
+  bucketId: string;
+  fileNamePrefix: string;
+};
+
 export async function action(args: ActionFunctionArgs) {
   const videoId = args.params["*"];
 
@@ -126,6 +137,32 @@ export async function loader(args: LoaderFunctionArgs) {
     return json(undefined, { status: 404 });
   }
 
+  const authorizeResponse = await axios<AuthorizeAccountResponse>(
+    "https://api.backblazeb2.com/b2api/v3/b2_authorize_account",
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${env.B2_VIDEOS_READ_APP_KEY_ID}:${env.B2_VIDEOS_READ_APP_KEY}`).toString("base64")}`,
+      },
+    },
+  );
+
+  const downloadAuthorizeResponse = await axios<DownloadAuthorizationResponse>(
+    `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_download_authorization`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: authorizeResponse.data.authorizationToken,
+      },
+      data: {
+        bucketId: env.VIDEOS_BUCKET_ID,
+        fileNamePrefix: videoData.key,
+        validDurationInSeconds: 3600,
+        b2ContentDisposition: "inline",
+        b2ContentType: "video/mp4",
+      },
+    },
+  );
+
   const { userId } = await getAuth(args);
 
   if (videoData.isPrivate) {
@@ -151,17 +188,7 @@ export async function loader(args: LoaderFunctionArgs) {
     videoDuration: videoData.videoLengthSeconds ?? 30,
   });
 
-  const command = new GetObjectCommand({
-    Bucket: env.S3_MEDIA_BUCKET,
-    Key: videoData.key,
-  });
-
-  const url = await getSignedUrl(s3ReadOnlyClient as any, command, {
-    expiresIn: 300,
-  });
-
   return json({
-    url,
     views: videoData.views,
     title: videoData.title,
     isProcessing: videoData.isProcessing,
@@ -170,6 +197,7 @@ export async function loader(args: LoaderFunctionArgs) {
     videoLengthSeconds: videoData.videoLengthSeconds,
     createdAt: videoData.createdAt,
     isViewerAuthor: videoData.authorId === userId,
+    url: `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/file/${authorizeResponse.data.apiInfo.storageApi.bucketName}/${videoData.key}?Authorization=${encodeURIComponent(downloadAuthorizeResponse.data.authorizationToken)}&b2ContentDisposition=inline&b2ContentType=${encodeURIComponent("video/mp4")}`,
     token,
   });
 }
@@ -181,7 +209,8 @@ export default function VideoPlayerRouter() {
     return <div>This video is private</div>;
   }
 
-  const { url, title, views, largeThumbnailUrl, createdAt, isViewerAuthor } = loaderData;
+  const { url, title, views, largeThumbnailUrl, createdAt, isViewerAuthor, videoLengthSeconds } =
+    loaderData;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -222,10 +251,28 @@ export default function VideoPlayerRouter() {
         </Link>
       </header>
       <div className="flex gap-4 p-4 max-w-full h-full flex-col xl:flex-row">
-        <Card className="grow"></Card>
+        <div className="grow">
+          {/* <video src={url} controls /> */}
+          <MediaPlayer
+            src={url}
+            viewType="video"
+            streamType="on-demand"
+            logLevel="debug"
+            playsInline
+            title={title}
+            poster={largeThumbnailUrl ?? undefined}
+            duration={videoLengthSeconds ?? undefined}
+            storage="player"
+          >
+            <MediaProvider>
+              <Poster className="vds-poster" src={largeThumbnailUrl ?? undefined} />
+            </MediaProvider>
+            <DefaultVideoLayout icons={defaultLayoutIcons} />
+          </MediaPlayer>
+        </div>
         <div className="flex flex-col gap-4 min-w-96">
-          <Card>
-            <CardContent className="p-4 space-y-4">
+          <Card className="border-none">
+            <CardContent className="p-0 space-y-4">
               <h1 className="text-2xl font-bold">{title}</h1>
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>
@@ -238,7 +285,8 @@ export default function VideoPlayerRouter() {
               </div>
             </CardContent>
           </Card>
-          <Card className="grow min-h-64"></Card>
+          <Separator />
+          <Card className="grow min-h-64 border-none"></Card>
         </div>
       </div>
     </div>

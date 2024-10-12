@@ -61,7 +61,7 @@ importers:
         version: 0.33.5
       uploadthing:
         specifier: ^7.0.2
-        version: 7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.13)
+        version: 7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14)(tailwindcss@3.4.13)
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -199,6 +199,9 @@ importers:
       '@vercel/speed-insights':
         specifier: ^1.0.12
         version: 1.0.12(next@14.2.14(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@vidstack/react':
+        specifier: ^1.12.11
+        version: 1.12.11(@types/react@18.3.8)(react@18.3.1)
       aws-sdk:
         specifier: ^2.1691.0
         version: 2.1691.0
@@ -291,7 +294,7 @@ importers:
         version: 1.0.7(tailwindcss@3.4.13)
       uploadthing:
         specifier: ^7.0.2
-        version: 7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.13)
+        version: 7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14)(tailwindcss@3.4.13)
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -2921,6 +2924,13 @@ packages:
   '@vercel/static-config@3.0.0':
     resolution: {integrity: sha512-2qtvcBJ1bGY0dYGYh3iM7yGKkk971FujLEDXzuW5wcZsPr1GSEjO/w2iSr3qve6nDDtBImsGoDEnus5FI4+fIw==}
 
+  '@vidstack/react@1.12.11':
+    resolution: {integrity: sha512-rtSRjjob1k/mkzImN0wWPKYFi/Y7bsuSkDl/RfTxTKlDs4QzFtVwkUfgN1h8y+EUKJvMe9ozVHKdBtGYKDr6FQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/react': ^18.0.0
+      react: ^18.0.0
+
   '@web3-storage/multipart-parser@1.0.0':
     resolution: {integrity: sha512-BEO6al7BYqcnfX15W2cnGR+Q566ACXAT9UQykORCWW80lmkpWsnEob6zJS1ZVBKsSJC8+7vJkHwlp+lXG1UCdw==}
 
@@ -4508,6 +4518,10 @@ packages:
 
   mdast-util-to-string@3.2.0:
     resolution: {integrity: sha512-V4Zn/ncyN1QNSqSBxTrMOLpjr+IKdHl2v3KVLoWmDPscP4r9GcCi71gjgvUV1SFSKh92AjAG4peFuBl2/YgCJg==}
+
+  media-captions@1.0.4:
+    resolution: {integrity: sha512-cyDNmuZvvO4H27rcBq2Eudxo9IZRDCOX/I7VEyqbxsEiD2Ei7UYUhG/Sc5fvMZjmathgz3fEK7iAKqvpY+Ux1w==}
+    engines: {node: '>=16'}
 
   media-icons@1.1.5:
     resolution: {integrity: sha512-zu3CjKRs63ybLLWPomRRgTDyYiSrk2bRRgw97ZmN3FGXuo9qUUhBSfYwnjmvSdLG2JOJfAwzDz99bPATSY81DQ==}
@@ -9050,6 +9064,13 @@ snapshots:
       json-schema-to-ts: 1.6.4
       ts-morph: 12.0.0
 
+  '@vidstack/react@1.12.11(@types/react@18.3.8)(react@18.3.1)':
+    dependencies:
+      '@floating-ui/dom': 1.6.11
+      '@types/react': 18.3.8
+      media-captions: 1.0.4
+      react: 18.3.1
+
   '@web3-storage/multipart-parser@1.0.0': {}
 
   '@zxing/text-encoding@0.9.0':
@@ -10720,6 +10741,8 @@ snapshots:
     dependencies:
       '@types/mdast': 3.0.15
 
+  media-captions@1.0.4: {}
+
   media-icons@1.1.5: {}
 
   media-query-parser@2.0.2:
@@ -12262,7 +12285,7 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.0
 
-  uploadthing@7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.13):
+  uploadthing@7.0.2(express@4.21.0)(h3@1.11.1)(next@14.2.14)(tailwindcss@3.4.13):
     dependencies:
       '@effect/platform': 0.63.2(@effect/schema@0.72.2(effect@3.7.2))(effect@3.7.2)
       '@effect/schema': 0.72.2(effect@3.7.2)

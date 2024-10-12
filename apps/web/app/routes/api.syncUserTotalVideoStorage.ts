@@ -18,7 +18,7 @@ export async function action(args: ActionFunctionArgs) {
   await db
     .update(users)
     .set({
-      totalStorageUsed: totalVideoStorage,
+      totalStorageUsed: totalVideoStorage ?? 0,
     })
     .where(eq(users.id, user))
     .execute();

@@ -125,6 +125,17 @@ export async function action(args: ActionFunctionArgs) {
     );
   } catch (e) {
     console.error(e);
+
+    await db.batch([
+      db
+        .update(users)
+        .set({
+          totalStorageUsed: Math.max(userData.totalStorageUsed - response.ContentLength, 0),
+        })
+        .where(eq(users.id, userId)),
+      db.delete(videos).where(eq(videos.id, videoData.id)),
+    ]);
+
     return json({ success: false, message: "Failed to process video" }, { status: 500 });
   }
 
