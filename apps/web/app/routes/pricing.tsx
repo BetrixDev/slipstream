@@ -115,7 +115,7 @@ const Pricing: React.FC = () => {
         {
           text: "Native video quality",
           infoTip:
-            "This means that the quality of your uploaded videos is not affected by the device you are viewing them on. This also means that if you upload a 4k video, it will be played back at native 4k resolutions on all devices.",
+            "We retain and give you the ability to view the native video file you uploaded at any time. We will still create mutliple more compatible and smaller versions of your video as well.",
         },
         {
           text: "Basic analytics",
@@ -153,11 +153,6 @@ const Pricing: React.FC = () => {
       features: [
         { text: "Everything in Free Tier" },
         { text: "100GB of storage space" },
-        {
-          text: "Automatic video transcoding",
-          infoTip:
-            "Videos are automatically transcoded into multiple smaller formats including the original to give users on slower connections a smoother viewing experience.",
-        },
         { text: "Infinite video retention" },
         { text: "Ad-free experience" },
       ],
@@ -169,7 +164,15 @@ const Pricing: React.FC = () => {
       monthlyPaymentLink: "https://buy.stripe.com/14k7vib1e00Za8E14a",
       annualPaymentLink: "https://buy.stripe.com/fZeg1O5GU7trbcIeV1",
       description: "For professionals looking to reach everyone",
-      features: [{ text: "Everything in Pro Tier" }, { text: "1TB of storage space" }],
+      features: [
+        { text: "Everything in Pro Tier" },
+        { text: "1TB of storage space" },
+        {
+          text: "Higher quality processed videos",
+          infoTip:
+            "The additional quality levels of your video we process will be a higher quality.",
+        },
+      ],
     },
   ];
 

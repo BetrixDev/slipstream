@@ -15,6 +15,7 @@
     "@aws-sdk/lib-storage": "^3.658.1",
     "@axiomhq/js": "^1.2.0",
     "@hono/node-server": "^1.13.1",
+    "axios": "^1.7.7",
     "bullmq": "^5.13.2",
     "db": "workspace:*",
     "dotenv-cli": "^7.4.2",
@@ -22,7 +23,9 @@
     "execa": "^9.4.0",
     "glob": "^11.0.0",
     "hono": "^4.6.2",
+    "logger": "workspace:*",
     "nanoid": "^5.0.7",
+    "pino": "^9.4.0",
     "sharp": "^0.33.5",
     "uploadthing": "^7.0.2",
     "zod": "^3.23.8"

@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "660b4648-95bf-4264-b07f-cdf9a747b116",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "723565a4-d000-481d-890d-6222dabfba96",
+  "prevId": "b34d926a-ad33-4430-9c52-dcd184ab93db",
   "tables": {
-    "uploading_videos": {
-      "name": "uploading_videos",
+    "users": {
+      "name": "users",
       "columns": {
         "id": {
           "name": "id",
@@ -14,8 +14,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "author_id": {
-          "name": "author_id",
+        "email": {
+          "name": "email",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -27,39 +27,30 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        }
-      },
-      "indexes": {
-        "uauthorId_idx": {
-          "name": "uauthorId_idx",
-          "columns": ["author_id"],
-          "isUnique": false
         },
-        "uvideoId_idx": {
-          "name": "uvideoId_idx",
-          "columns": ["id"],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "users": {
-      "name": "users",
-      "columns": {
-        "id": {
-          "name": "id",
+        "account_tier": {
+          "name": "account_tier",
           "type": "text",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "'free'"
+        },
+        "totalStorageUsed": {
+          "name": "totalStorageUsed",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
         }
       },
       "indexes": {
         "userId_idx": {
           "name": "userId_idx",
-          "columns": ["id"],
+          "columns": [
+            "id"
+          ],
           "isUnique": false
         }
       },
@@ -98,8 +89,29 @@
           "notNull": true,
           "autoincrement": false
         },
-        "thumbnail_url": {
-          "name": "thumbnail_url",
+        "small_thumbnail_url": {
+          "name": "small_thumbnail_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "large_thumbnail_url": {
+          "name": "large_thumbnail_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "small_thumbnail_key": {
+          "name": "small_thumbnail_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "large_thumbnail_key": {
+          "name": "large_thumbnail_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -148,17 +160,44 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "is_processing": {
+          "name": "is_processing",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "sources": {
+          "name": "sources",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'[]'"
         }
       },
       "indexes": {
         "authorId_idx": {
           "name": "authorId_idx",
-          "columns": ["user_id"],
+          "columns": [
+            "user_id"
+          ],
           "isUnique": false
         },
         "videoId_idx": {
           "name": "videoId_idx",
-          "columns": ["id"],
+          "columns": [
+            "id"
+          ],
+          "isUnique": false
+        },
+        "createdAt_idx": {
+          "name": "createdAt_idx",
+          "columns": [
+            "created_at"
+          ],
           "isUnique": false
         }
       },

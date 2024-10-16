@@ -19,6 +19,7 @@ import { Separator } from "~/components/ui/separator";
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
+import { SwitchLayoutGroupContext } from "framer-motion";
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
@@ -107,13 +108,13 @@ export async function loader(args: LoaderFunctionArgs) {
     columns: {
       title: true,
       views: true,
-      key: true,
       isPrivate: true,
       authorId: true,
       isProcessing: true,
       largeThumbnailUrl: true,
       videoLengthSeconds: true,
       createdAt: true,
+      sources: true,
     },
   });
 
@@ -130,21 +131,36 @@ export async function loader(args: LoaderFunctionArgs) {
     },
   );
 
-  const downloadAuthorizeResponse = await axios<DownloadAuthorizationResponse>(
-    `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_download_authorization`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: authorizeResponse.data.authorizationToken,
-      },
-      data: {
-        bucketId: env.VIDEOS_BUCKET_ID,
-        fileNamePrefix: videoData.key,
-        validDurationInSeconds: 3600,
-        b2ContentDisposition: "inline",
-        b2ContentType: "video/mp4",
-      },
-    },
+  const videoSources = await Promise.all(
+    videoData.sources.map((source) => {
+      return new Promise<{ src: string; type: string; width?: number; height?: number }>(
+        async (resolve) => {
+          const downloadAuthorizeResponse = await axios<DownloadAuthorizationResponse>(
+            `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_download_authorization`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: authorizeResponse.data.authorizationToken,
+              },
+              data: {
+                bucketId: env.VIDEOS_BUCKET_ID,
+                fileNamePrefix: source.key,
+                validDurationInSeconds: 60 * 60 * 24,
+                b2ContentDisposition: "inline",
+                b2ContentType: source.type,
+              },
+            },
+          );
+
+          resolve({
+            src: `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/file/${authorizeResponse.data.apiInfo.storageApi.bucketName}/${source.key}?Authorization=${encodeURIComponent(downloadAuthorizeResponse.data.authorizationToken)}&b2ContentDisposition=inline&b2ContentType=${encodeURIComponent(source.type)}`,
+            type: source.type,
+            width: source.width,
+            height: source.height,
+          });
+        },
+      );
+    }),
   );
 
   const { userId } = await getAuth(args);
@@ -173,6 +189,7 @@ export async function loader(args: LoaderFunctionArgs) {
   });
 
   return json({
+    videoSources,
     views: videoData.views,
     title: videoData.title,
     isProcessing: videoData.isProcessing,
@@ -181,7 +198,6 @@ export async function loader(args: LoaderFunctionArgs) {
     videoLengthSeconds: videoData.videoLengthSeconds,
     createdAt: videoData.createdAt,
     isViewerAuthor: videoData.authorId === userId,
-    url: `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/file/${authorizeResponse.data.apiInfo.storageApi.bucketName}/${videoData.key}?Authorization=${encodeURIComponent(downloadAuthorizeResponse.data.authorizationToken)}&b2ContentDisposition=inline&b2ContentType=${encodeURIComponent("video/mp4")}`,
     token,
   });
 }
@@ -194,7 +210,6 @@ export default function VideoPlayerRouter() {
   }
 
   const {
-    url,
     title,
     views,
     largeThumbnailUrl,
@@ -202,6 +217,7 @@ export default function VideoPlayerRouter() {
     isViewerAuthor,
     videoLengthSeconds,
     isProcessing,
+    videoSources,
   } = loaderData;
 
   useEffect(() => {
@@ -245,7 +261,7 @@ export default function VideoPlayerRouter() {
       <div className="flex gap-4 p-4 max-w-full h-full flex-col xl:flex-row">
         <div className="grow">
           <MediaPlayer
-            src={url}
+            src={videoSources as any}
             viewType="video"
             streamType="on-demand"
             logLevel="debug"

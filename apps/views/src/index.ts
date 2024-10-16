@@ -159,7 +159,7 @@ api.post("/api/incrementViews", async (c) => {
       `rateLimit:${tokenPayload.identifier}`,
       1,
       "EX",
-      tokenPayload.videoDuration,
+      Math.ceil(tokenPayload.videoDuration),
     );
 
     c.status(412);

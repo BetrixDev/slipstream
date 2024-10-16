@@ -26,6 +26,7 @@ export async function action(args: ActionFunctionArgs) {
     return json(undefined, { status: 400 });
   }
 
+  // TODO: update updatedAt column here
   await db
     .update(videos)
     .set({

@@ -1,7 +1,7 @@
 import { Queue, Worker } from "bullmq";
 import { Hono } from "hono";
 import { db, eq, videos } from "db";
-import { env } from "env/transcoder";
+import { env } from "env/processor";
 import { customAlphabet } from "nanoid";
 import { createWriteStream } from "fs";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -12,16 +12,15 @@ import { bearerAuth } from "hono/bearer-auth";
 import { execa } from "execa";
 import { stat, rm } from "fs/promises";
 import { UTApi } from "uploadthing/server";
-import { logger } from "hono/logger";
+import { logger as honoLogger } from "hono/logger";
 import sharp from "sharp";
 import { glob } from "glob";
-import { Axiom } from "@axiomhq/js";
+import { logger } from "./logger.js";
+import { transcodingQueue } from "./queues/transcoding.js";
+
+import "./workers/transcoding.js";
 
 const nanoid = customAlphabet("1234567890abcdef", 20);
-
-const axiom = new Axiom({
-  token: env.AXIOM_TOKEN,
-});
 
 const utApi = new UTApi({ token: env.UPLOADTHING_TOKEN });
 
@@ -36,14 +35,6 @@ const s3VideosClient = new S3Client({
   region: env.S3_VIDEOS_REGION,
 });
 
-const videoTranscodingQueue = new Queue("{videoTranscoding}", {
-  connection: {
-    host: env.QUEUE_REDIS_HOST,
-    port: Number(env.QUEUE_REDIS_PORT),
-    password: env.QUEUE_REDIS_PASSWORD,
-  },
-});
-
 const videoUploadedQueue = new Queue("{videoUploaded}", {
   connection: {
     host: env.QUEUE_REDIS_HOST,
@@ -51,45 +42,6 @@ const videoUploadedQueue = new Queue("{videoUploaded}", {
     password: env.QUEUE_REDIS_PASSWORD,
   },
 });
-
-const videoTranscodingWorker = new Worker(
-  "{videoTranscoding}",
-  async (job) => {
-    // await execa(`ffmpeg`, [
-    //   "-y",
-    //   "-i",
-    //   downloadId,
-    //   "-vcodec",
-    //   "libx264",
-    //   "-crf",
-    //   "27",
-    //   "-preset",
-    //   "medium",
-    //   "-c:a",
-    //   "copy",
-    //   downloadId,
-    // ]);
-    // const videoUpload = new Upload({
-    //   client: s3VideosClient,
-    //   params: {
-    //     Bucket: env.S3_VIDEOS_BUCKET,
-    //     Key: `${videoId}`,
-    //     Body: createReadStream(downloadId),
-    //   },
-    // });
-    // videoUpload.on("httpUploadProgress", (progress) => {
-    //   console.log(`Uploaded: ${progress.loaded} of ${progress.total} bytes`);
-    // });
-    // await videoUpload.done();
-  },
-  {
-    connection: {
-      host: env.QUEUE_REDIS_HOST,
-      port: Number(env.QUEUE_REDIS_PORT),
-      password: env.QUEUE_REDIS_PASSWORD,
-    },
-  },
-);
 
 const videoUploadedWorker = new Worker(
   "{videoUploaded}",
@@ -197,10 +149,6 @@ const videoUploadedWorker = new Worker(
       console.log("Failed to get file size");
     }
 
-    await videoTranscodingQueue.add(`${videoId}-transcode`, {
-      videoId,
-    });
-
     const { all } = await execa({
       all: true,
     })`ffprobe -i ${downloadId} -show_entries format=duration -v quiet -of csv=p=0`;
@@ -255,8 +203,8 @@ videoUploadedWorker.on("failed", (job, err) => {
 const api = new Hono();
 
 api.use(
-  logger((message) => {
-    axiom.ingest(env.AXIOM_DATASET, [message]);
+  honoLogger((message) => {
+    logger.info(message);
   }),
 );
 
@@ -272,8 +220,22 @@ api.put("/api/videoUploaded", async (c) => {
     return c.text("bad request");
   }
 
+  const videoData = await db.query.videos.findFirst({
+    where: (table, { eq }) => eq(table.id, videoId),
+  });
+
+  if (!videoData) {
+    c.status(400);
+    return c.text("bad request");
+  }
+
   await videoUploadedQueue.add(`${videoId}-initial-process`, {
     videoId,
+  });
+
+  await transcodingQueue.add(`trancode-${videoId}`, {
+    videoId: videoData.id,
+    nativeFileKey: videoData.key,
   });
 
   c.status(200);
@@ -281,7 +243,7 @@ api.put("/api/videoUploaded", async (c) => {
 });
 
 serve({ ...api, port: Number(env.API_PORT), hostname: env.API_HOST }, (info) => {
-  console.log(
+  logger.info(
     `Processor service is listening on ${env.API_PROTOCOL}://${env.API_HOST}:${info.port}`,
   );
 });

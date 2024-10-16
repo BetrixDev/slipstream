@@ -29,7 +29,7 @@ export const videos = sqliteTable(
     id: text("id").primaryKey(),
     authorId: text("user_id").notNull(),
     title: text("title").notNull(),
-    key: text("key").notNull(),
+    nativeFileKey: text("native_file_key").notNull(),
     smallThumbnailUrl: text("small_thumbnail_url"),
     largeThumbnailUrl: text("large_thumbnail_url"),
     smallThumbnailKey: text("small_thumbnail_key"),
@@ -45,6 +45,19 @@ export const videos = sqliteTable(
     fileSizeBytes: real("file_size_bytes").notNull(),
     videoLengthSeconds: int("video_length_seconds"),
     isProcessing: int("is_processing", { mode: "boolean" }).notNull().default(true),
+    sources: text("sources", { mode: "json" })
+      .$type<
+        {
+          key: string;
+          type: string;
+          width?: number;
+          height?: number;
+          bitrate?: number;
+          isNative: boolean;
+        }[]
+      >()
+      .notNull()
+      .default([]),
   },
   (table) => ({
     authorId_idx: index("authorId_idx").on(table.authorId),
