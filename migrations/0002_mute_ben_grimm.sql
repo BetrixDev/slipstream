@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `is_uploading_video` integer DEFAULT false NOT NULL;

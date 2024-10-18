@@ -8,7 +8,6 @@ const webEnvSchema = z.object({
   CLERK_SIGN_IN_FALLBACK_URL: z.string(),
   CLERK_SIGN_UP_FALLBACK_URL: z.string(),
   DATABASE_URL: z.string(),
-  DATABASE_AUTH_TOKEN: z.string(),
   CLERK_WEBHOOK_SECRET: z.string(),
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_SIGNING_SECRET: z.string(),

@@ -10,7 +10,6 @@ const transcoderEnvSchema = z.object({
   S3_VIDEOS_REGION: z.string(),
   S3_ENDPOINT: z.string(),
   DATABASE_URL: z.string(),
-  DATABASE_AUTH_TOKEN: z.string(),
   API_SECRET: z.string(),
   UPLOADTHING_TOKEN: z.string(),
   API_PORT: z.string(),

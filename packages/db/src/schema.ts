@@ -1,16 +1,22 @@
 import { relations } from "drizzle-orm";
-import { index, int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc.js";
+import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  real,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
-dayjs.extend(utc);
-
-export const users = sqliteTable(
+export const users = pgTable(
   "users",
   {
     id: text("id").primaryKey(),
     email: text("email").notNull(),
-    createdAt: int("created_at").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
     accountTier: text("account_tier", { enum: ["free", "pro", "premium", "ultimate"] })
       .notNull()
       .default("free"),
@@ -23,29 +29,28 @@ export const usersRelations = relations(users, ({ many }) => ({
   videos: many(videos),
 }));
 
-export const videos = sqliteTable(
+export const videos = pgTable(
   "videos",
   {
     id: text("id").primaryKey(),
-    authorId: text("user_id").notNull(),
+    // TODO: update to author_id
+    authorId: text("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
     title: text("title").notNull(),
     nativeFileKey: text("native_file_key").notNull(),
     smallThumbnailUrl: text("small_thumbnail_url"),
     largeThumbnailUrl: text("large_thumbnail_url"),
     smallThumbnailKey: text("small_thumbnail_key"),
     largeThumbnailKey: text("large_thumbnail_key"),
-    createdAt: int("created_at")
-      .notNull()
-      .$defaultFn(() => dayjs.utc().valueOf()),
-    updatedAt: int("updated_at")
-      .notNull()
-      .$defaultFn(() => dayjs.utc().valueOf()),
-    isPrivate: int("is_private", { mode: "boolean" }).notNull().default(false),
-    views: int("views").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).notNull().defaultNow(),
+    isPrivate: boolean("is_private").notNull().default(false),
+    views: bigint("views", { mode: "number" }).notNull().default(0),
     fileSizeBytes: real("file_size_bytes").notNull(),
-    videoLengthSeconds: int("video_length_seconds"),
-    isProcessing: int("is_processing", { mode: "boolean" }).notNull().default(true),
-    sources: text("sources", { mode: "json" })
+    videoLengthSeconds: integer("video_length_seconds"),
+    isProcessing: boolean("is_processing").notNull().default(true),
+    sources: jsonb("sources")
       .$type<
         {
           key: string;

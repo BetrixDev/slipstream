@@ -1,1 +1,0 @@
-ALTER TABLE `videos` ADD `sources` text DEFAULT '[]';

@@ -47,9 +47,11 @@ export async function action(args: ActionFunctionArgs) {
     return json({ success: false, message: "Video not found." }, { status: 404 });
   }
 
+  // TODO: delete all processed files for this video
+
   const command = new DeleteObjectCommand({
     Bucket: env.S3_MEDIA_BUCKET,
-    Key: videoData.key,
+    Key: videoData.nativeFileKey,
   });
 
   const thumbnailsToDelete: string[] = [];

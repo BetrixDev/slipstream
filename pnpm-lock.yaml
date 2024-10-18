@@ -346,15 +346,12 @@ importers:
 
   packages/db:
     dependencies:
-      '@libsql/client':
-        specifier: ^0.11.0
-        version: 0.11.0
-      dayjs:
-        specifier: ^1.11.13
-        version: 1.11.13
       drizzle-orm:
         specifier: ^0.33.0
-        version: 0.33.0(@libsql/client@0.11.0)(@types/react@18.3.8)(react@18.3.1)
+        version: 0.33.0(@libsql/client@0.11.0)(@types/react@18.3.8)(postgres@3.4.4)(react@18.3.1)
+      postgres:
+        specifier: ^3.4.4
+        version: 3.4.4
     devDependencies:
       drizzle-kit:
         specifier: ^0.24.2
@@ -5213,6 +5210,10 @@ packages:
     resolution: {integrity: sha512-56rxCq7G/XfB4EkXq9Egn5GCqugWvDFjafDOThIdMBsI15iqPqR5r15TfSr1YPYeEI19YeaXMCbY6u88Y76GLQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postgres@3.4.4:
+    resolution: {integrity: sha512-IbyN+9KslkqcXa8AO9fxpk97PA4pzewvpi2B3Dwy9u4zpV32QicaEdgmF3eSQUzdRk7ttDHQejNgAEr4XoeH4A==}
+    engines: {node: '>=12'}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -7675,10 +7676,12 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   '@libsql/core@0.11.0':
     dependencies:
       js-base64: 3.7.7
+    optional: true
 
   '@libsql/darwin-arm64@0.4.5':
     optional: true
@@ -7695,8 +7698,10 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
-  '@libsql/isomorphic-fetch@0.2.5': {}
+  '@libsql/isomorphic-fetch@0.2.5':
+    optional: true
 
   '@libsql/isomorphic-ws@0.1.5':
     dependencies:
@@ -7705,6 +7710,7 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
   '@libsql/linux-arm64-gnu@0.4.5':
     optional: true
@@ -7763,7 +7769,8 @@ snapshots:
   '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.3':
     optional: true
 
-  '@neon-rs/load@0.0.4': {}
+  '@neon-rs/load@0.0.4':
+    optional: true
 
   '@next/env@14.2.14':
     optional: true
@@ -9067,6 +9074,7 @@ snapshots:
   '@types/ws@8.5.12':
     dependencies:
       '@types/node': 22.6.2
+    optional: true
 
   '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
@@ -9687,7 +9695,8 @@ snapshots:
 
   data-uri-to-buffer@3.0.1: {}
 
-  data-uri-to-buffer@4.0.1: {}
+  data-uri-to-buffer@4.0.1:
+    optional: true
 
   dayjs@1.11.13: {}
 
@@ -9742,7 +9751,8 @@ snapshots:
   detect-libc@1.0.3:
     optional: true
 
-  detect-libc@2.0.2: {}
+  detect-libc@2.0.2:
+    optional: true
 
   detect-libc@2.0.3: {}
 
@@ -9787,10 +9797,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.33.0(@libsql/client@0.11.0)(@types/react@18.3.8)(react@18.3.1):
+  drizzle-orm@0.33.0(@libsql/client@0.11.0)(@types/react@18.3.8)(postgres@3.4.4)(react@18.3.1):
     optionalDependencies:
       '@libsql/client': 0.11.0
       '@types/react': 18.3.8
+      postgres: 3.4.4
       react: 18.3.1
 
   duplexify@3.7.1:
@@ -10219,6 +10230,7 @@ snapshots:
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.3.3
+    optional: true
 
   fetch-retry@6.0.0: {}
 
@@ -10285,6 +10297,7 @@ snapshots:
   formdata-polyfill@4.0.10:
     dependencies:
       fetch-blob: 3.2.0
+    optional: true
 
   forwarded@0.2.0: {}
 
@@ -10665,7 +10678,8 @@ snapshots:
       '@types/react': 18.3.8
       react: 18.3.1
 
-  js-base64@3.7.7: {}
+  js-base64@3.7.7:
+    optional: true
 
   js-cookie@3.0.5: {}
 
@@ -10727,6 +10741,7 @@ snapshots:
       '@libsql/linux-x64-gnu': 0.4.5
       '@libsql/linux-x64-musl': 0.4.5
       '@libsql/win32-x64-msvc': 0.4.5
+    optional: true
 
   lightningcss-darwin-arm64@1.27.0:
     optional: true
@@ -11362,7 +11377,8 @@ snapshots:
 
   node-abort-controller@3.1.1: {}
 
-  node-domexception@1.0.0: {}
+  node-domexception@1.0.0:
+    optional: true
 
   node-fetch-native@1.6.4:
     optional: true
@@ -11376,6 +11392,7 @@ snapshots:
       data-uri-to-buffer: 4.0.1
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
+    optional: true
 
   node-gyp-build-optional-packages@5.2.2:
     dependencies:
@@ -11658,6 +11675,8 @@ snapshots:
       picocolors: 1.1.0
       source-map-js: 1.2.1
 
+  postgres@3.4.4: {}
+
   prelude-ls@1.2.1: {}
 
   prettier@2.8.8: {}
@@ -11680,7 +11699,8 @@ snapshots:
 
   promise-inflight@1.0.1: {}
 
-  promise-limit@2.7.0: {}
+  promise-limit@2.7.0:
+    optional: true
 
   promise-retry@2.0.1:
     dependencies:
@@ -12741,7 +12761,8 @@ snapshots:
 
   ws@7.5.10: {}
 
-  ws@8.18.0: {}
+  ws@8.18.0:
+    optional: true
 
   xml2js@0.6.2:
     dependencies:

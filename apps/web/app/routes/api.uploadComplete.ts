@@ -92,24 +92,32 @@ export async function action(args: ActionFunctionArgs) {
     videoId = nanoid(8);
   }
 
-  const [, [videoData]] = await db.batch([
-    db
+  const [videoData] = await db.transaction(async (tx) => {
+    await tx
       .update(users)
       .set({
-        totalStorageUsed: userData.totalStorageUsed + response.ContentLength,
+        totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
       })
-      .where(eq(users.id, userId)),
-    db
+      .where(eq(users.id, userId));
+
+    return await tx
       .insert(videos)
       .values({
-        authorId: userId,
         id: videoId,
-        key: data.key,
-        fileSizeBytes: response.ContentLength,
+        authorId: userId,
+        nativeFileKey: data.key,
+        fileSizeBytes: response?.ContentLength ?? 0,
         title: data.title,
+        sources: [
+          {
+            isNative: true,
+            key: data.key,
+            type: "video/mp4",
+          },
+        ],
       })
-      .returning(),
-  ]);
+      .returning();
+  });
 
   try {
     await axios.put(
@@ -126,16 +134,15 @@ export async function action(args: ActionFunctionArgs) {
   } catch (e) {
     console.error(e);
 
-    await db.batch([
-      db
-        .update(users)
+    await db.transaction(async (tx) => {
+      tx.update(users)
         .set({
-          totalStorageUsed: Math.max(userData.totalStorageUsed - response.ContentLength, 0),
+          totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
         })
-        .where(eq(users.id, userId)),
-      db.delete(videos).where(eq(videos.id, videoData.id)),
-    ]);
+        .where(eq(users.id, userId));
 
+      tx.delete(videos).where(eq(videos.id, videoData.id));
+    });
     return json({ success: false, message: "Failed to process video" }, { status: 500 });
   }
 

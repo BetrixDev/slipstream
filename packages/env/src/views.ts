@@ -8,7 +8,6 @@ const transcoderEnvSchema = z.object({
   CACHE_REDIS_PORT: z.string(),
   CACHE_REDIS_PASSWORD: z.string(),
   DATABASE_URL: z.string(),
-  DATABASE_AUTH_TOKEN: z.string(),
   API_SECRET: z.string(),
   API_PORT: z.string(),
   API_HOST: z.string(),
