@@ -10,7 +10,7 @@
     "verbatimModuleSyntax": true,
     "strict": true,
     "module": "NodeNext",
-    "outDir": "dist",
+    "outDir": "build",
     "sourceMap": true,
     "composite": true,
     "declarationMap": true,

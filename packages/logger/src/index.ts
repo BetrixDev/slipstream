@@ -1,39 +1,31 @@
-import { pino, type Logger } from "pino";
-import { hostname } from "os";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc.js";
+import winston from "winston";
+import os from "node:os";
+import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 
-dayjs.extend(utc);
+if (!process.env.AXIOM_TOKEN) {
+  throw new Error("AXIOM_TOKEN not set in environment");
+}
 
-export function createLogger(service: string): Logger {
-  const logger = pino({
+export function createLogger(serviceName: string) {
+  const logger = winston.createLogger({
     level: "debug",
-    base: { pid: process.pid, hostname, service, timestamp: dayjs().utc().valueOf() },
-    transport: {
-      targets: [
-        {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-          },
-          level: "debug",
-        },
-        {
-          target: "@axiomhq/pino",
-          options: {
-            dataset: process.env.AXIOM_DATASET,
-            token: process.env.AXIOM_TOKEN,
-          },
-          level: "debug",
-        },
-      ],
-    },
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+    defaultMeta: { hostname: os.hostname(), service: serviceName },
+    transports: [
+      new AxiomTransport({
+        dataset: process.env.AXIOM_DATASET,
+        token: process.env.AXIOM_TOKEN!,
+      }),
+    ],
   });
 
-  process.on("beforeExit", (code) => {
-    logger.flush();
-    process.exit(code);
-  });
+  if (process.env.NODE_ENV !== "production") {
+    logger.add(
+      new winston.transports.Console({
+        format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      }),
+    );
+  }
 
   return logger;
 }

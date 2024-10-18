@@ -16,9 +16,7 @@
     },
     "type": "module",
     "dependencies": {
-        "@axiomhq/pino": "^1.2.0",
-        "dayjs": "^1.11.13",
-        "pino": "^9.4.0",
-        "pino-pretty": "^11.2.2"
+        "@axiomhq/winston": "^1.2.0",
+        "winston": "^3.15.0"
     }
 }

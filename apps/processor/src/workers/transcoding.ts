@@ -67,8 +67,8 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
         await rm(workingTempDir, { recursive: true, force: true });
       } catch (e) {
         jobLogger.error(
-          e,
           "An error occured when trying to remove existing temp working directory",
+          e,
         );
 
         throw e;
@@ -87,18 +87,15 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       authorizedAccount = response.data;
     } catch (e) {
       if (e instanceof AxiosError) {
-        jobLogger.error(
-          {
-            statusCode: e?.response?.status,
-            body: e?.response?.data,
-            name: e.name,
-            cause: e.cause,
-          },
-          "An error occured while authorizing account",
-        );
+        jobLogger.error("An error occured while authorizing account", {
+          statusCode: e?.response?.status,
+          body: e?.response?.data,
+          name: e.name,
+          cause: e.cause,
+        });
         throw e;
       } else {
-        jobLogger.error(e, "An error occured while authorizing account");
+        jobLogger.error("An error occured while authorizing account", e);
         throw e;
       }
     }
@@ -117,18 +114,15 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       authorizedDownload = authorizeDownloadResponse.data;
     } catch (e) {
       if (e instanceof AxiosError) {
-        jobLogger.error(
-          {
-            statusCode: e?.response?.status,
-            body: e?.response?.data,
-            name: e.name,
-            cause: e.cause,
-          },
-          "An error occured while authorizing download",
-        );
+        jobLogger.error("An error occured while authorizing download", {
+          statusCode: e?.response?.status,
+          body: e?.response?.data,
+          name: e.name,
+          cause: e.cause,
+        });
         throw e;
       } else {
-        jobLogger.error(e, "An error occured while authorizing download");
+        jobLogger.error("An error occured while authorizing download", e);
         throw e;
       }
     }
@@ -157,18 +151,15 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
     });
 
     const timeInSeconds = (Date.now() - downloadStartTime) / 1000;
-    jobLogger.info(
-      {
-        timeInSeconds,
-      },
-      `Finished downloading native file in ${timeInSeconds} seconds`,
-    );
+    jobLogger.info(`Finished downloading native file in ${timeInSeconds} seconds`, {
+      timeInSeconds,
+    });
 
     const { all: nativeFileMimeType } = await execa({
       all: true,
     })`file -b --mime-type ${nativeFilePath}`;
 
-    jobLogger.info({ nativeFileMimeType }, `Native file mime type is ${nativeFileMimeType}`);
+    jobLogger.info(`Native file mime type is ${nativeFileMimeType}`, { nativeFileMimeType });
 
     const { all: nativeFileResolution } = await execa({
       all: true,
@@ -179,13 +170,10 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
     const nativeFileWidth = Number(nativeFileWidthString);
     const nativeFileHeight = Number(nativeFileHeightString);
 
-    jobLogger.info(
-      {
-        nativeFileWidth,
-        nativeFileHeight,
-      },
-      `Native file's resolution is ${nativeFileResolution}`,
-    );
+    jobLogger.info(`Native file's resolution is ${nativeFileResolution}`, {
+      nativeFileWidth,
+      nativeFileHeight,
+    });
 
     const videoSources: VideoSource[] = [
       {
@@ -209,12 +197,9 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
     const videoFrameRateDecimal = eval(nativeFileFrameRateFraction).toFixed(2);
 
-    jobLogger.info(
-      {
-        frameRate: videoFrameRateDecimal,
-      },
-      `Video's frame rate is ${videoFrameRateDecimal}`,
-    );
+    jobLogger.info(`Video's frame rate is ${videoFrameRateDecimal}`, {
+      frameRate: videoFrameRateDecimal,
+    });
 
     for (const resolution of resolutionsToGenerate) {
       const start = Date.now();
@@ -242,20 +227,14 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       await execa`${command}`;
 
       const elapsed = (Date.now() - start) / 1000;
-      jobLogger.info(
-        {
-          resolution,
-          elapsed,
-        },
-        `Finished generating video source for ${resolution.height}p in ${elapsed}s`,
-      );
+      jobLogger.info(`Finished generating video source for ${resolution.height}p in ${elapsed}s`, {
+        resolution,
+        elapsed,
+      });
 
-      jobLogger.info(
-        {
-          resolution,
-        },
-        "Getting upload url for Backblaze",
-      );
+      jobLogger.info("Getting upload url for Backblaze", {
+        resolution,
+      });
 
       let uploadUrlResponse: UploadUrlResponse | undefined = undefined;
 
@@ -268,18 +247,15 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
           authorizedUploadAccount = response.data;
         } catch (e) {
           if (e instanceof AxiosError) {
-            jobLogger.error(
-              {
-                statusCode: e?.response?.status,
-                body: e?.response?.data,
-                name: e.name,
-                cause: e.cause,
-              },
-              "An error occured while authorizing upload account",
-            );
+            jobLogger.error("An error occured while authorizing upload account", {
+              statusCode: e?.response?.status,
+              body: e?.response?.data,
+              name: e.name,
+              cause: e.cause,
+            });
             throw e;
           } else {
-            jobLogger.error(e, "An error occured while authorizing upload account");
+            jobLogger.error("An error occured while authorizing upload account", e);
             throw e;
           }
         }
@@ -289,31 +265,28 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
           .data;
       } catch (e) {
         if (e instanceof AxiosError) {
-          jobLogger.error(
-            {
-              resolution,
-              statusCode: e?.response?.status,
-              body: e?.response?.data,
-              name: e.name,
-              cause: e.cause,
-            },
-            "An error occured while getting upload url",
-          );
+          jobLogger.error("An error occured while getting upload url", {
+            resolution,
+            statusCode: e?.response?.status,
+            body: e?.response?.data,
+            name: e.name,
+            cause: e.cause,
+          });
           throw e;
         } else {
-          jobLogger.error(e, "An error occured while getting upload url");
+          jobLogger.error("An error occured while getting upload url", e);
           throw e;
         }
       }
 
       const processedFileStats = await stat(outPath);
 
-      jobLogger.info(
-        { resolution, contentLength: processedFileStats.size },
-        `Uploading ${processedFileStats.size} bytes`,
-      );
+      jobLogger.info(`Uploading ${processedFileStats.size} bytes`, {
+        resolution,
+        contentLength: processedFileStats.size,
+      });
 
-      jobLogger.info({ resolution }, "Uploading processed file to url");
+      jobLogger.info("Uploading processed file to url", { resolution });
 
       const fileStream = createReadStream(outPath);
 
@@ -325,8 +298,8 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
           onUploadProgress: (e) => {
             const percentDone = (e.progress ?? 0) * 100;
             jobLogger.info(
-              { resolution, percentDone },
               `Uploading file ${percentDone}% done of ${processedFileStats.size} bytes`,
+              { resolution, percentDone },
             );
           },
           method: "POST",
@@ -342,33 +315,24 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
         const uploadTimeElapsed = (Date.now() - uploadStart) / 1000;
         jobLogger.info(
-          { resolution, elapsed: uploadTimeElapsed },
           `Finished uploading ${resolution.height}p processed video in ${uploadTimeElapsed} seconds`,
+          { resolution, elapsed: uploadTimeElapsed },
         );
       } catch (e) {
         if (e instanceof AxiosError) {
-          jobLogger.error(
-            {
-              resolution,
-              statusCode: e?.response?.status,
-              body: e?.response?.data,
-              name: e.name,
-              cause: e.cause,
-            },
-            "An error occured uploading processed file to url",
-          );
+          jobLogger.error("An error occured uploading processed file to url", {
+            resolution,
+            statusCode: e?.response?.status,
+            body: e?.response?.data,
+            name: e.name,
+            cause: e.cause,
+          });
           throw e;
         } else {
-          jobLogger.error(e, "An error occured uploading processed file to url");
+          jobLogger.error("An error occured uploading processed file to url", e);
           throw e;
         }
       }
-
-      const { all: transcodedFileBitRateString } = await execa({
-        all: true,
-      })`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${outPath}`;
-
-      const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
 
       videoSources.push({
         key: bucketFileName,
@@ -379,7 +343,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       });
     }
 
-    jobLogger.info({ videoSources }, "Generated sources for video");
+    jobLogger.info("Generated sources for video", { videoSources });
 
     jobLogger.info("Adding video sources to database");
 
@@ -410,25 +374,25 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 );
 
 transcoderWorker.on("failed", (job, err) => {
-  logger.error(
-    {
-      jobQueue: job?.queueName,
-      jobId: job?.id,
-      name: job?.name,
-      jobData: job?.data,
-      failedReason: job?.failedReason,
-      stackTrace: job?.stacktrace,
-      errorMessage: err.message,
-      errorStack: err.stack,
-      errorCause: err.cause,
-    },
-    "Transcoding job failed",
-  );
+  logger.error("Transcoding job failed", {
+    jobQueue: job?.queueName,
+    jobId: job?.id,
+    name: job?.name,
+    jobData: job?.data,
+    failedReason: job?.failedReason,
+    stackTrace: job?.stacktrace,
+    errorMessage: err.message,
+    errorStack: err.stack,
+    errorCause: err.cause,
+  });
 });
 
 transcoderWorker.on("completed", (job, result) => {
-  logger.info(
-    { jobQueue: job.queueName, jobId: job?.id, name: job?.name, jobData: job?.data, result },
-    "Transcoding job completed",
-  );
+  logger.info("Transcoding job completed", {
+    jobQueue: job.queueName,
+    jobId: job?.id,
+    name: job?.name,
+    jobData: job?.data,
+    result,
+  });
 });

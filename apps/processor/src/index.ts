@@ -66,7 +66,7 @@ const videoUploadedWorker = new Worker(
 
     const getObjectCommand = new GetObjectCommand({
       Bucket: env.S3_VIDEOS_BUCKET,
-      Key: videoData.key,
+      Key: videoData.nativeFileKey,
     });
 
     const data = await s3VideosClient.send(getObjectCommand);
@@ -107,14 +107,14 @@ const videoUploadedWorker = new Worker(
       .toBuffer();
     const smallThumbnailFile = new File(
       [smallThumbnailBuffer],
-      `${videoData.key}-thumbnail-small.jpg`,
+      `${videoData.nativeFileKey}-thumbnail-small.jpg`,
       { type: "image/jpeg" },
     );
 
     const largeThumbnailBuffer = await image.jpeg({ quality: 100 }).toBuffer();
     const largeThumbnailFile = new File(
       [largeThumbnailBuffer],
-      `${videoData.key}-thumbnail-large.jpg`,
+      `${videoData.nativeFileKey}-thumbnail-large.jpg`,
       { type: "image/jpeg" },
     );
 
@@ -235,7 +235,7 @@ api.put("/api/videoUploaded", async (c) => {
 
   await transcodingQueue.add(`trancode-${videoId}`, {
     videoId: videoData.id,
-    nativeFileKey: videoData.key,
+    nativeFileKey: videoData.nativeFileKey,
   });
 
   c.status(200);
