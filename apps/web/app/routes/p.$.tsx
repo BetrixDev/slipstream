@@ -251,10 +251,10 @@ export default function VideoPlayerRouter() {
             <span className="ml-2 text-2xl font-bold">Flowble</span>
           </button>
         </Link>
-        <Link className="flex items-center" to={isViewerAuthor ? "/videos" : "/"}>
+        <Link className="flex items-center" to={isViewerAuthor ? "/videos" : "/"} prefetch="intent">
           <Button variant="outline" className="text-md flex gap-2 items-center rounded-lg h-10">
             <SquareArrowOutUpRight className="w-5 h-5" />
-            Go to Flowble
+            {isViewerAuthor ? "Back to your videos" : "Go to Flowble"}
           </Button>
         </Link>
       </header>

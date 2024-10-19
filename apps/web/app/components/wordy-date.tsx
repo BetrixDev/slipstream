@@ -7,7 +7,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 type WordyDateProps = {
-  timestamp: number;
+  timestamp: number | string;
 };
 
 export function WordyDate({ timestamp }: WordyDateProps) {
