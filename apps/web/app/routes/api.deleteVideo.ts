@@ -71,7 +71,6 @@ export async function action(args: ActionFunctionArgs) {
     objectVersions.Versions?.forEach((version) => {
       videoDeleteCommandPromises.push(
         new Promise(async (resolve) => {
-          console.log(version.Key, version.VersionId);
           resolve(
             await s3VideosClient.send(
               new DeleteObjectCommand({
@@ -99,7 +98,6 @@ export async function action(args: ActionFunctionArgs) {
     smallThumbnailVersions.Versions?.forEach((version) => {
       thumbnailDeleteCommands.push(
         new Promise(async (resolve) => {
-          console.log(version.Key, version.VersionId);
           resolve(
             await s3ThumbsClient.send(
               new DeleteObjectCommand({
@@ -125,7 +123,6 @@ export async function action(args: ActionFunctionArgs) {
     largeThumbnailVersions.Versions?.forEach((version) => {
       thumbnailDeleteCommands.push(
         new Promise(async (resolve) => {
-          console.log(version.Key, version.VersionId);
           resolve(
             await s3ThumbsClient.send(
               new DeleteObjectCommand({
