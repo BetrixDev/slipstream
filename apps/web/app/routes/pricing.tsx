@@ -1,6 +1,6 @@
 import { SignUpButton } from "@clerk/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction, HeadersFunction } from "@vercel/remix";
 import { json } from "@vercel/remix";
 import { Link, useLoaderData } from "@remix-run/react";
 import { Check, Info } from "lucide-react";
@@ -20,6 +20,12 @@ import { Tabs } from "~/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { db } from "db";
 import { Footer } from "~/components/Footer";
+
+export const config = { runtime: "edge" };
+
+export const headers: HeadersFunction = () => ({
+  "Cache-Control": "max-age=3600, stale-while-revalidate=21600",
+});
 
 export const meta: MetaFunction = () => {
   return [

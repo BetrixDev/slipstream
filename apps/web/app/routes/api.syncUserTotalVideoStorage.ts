@@ -1,5 +1,5 @@
 import { getAuth } from "@clerk/remix/ssr.server";
-import { ActionFunctionArgs, json } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@vercel/remix";
 import { db, eq, sql, users, videos } from "db";
 
 export async function action(args: ActionFunctionArgs) {

@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { HeadersFunction, MetaFunction } from "@vercel/remix";
 import { Button } from "~/components/ui/button";
 import { Link } from "@remix-run/react";
 import { Input } from "~/components/ui/input";
@@ -7,6 +7,12 @@ import TopNav from "~/components/TopNav";
 import { SignUpButton } from "@clerk/remix";
 import { HeroHighlight } from "~/components/ui/hero-highlight";
 import { Footer } from "~/components/Footer";
+
+export const config = { runtime: "edge" };
+
+export const headers: HeadersFunction = () => ({
+  "Cache-Control": "max-age=3600, stale-while-revalidate=21600",
+});
 
 export const meta: MetaFunction = () => {
   return [

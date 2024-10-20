@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction } from "@vercel/remix";
 import { Link, redirect, useLoaderData } from "@remix-run/react";
 import { db } from "db";
 import { Button } from "~/components/ui/button";
@@ -19,7 +19,8 @@ import { Separator } from "~/components/ui/separator";
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
-import { SwitchLayoutGroupContext } from "framer-motion";
+
+export const config = { runtime: "edge" };
 
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];

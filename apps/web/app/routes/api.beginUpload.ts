@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs } from "@vercel/remix";
 import { nanoid } from "nanoid";
 import { env } from "env/web";
 import { getAuth } from "@clerk/remix/ssr.server";

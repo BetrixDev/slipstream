@@ -1,5 +1,5 @@
 import { getAuth } from "@clerk/remix/ssr.server";
-import { ActionFunctionArgs, json } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@vercel/remix";
 import { z } from "zod";
 import { db, videos, and, eq } from "db";
 

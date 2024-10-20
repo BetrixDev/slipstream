@@ -1,5 +1,5 @@
 import { Webhook } from "svix";
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs } from "@vercel/remix";
 import { WebhookEvent } from "@clerk/remix/ssr.server";
 import { db, users, eq } from "db";
 import { json } from "@vercel/remix";

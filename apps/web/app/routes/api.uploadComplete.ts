@@ -1,6 +1,6 @@
 import { DeleteObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs } from "@vercel/remix";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db, eq, sql, users, videos } from "db";

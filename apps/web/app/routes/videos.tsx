@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { redirect } from "@remix-run/node";
+import { redirect } from "@vercel/remix";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -24,6 +24,8 @@ import { UploadingVideosContainer } from "~/components/uploading-videos-containe
 import { FullPageDropzone } from "~/components/full-page-dropzone";
 import { env } from "env/web";
 import { TrimVideoDialogContainer } from "~/components/trim-video-dialog";
+
+export const config = { runtime: "edge" };
 
 export const meta: MetaFunction = () => {
   return [

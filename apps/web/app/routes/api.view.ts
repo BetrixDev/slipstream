@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, json } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@vercel/remix";
 import axios from "axios";
 import { env } from "env/web";
 
