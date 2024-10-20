@@ -33,6 +33,7 @@ const webEnvSchema = z.object({
   B2_VIDEOS_WRITE_APP_KEY_ID: z.string(),
   B2_VIDEOS_WRITE_APP_KEY: z.string(),
   VIDEOS_BUCKET_ID: z.string(),
+  THUMBNAIL_BASE_URL: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);

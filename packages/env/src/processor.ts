@@ -17,9 +17,12 @@ const transcoderEnvSchema = z.object({
   API_PROTOCOL: z.string(),
   AXIOM_TOKEN: z.string(),
   AXIOM_DATASET: z.string(),
+  THUMBS_BUCKET_ID: z.string(),
+  VIDEOS_BUCKET_ID: z.string(),
+  B2_THUMBS_WRITE_APP_KEY_ID: z.string(),
+  B2_THUMBS_WRITE_APP_KEY: z.string(),
   B2_VIDEOS_READ_APP_KEY_ID: z.string(),
   B2_VIDEOS_READ_APP_KEY: z.string(),
-  VIDEOS_BUCKET_ID: z.string(),
   B2_VIDEOS_WRITE_APP_KEY_ID: z.string(),
   B2_VIDEOS_WRITE_APP_KEY: z.string(),
 });

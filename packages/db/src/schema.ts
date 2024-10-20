@@ -39,8 +39,6 @@ export const videos = pgTable(
       .notNull(),
     title: text("title").notNull(),
     nativeFileKey: text("native_file_key").notNull(),
-    smallThumbnailUrl: text("small_thumbnail_url"),
-    largeThumbnailUrl: text("large_thumbnail_url"),
     smallThumbnailKey: text("small_thumbnail_key"),
     largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),

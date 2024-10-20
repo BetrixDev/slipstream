@@ -29,12 +29,23 @@ export async function authorizeDownloadAccount() {
   );
 }
 
-export async function authorizeUploadAccount() {
+export async function authorizeVideoUploadAccount() {
   return axios<AuthorizeAccountResponse>(
     "https://api.backblazeb2.com/b2api/v3/b2_authorize_account",
     {
       headers: {
         Authorization: `Basic ${Buffer.from(`${env.B2_VIDEOS_WRITE_APP_KEY_ID}:${env.B2_VIDEOS_WRITE_APP_KEY}`).toString("base64")}`,
+      },
+    },
+  );
+}
+
+export async function authorizeThumbnailUploadAccount() {
+  return axios<AuthorizeAccountResponse>(
+    "https://api.backblazeb2.com/b2api/v3/b2_authorize_account",
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${env.B2_THUMBS_WRITE_APP_KEY_ID}:${env.B2_THUMBS_WRITE_APP_KEY}`).toString("base64")}`,
       },
     },
   );

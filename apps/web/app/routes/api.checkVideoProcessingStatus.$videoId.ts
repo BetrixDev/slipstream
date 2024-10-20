@@ -1,6 +1,7 @@
 import { getAuth } from "@clerk/remix/ssr.server";
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { db } from "db";
+import { env } from "env/web";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
@@ -24,6 +25,6 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   return json({
-    smallThumbnailUrl: videoData.smallThumbnailUrl,
+    smallThumbnailUrl: `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailUrl}`,
   });
 }

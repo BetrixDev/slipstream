@@ -6,7 +6,7 @@ import path from "path";
 import { logger } from "../logger.js";
 import {
   authorizeDownloadAccount,
-  authorizeUploadAccount,
+  authorizeVideoUploadAccount,
   getAuthorizedDownload,
   getUploadUrl,
   type AuthorizeAccountResponse,
@@ -20,6 +20,7 @@ import { promisify } from "util";
 import { execa } from "execa";
 import { db, eq, videos } from "db";
 import { generateSmallerResolutions, getVideoFileBitrate } from "../util/video.js";
+import { rimraf } from "rimraf";
 
 type VideoSource = {
   key: string;
@@ -41,7 +42,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
     jobLogger.info("Starting transcoding job");
 
-    jobLogger.info("Getting video data from database");
+    jobLogger.debug("Getting video data from database");
     const videoData = await db.query.videos.findFirst({
       where: (table, { eq }) => eq(table.id, job.data.videoId),
       with: {
@@ -58,9 +59,9 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       throw new Error(`Video with id ${job.data.videoId} not found`);
     }
 
-    jobLogger.info("Video data found");
+    jobLogger.debug("Video data found");
     const workingTempDir = path.join(process.cwd(), "temp", `transcoding-${job.id}`);
-    jobLogger.info(`Using temp directory "${workingTempDir}"`);
+    jobLogger.debug(`Using temp directory "${workingTempDir}"`);
 
     if (existsSync(workingTempDir)) {
       try {
@@ -75,11 +76,11 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       }
     }
 
-    jobLogger.info("Creating temp directory");
+    jobLogger.debug("Creating temp directory");
     await mkdir(workingTempDir);
-    jobLogger.info("Created temp directory");
+    jobLogger.debug("Created temp directory");
 
-    jobLogger.info("Sending authorize account request to Backblaze");
+    jobLogger.debug("Sending authorize account request to Backblaze");
     let authorizedAccount: AuthorizeAccountResponse | undefined = undefined;
 
     try {
@@ -99,9 +100,9 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
         throw e;
       }
     }
-    jobLogger.info("Authorized account success");
+    jobLogger.debug("Authorized account success");
 
-    jobLogger.info("Sending authorize download request to Backblaze");
+    jobLogger.debug("Sending authorize download request to Backblaze");
     let authorizedDownload: DownloadAuthorizationResponse | undefined = undefined;
 
     try {
@@ -127,7 +128,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       }
     }
 
-    jobLogger.info("Authorized download success");
+    jobLogger.debug("Authorized download success");
 
     const nativeFilePath = path.join(workingTempDir, job.data.nativeFileKey);
     const writer = createWriteStream(nativeFilePath);
@@ -135,13 +136,13 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
     const downloadUrl = `${authorizedAccount.apiInfo.storageApi.apiUrl}/file/${authorizedAccount.apiInfo.storageApi.bucketName}/${job.data.nativeFileKey}?Authorization=${encodeURIComponent(authorizedDownload.authorizationToken)}&b2ContentDisposition=attachment&b2ContentType=${encodeURIComponent("video/mp4")}`;
 
     const downloadStartTime = Date.now();
-    jobLogger.info("Starting native file download from Backblaze");
+    jobLogger.debug("Starting native file download from Backblaze");
     await axios<Stream>(downloadUrl, {
       method: "GET",
       responseType: "stream",
       onDownloadProgress: (e) => {
         const percentage = e.total ? Math.floor((e.loaded / e.total) * 100) : null;
-        jobLogger.info(
+        jobLogger.debug(
           `Downloaded ${percentage}% of file, estimated ${e.estimated} seconds remain going at ${e.rate} bytes/s`,
         );
       },
@@ -197,7 +198,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
     const videoFrameRateDecimal = eval(nativeFileFrameRateFraction).toFixed(2);
 
-    jobLogger.info(`Video's frame rate is ${videoFrameRateDecimal}`, {
+    jobLogger.debug(`Video's frame rate is ${videoFrameRateDecimal}`, {
       frameRate: videoFrameRateDecimal,
     });
 
@@ -227,23 +228,23 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       await execa`${command}`;
 
       const elapsed = (Date.now() - start) / 1000;
-      jobLogger.info(`Finished generating video source for ${resolution.height}p in ${elapsed}s`, {
+      jobLogger.debug(`Finished generating video source for ${resolution.height}p in ${elapsed}s`, {
         resolution,
         elapsed,
       });
 
-      jobLogger.info("Getting upload url for Backblaze", {
+      jobLogger.debug("Getting upload url for Backblaze", {
         resolution,
       });
 
       let uploadUrlResponse: UploadUrlResponse | undefined = undefined;
 
       try {
-        jobLogger.info("Sending authorize upload account request to Backblaze");
+        jobLogger.debug("Sending authorize upload account request to Backblaze");
         let authorizedUploadAccount: AuthorizeAccountResponse | undefined = undefined;
 
         try {
-          const response = await authorizeUploadAccount();
+          const response = await authorizeVideoUploadAccount();
           authorizedUploadAccount = response.data;
         } catch (e) {
           if (e instanceof AxiosError) {
@@ -259,7 +260,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
             throw e;
           }
         }
-        jobLogger.info("Authorized account success");
+        jobLogger.debug("Authorized account success");
 
         uploadUrlResponse = (await getUploadUrl(authorizedUploadAccount, env.VIDEOS_BUCKET_ID))
           .data;
@@ -281,12 +282,12 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
       const processedFileStats = await stat(outPath);
 
-      jobLogger.info(`Uploading ${processedFileStats.size} bytes`, {
+      jobLogger.debug(`Uploading ${processedFileStats.size} bytes`, {
         resolution,
         contentLength: processedFileStats.size,
       });
 
-      jobLogger.info("Uploading processed file to url", { resolution });
+      jobLogger.debug("Uploading processed file to url", { resolution });
 
       const fileStream = createReadStream(outPath);
 
@@ -345,7 +346,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
 
     jobLogger.info("Generated sources for video", { videoSources });
 
-    jobLogger.info("Adding video sources to database");
+    jobLogger.debug("Adding video sources to database");
 
     await db
       .update(videos)
@@ -355,9 +356,9 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       })
       .where(eq(videos.id, videoData.id));
 
-    jobLogger.info("Removing files from disk");
+    jobLogger.debug("Removing files from disk");
 
-    await rm(workingTempDir, { force: true, recursive: true });
+    await rimraf(workingTempDir);
 
     return {
       elapsed: (Date.now() - jobStart) / 1000,
@@ -373,7 +374,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
   },
 );
 
-transcoderWorker.on("failed", (job, err) => {
+transcoderWorker.on("failed", async (job, err) => {
   logger.error("Transcoding job failed", {
     jobQueue: job?.queueName,
     jobId: job?.id,
@@ -385,6 +386,12 @@ transcoderWorker.on("failed", (job, err) => {
     errorStack: err.stack,
     errorCause: err.cause,
   });
+
+  try {
+    await rimraf(path.join(process.cwd(), "temp", `transcoding-${job?.id}`));
+  } catch (e: any) {
+    logger.warn("Error removing failed job directory for transcoding", { jobId: job?.id, ...e });
+  }
 });
 
 transcoderWorker.on("completed", (job, result) => {

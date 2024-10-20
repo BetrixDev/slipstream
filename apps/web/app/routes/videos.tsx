@@ -4,7 +4,7 @@ import { redirect } from "@remix-run/node";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { db, desc, videos } from "db";
+import { db, desc, sql, videos } from "db";
 import { Suspense } from "react";
 import TopNav from "~/components/TopNav";
 import { Separator } from "~/components/ui/separator";
@@ -22,6 +22,7 @@ import { isUploadDialogOpenAtom } from "~/atoms";
 import { UploadVideoDialogContainer } from "~/components/upload-video-dialog";
 import { UploadingVideosContainer } from "~/components/uploading-videos-container";
 import { FullPageDropzone } from "~/components/full-page-dropzone";
+import { env } from "env/web";
 
 export const meta: MetaFunction = () => {
   return [
@@ -54,15 +55,22 @@ export async function loader(args: LoaderFunctionArgs) {
             title: true,
             id: true,
             isPrivate: true,
-            smallThumbnailUrl: true,
             videoLengthSeconds: true,
             isProcessing: true,
             createdAt: true,
+            smallThumbnailKey: true,
           },
         },
       },
     })
-    .execute();
+    .execute()
+    .then((data) => ({
+      ...data,
+      videos: data?.videos.map((video) => ({
+        ...video,
+        smallThumbnailUrl: `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`,
+      })),
+    }));
 
   return defer({
     userData,

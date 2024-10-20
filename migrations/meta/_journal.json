@@ -15,6 +15,13 @@
       "when": 1729216441918,
       "tag": "0001_abnormal_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1729381996320,
+      "tag": "0002_big_bill_hollister",
+      "breakpoints": true
     }
   ]
 }
