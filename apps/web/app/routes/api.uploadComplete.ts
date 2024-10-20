@@ -25,13 +25,13 @@ export async function action(args: ActionFunctionArgs) {
   const data = schema.parse(await args.request.json());
 
   const headObjectCommand = new HeadObjectCommand({
-    Bucket: env.S3_MEDIA_BUCKET,
+    Bucket: env.S3_VIDEOS_BUCKET,
     Key: data.key,
   });
 
   const s3RootClient = new S3Client({
-    endpoint: env.S3_MEDIA_ENDPOINT,
-    region: env.S3_MEDIA_BUCKET,
+    endpoint: env.S3_VIDEOS_ENDPOINT,
+    region: env.S3_VIDEOS_BUCKET,
     credentials: {
       accessKeyId: env.S3_ROOT_ACCESS_KEY,
       secretAccessKey: env.S3_ROOT_SECRET_KEY,
@@ -51,7 +51,7 @@ export async function action(args: ActionFunctionArgs) {
   if (!userData) {
     await s3RootClient.send(
       new DeleteObjectCommand({
-        Bucket: env.S3_MEDIA_BUCKET,
+        Bucket: env.S3_VIDEOS_BUCKET,
         Key: data.key,
       }),
     );
@@ -65,7 +65,7 @@ export async function action(args: ActionFunctionArgs) {
     try {
       await s3RootClient.send(
         new DeleteObjectCommand({
-          Bucket: env.S3_MEDIA_BUCKET,
+          Bucket: env.S3_VIDEOS_BUCKET,
           Key: data.key,
         }),
       );

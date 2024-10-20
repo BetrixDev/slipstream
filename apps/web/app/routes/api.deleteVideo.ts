@@ -15,8 +15,8 @@ const schema = z.object({
 });
 
 const s3VideosClient = new S3Client({
-  endpoint: env.S3_MEDIA_ENDPOINT,
-  region: env.S3_MEDIA_REGION,
+  endpoint: env.S3_VIDEOS_ENDPOINT,
+  region: env.S3_VIDEOS_REGION,
   credentials: {
     accessKeyId: env.S3_ROOT_ACCESS_KEY,
     secretAccessKey: env.S3_ROOT_SECRET_KEY,
@@ -62,7 +62,7 @@ export async function action(args: ActionFunctionArgs) {
 
   for (const source of videoData.sources) {
     const objectVersionsCommands = new ListObjectVersionsCommand({
-      Bucket: env.S3_MEDIA_BUCKET,
+      Bucket: env.S3_VIDEOS_BUCKET,
       Prefix: `${source.key}`,
     });
 
@@ -74,7 +74,7 @@ export async function action(args: ActionFunctionArgs) {
           resolve(
             await s3VideosClient.send(
               new DeleteObjectCommand({
-                Bucket: env.S3_MEDIA_BUCKET,
+                Bucket: env.S3_VIDEOS_BUCKET,
                 Key: version.Key,
                 VersionId: version.VersionId,
               }),

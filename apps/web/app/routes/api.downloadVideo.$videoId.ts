@@ -27,8 +27,8 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const s3ReadOnlyClient = new S3Client({
-    region: env.S3_MEDIA_REGION,
-    endpoint: env.S3_MEDIA_ENDPOINT,
+    region: env.S3_VIDEOS_REGION,
+    endpoint: env.S3_VIDEOS_ENDPOINT,
     credentials: {
       accessKeyId: env.S3_READ_ONLY_ACCESS_KEY,
       secretAccessKey: env.S3_READ_ONLY_SECRET_KEY,
@@ -36,8 +36,8 @@ export async function loader(args: LoaderFunctionArgs) {
   });
 
   const command = new GetObjectCommand({
-    Bucket: env.S3_MEDIA_BUCKET,
-    Key: videoData.key,
+    Bucket: env.S3_VIDEOS_BUCKET,
+    Key: videoData.nativeFileKey,
   });
 
   const url = await getSignedUrl(s3ReadOnlyClient as any, command, {
