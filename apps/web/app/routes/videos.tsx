@@ -68,7 +68,9 @@ export async function loader(args: LoaderFunctionArgs) {
       ...data,
       videos: data?.videos.map((video) => ({
         ...video,
-        smallThumbnailUrl: `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`,
+        smallThumbnailUrl: video.smallThumbnailKey
+          ? `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`
+          : undefined,
       })),
     }));
 
@@ -98,8 +100,8 @@ function VideosDashboard() {
                 <Await resolve={userData}>
                   {(userData) => (
                     <StorageUsedText
-                      maxStorage={PLAN_STORAGE_SIZES[userData.accountTier]}
-                      totalStorageUsed={userData.totalStorageUsed}
+                      maxStorage={PLAN_STORAGE_SIZES[userData.accountTier ?? "free"]}
+                      totalStorageUsed={userData.totalStorageUsed ?? 0}
                     />
                   )}
                 </Await>
