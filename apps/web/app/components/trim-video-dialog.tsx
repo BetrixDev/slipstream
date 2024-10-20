@@ -9,6 +9,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { Loader, Loader2 } from "lucide-react";
+import { PauseIcon, PlayIcon } from "@vidstack/react/icons";
 
 export function TrimVideoDialogContainer() {
   const [trimVideoData] = useAtom(trimVideoDataAtom);
@@ -27,6 +28,7 @@ function TrimVideoDialog() {
   const [trimVideoData, setTrimVideoData] = useAtom(trimVideoDataAtom);
   const setCustomFileToUploadAtom = useSetAtom(customFileToUploadAtom);
   const setIsUploadDialogOpenAtom = useSetAtom(isUploadDialogOpenAtom);
+  const [isViewportPlaying, setIsViewportPlaying] = useState(false);
 
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
@@ -34,6 +36,9 @@ function TrimVideoDialog() {
 
   const { isLoading } = useQuery({
     queryKey: ["loadFfmpeg"],
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const ffmpeg = ffmpegRef.current;
 
@@ -76,11 +81,14 @@ function TrimVideoDialog() {
     mutate: handleRenderVideo,
     isPending: isRendering,
     isError: isRenderError,
+    isSuccess: hasRendered,
   } = useMutation({
     mutationFn: async () => {
       if (!lastRangeValue.current) {
         return false;
       }
+      resetViewportToBeginning();
+
       const ffmpeg = ffmpegRef.current;
 
       await ffmpeg.writeFile("input.mp4", await fetchFile(trimVideoData!.file));
@@ -97,13 +105,12 @@ function TrimVideoDialog() {
         endTimestamp,
         "-c",
         "copy",
-        "output.mp4",
+        "output_video.mp4",
       ]);
 
-      const data = await ffmpeg.readFile("output.mp4");
+      const data = await ffmpeg.readFile("output_video.mp4");
 
-      const blob = new Blob([data]);
-      const file = new File([blob], trimVideoData!.file.name);
+      const file = new File([new Blob([data])], trimVideoData!.file.name);
 
       setTrimVideoData({ title: trimVideoData?.title, file });
     },
@@ -114,7 +121,11 @@ function TrimVideoDialog() {
 
   function handleBackToUploadClick() {
     setTrimVideoData(undefined);
-    setCustomFileToUploadAtom(trimVideoData?.file);
+
+    if (hasRendered) {
+      setCustomFileToUploadAtom(trimVideoData?.file);
+    }
+
     setIsUploadDialogOpenAtom(true);
   }
 
@@ -129,8 +140,59 @@ function TrimVideoDialog() {
 
     lastRangeValue.current = value;
 
-    if (viewportRef.current) {
+    if (isViewportPlaying) {
+      setIsViewportPlaying(false);
+      resetViewportToBeginning();
+    } else if (viewportRef.current) {
       viewportRef.current.currentTime = currentTime;
+    }
+  }
+
+  function resetViewportToBeginning() {
+    if (!viewportRef.current || !lastRangeValue.current) {
+      return;
+    }
+
+    viewportRef.current.pause();
+    viewportRef.current.currentTime = lastRangeValue.current[0];
+  }
+
+  useEffect(() => {
+    if (!viewportRef.current || !lastRangeValue.current) {
+      return;
+    }
+
+    const playbackDuration = (lastRangeValue.current[1] - lastRangeValue.current[0]) * 1000;
+
+    const timeout = setTimeout(() => {
+      if (!viewportRef.current || !lastRangeValue.current) {
+        return;
+      }
+
+      resetViewportToBeginning();
+
+      setIsViewportPlaying(false);
+    }, playbackDuration);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [isViewportPlaying]);
+
+  function handleViewportClick() {
+    if (!viewportRef.current || !lastRangeValue.current) {
+      return;
+    }
+
+    viewportRef.current.currentTime = lastRangeValue.current[0];
+    viewportRef.current.volume = 0.25;
+
+    if (isViewportPlaying) {
+      viewportRef.current.pause();
+      setIsViewportPlaying(false);
+    } else {
+      viewportRef.current.play();
+      setIsViewportPlaying(true);
     }
   }
 
@@ -152,17 +214,31 @@ function TrimVideoDialog() {
           <DialogTitle>Trim Video</DialogTitle>
         </DialogHeader>
         {isLoading && (
-          <div>
-            <Loader className="animate-spin" />
-            Downloading required libraries
+          <div className="flex flex-col gap-2 items-center">
+            <Loader2 className="animate-spin" />
+            Downloading required libraries. Please wait
           </div>
         )}
         {videoDurationSeconds !== undefined && !isLoading && (
           <>
-            <video ref={viewportRef} src={videoUrl} controls />
+            <div className="relative">
+              <div
+                className="absolute z-[99999] flex items-center justify-center h-full w-full hover:cursor-pointer"
+                onClick={() => {
+                  handleViewportClick();
+                }}
+              >
+                {isViewportPlaying ? (
+                  <PauseIcon className="w-10 h-10 opacity-80 " />
+                ) : (
+                  <PlayIcon className="w-10 h-10 opacity-80 " />
+                )}
+              </div>
+              <video ref={viewportRef} src={videoUrl} />
+            </div>
             <div className="flex justify-between">
               <span>{formatSecondsToTimestamp(0)}</span>
-              <span>{formatSecondsToTimestamp(parseFloat(videoDurationSeconds.toFixed(2)))}</span>
+              <span>{formatSecondsToTimestamp(videoDurationSeconds)}</span>
             </div>
             <RangeSlider
               defaultValue={[0, 100]}
@@ -180,7 +256,7 @@ function TrimVideoDialog() {
               Render Video
             </Button>
             <Button
-              disabled={isRenderError && isRendering}
+              disabled={isRenderError || isRendering}
               onClick={() => handleBackToUploadClick()}
             >
               Back to upload
