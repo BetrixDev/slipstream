@@ -10,7 +10,7 @@ const schema = z.object({
   videoId: z.string(),
 });
 
-const s3Client = new S3Client({
+const s3VideosClient = new S3Client({
   endpoint: env.S3_MEDIA_ENDPOINT,
   region: env.S3_MEDIA_REGION,
   credentials: {
@@ -19,7 +19,14 @@ const s3Client = new S3Client({
   },
 });
 
-const utApi = new UTApi({ token: env.UPLOADTHING_TOKEN });
+const s3ThumbsClient = new S3Client({
+  endpoint: env.S3_THUMBS_ENDPOINT,
+  region: env.S3_THUMBS_REGION,
+  credentials: {
+    accessKeyId: env.S3_ROOT_ACCESS_KEY,
+    secretAccessKey: env.S3_ROOT_SECRET_KEY,
+  },
+});
 
 export async function action(args: ActionFunctionArgs) {
   const { userId } = await getAuth(args);
@@ -47,33 +54,64 @@ export async function action(args: ActionFunctionArgs) {
     return json({ success: false, message: "Video not found." }, { status: 404 });
   }
 
-  // TODO: delete all processed files for this video
+  const videoDeleteCommandPromises = videoData.sources.map(
+    (source) =>
+      new Promise(async (resolve) => {
+        resolve(
+          await s3VideosClient.send(
+            new DeleteObjectCommand({
+              Bucket: env.S3_MEDIA_BUCKET,
+              Key: source.key,
+            }),
+          ),
+        );
+      }),
+  );
 
-  const command = new DeleteObjectCommand({
-    Bucket: env.S3_MEDIA_BUCKET,
-    Key: videoData.nativeFileKey,
-  });
-
-  const thumbnailsToDelete: string[] = [];
+  const thumbnailDeleteCommands: Promise<any>[] = [];
 
   if (videoData.smallThumbnailKey) {
-    thumbnailsToDelete.push(videoData.smallThumbnailKey);
+    thumbnailDeleteCommands.push(
+      new Promise(async (resolve) => {
+        resolve(
+          await s3ThumbsClient.send(
+            new DeleteObjectCommand({
+              Bucket: env.S3_THUMBS_BUCKET,
+              Key: videoData.smallThumbnailKey!,
+            }),
+          ),
+        );
+      }),
+    );
   }
 
   if (videoData.largeThumbnailKey) {
-    thumbnailsToDelete.push(videoData.largeThumbnailKey);
+    thumbnailDeleteCommands.push(
+      new Promise(async (resolve) => {
+        resolve(
+          await s3ThumbsClient.send(
+            new DeleteObjectCommand({
+              Bucket: env.S3_THUMBS_BUCKET,
+              Key: videoData.largeThumbnailKey!,
+            }),
+          ),
+        );
+      }),
+    );
   }
 
   try {
     await db.transaction(async (tx) => {
       try {
         await Promise.all([
-          s3Client.send(command),
-          utApi.deleteFiles(thumbnailsToDelete),
+          ...videoDeleteCommandPromises,
+          ...thumbnailDeleteCommands,
           tx.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
           tx
             .update(users)
-            .set({ totalStorageUsed: sql`${users.totalStorageUsed} - ${videoData.fileSizeBytes}` })
+            .set({
+              totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
+            })
             .where(eq(users.id, userId)),
         ]);
       } catch (e) {

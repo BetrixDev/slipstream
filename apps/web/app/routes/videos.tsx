@@ -23,6 +23,7 @@ import { UploadVideoDialogContainer } from "~/components/upload-video-dialog";
 import { UploadingVideosContainer } from "~/components/uploading-videos-container";
 import { FullPageDropzone } from "~/components/full-page-dropzone";
 import { env } from "env/web";
+import { TrimVideoDialogContainer } from "~/components/trim-video-dialog";
 
 export const meta: MetaFunction = () => {
   return [
@@ -87,6 +88,7 @@ function VideosDashboard() {
   return (
     <>
       <FullPageDropzone />
+      <TrimVideoDialogContainer />
       <UploadVideoDialogContainer />
       <DeleteVideoDialog />
       <EditVideoDialog />

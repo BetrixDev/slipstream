@@ -14,4 +14,7 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   publicDir: "assets",
+  optimizeDeps: {
+    exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
+  },
 });
