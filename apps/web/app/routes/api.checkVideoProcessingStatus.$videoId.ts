@@ -27,6 +27,7 @@ export async function loader(args: LoaderFunctionArgs) {
   return json({
     smallThumbnailUrl: videoData.smallThumbnailKey
       ? `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`
-      : undefined,
+      : null,
+    videoLengthSeconds: videoData.videoLengthSeconds,
   });
 }

@@ -48,7 +48,7 @@ type UploadedVideoProps = {
   views: number;
   fileSizeBytes: number;
   smallThumbnailUrl: string;
-  videoLengthSeconds?: number;
+  videoLengthSeconds: number | null;
   isPrivate: boolean;
   createdAt: number;
 };
@@ -91,7 +91,7 @@ function UploadedVideo(video: UploadedVideoProps) {
         <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
-        {video.videoLengthSeconds !== undefined && (
+        {!isNaN(parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
             {formatSecondsToTimestamp(video.videoLengthSeconds ?? 0)}s
           </span>
@@ -194,9 +194,10 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
     retry: 20,
     refetchInterval: 1000 * 3,
     queryFn: async () => {
-      const { data } = await axios<{ smallThumbnailUrl?: string }>(
-        `/api/checkVideoProcessingStatus/${props.id}`,
-      );
+      const { data } = await axios<{
+        smallThumbnailUrl?: string;
+        videoLengthSeconds: number | null;
+      }>(`/api/checkVideoProcessingStatus/${props.id}`);
 
       if (data.smallThumbnailUrl) {
         queryClient.setQueryData<VideoBoardProps["videos"]>(["videos"], (videos) => {
@@ -205,6 +206,7 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
               return {
                 ...v,
                 smallThumbnailUrl: data.smallThumbnailUrl,
+                videoLengthSeconds: data.videoLengthSeconds ?? undefined,
               };
             }
 

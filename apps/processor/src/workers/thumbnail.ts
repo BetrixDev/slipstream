@@ -152,11 +152,11 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
 
     await execa`ffmpeg -i ${nativeFilePath} -vf fps=0.25 ${nativeFilePath}_%04d.jpg`;
 
-    logger.debug("Frames glob", { glob: "*_*.jpg", cwd: workingTempDir });
+    jobLogger.debug("Frames glob", { glob: "*_*.jpg", cwd: workingTempDir });
 
     const frames = await glob("*_*.jpg", { cwd: workingTempDir });
 
-    logger.debug("Frames found", { frames });
+    jobLogger.debug("Frames found", { frames });
 
     let brightestFrame = { file: frames[0], brightness: 0 };
 
@@ -179,13 +179,11 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
           };
         }
       } catch (e) {
-        logger.error("Error processing frame", e);
+        jobLogger.error("Error processing frame", e);
       }
     }
 
-    logger.debug("Brightess Frame", brightestFrame);
-
-    console.log(path.join(workingTempDir, brightestFrame.file));
+    jobLogger.debug("Brightess Frame", brightestFrame);
 
     const image = sharp(path.join(workingTempDir, brightestFrame.file));
 
@@ -290,7 +288,6 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
           elapsed: uploadTimeElapsed,
         });
 
-        // resolve(uploadFileResponse.data);
         thumbnails[thumb.name.includes("small.webp") ? "small" : "large"] =
           uploadFileResponse.data.fileName;
       } catch (e) {
@@ -310,7 +307,21 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
       }
     }
 
-    logger.info(
+    let videoDurationSeconds: number | undefined = undefined;
+
+    try {
+      jobLogger.debug("Getting video length");
+
+      const { all } = await execa({
+        all: true,
+      })`ffprobe -i ${nativeFilePath} -show_entries format=duration -v quiet -of csv=p=0`;
+
+      videoDurationSeconds = Math.round(Number(all.trim()));
+    } catch (e) {
+      jobLogger.error("Error geting video length", e);
+    }
+
+    jobLogger.info(
       `Updating videos table with the following thumbnail data for video ${videoData.id}`,
       {
         thumbnails,
@@ -322,6 +333,7 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
       .set({
         largeThumbnailKey: thumbnails.large,
         smallThumbnailKey: thumbnails.small,
+        videoLengthSeconds: videoDurationSeconds,
       })
       .where(eq(videos.id, videoData.id));
 

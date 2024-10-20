@@ -7,7 +7,10 @@ import { db, eq, sql, videos } from "db";
 import { createVerifier } from "fast-jwt";
 import { serve } from "@hono/node-server";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
 import { Axiom } from "@axiomhq/js";
+
+dayjs.extend(utc);
 
 const axiom = new Axiom({
   token: env.AXIOM_TOKEN,
@@ -68,10 +71,6 @@ const incrementViewsWorker = new Worker(
       .update(videos)
       .set({ views: sql`${videos.views} + ${viewsToAdd}` })
       .where(eq(videos.id, videoId));
-
-    if (result.rowsAffected < 0) {
-      throw new Error(`Unknown error when attempting to set views for ${videoId} to database`);
-    }
 
     ingestLog(`Incremented views for ${videoId} by ${viewsToAdd}`);
 
