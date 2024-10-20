@@ -259,24 +259,22 @@ export default function VideoPlayerRouter() {
         </Link>
       </header>
       <div className="flex gap-4 p-4 max-w-full h-full flex-col xl:flex-row">
-        <div className="grow">
-          <MediaPlayer
-            src={videoSources as any}
-            viewType="video"
-            streamType="on-demand"
-            logLevel="debug"
-            playsInline
-            title={title}
-            poster={largeThumbnailUrl ?? undefined}
-            duration={videoLengthSeconds ?? undefined}
-            storage="player"
-          >
-            <MediaProvider>
-              <Poster className="vds-poster" src={largeThumbnailUrl ?? undefined} />
-            </MediaProvider>
-            <DefaultVideoLayout icons={defaultLayoutIcons} />
-          </MediaPlayer>
-        </div>
+        <MediaPlayer
+          src={videoSources as any}
+          viewType="video"
+          streamType="on-demand"
+          logLevel="debug"
+          playsInline
+          title={title}
+          poster={largeThumbnailUrl ?? undefined}
+          duration={videoLengthSeconds ?? undefined}
+          storage="player"
+        >
+          <MediaProvider>
+            <Poster className="vds-poster" src={largeThumbnailUrl ?? undefined} />
+          </MediaProvider>
+          <DefaultVideoLayout icons={defaultLayoutIcons} />
+        </MediaPlayer>
         <div className="flex flex-col gap-4 min-w-96">
           <Card className="border-none">
             <CardContent className="p-0 space-y-4">
