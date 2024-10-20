@@ -1,10 +1,14 @@
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
+  ListObjectVersionsCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { ActionFunctionArgs, json } from "@remix-run/node";
 import { z } from "zod";
 import { db, videos, and, eq, users, sql } from "db";
 import { env } from "env/web";
-import { UTApi } from "uploadthing/server";
 
 const schema = z.object({
   videoId: z.string(),
@@ -54,50 +58,86 @@ export async function action(args: ActionFunctionArgs) {
     return json({ success: false, message: "Video not found." }, { status: 404 });
   }
 
-  const videoDeleteCommandPromises = videoData.sources.map(
-    (source) =>
-      new Promise(async (resolve) => {
-        resolve(
-          await s3VideosClient.send(
-            new DeleteObjectCommand({
-              Bucket: env.S3_MEDIA_BUCKET,
-              Key: source.key,
-            }),
-          ),
-        );
-      }),
-  );
+  const videoDeleteCommandPromises: Promise<any>[] = [];
+
+  for (const source of videoData.sources) {
+    const objectVersionsCommands = new ListObjectVersionsCommand({
+      Bucket: env.S3_MEDIA_BUCKET,
+      Prefix: `${source.key}`,
+    });
+
+    const objectVersions = await s3VideosClient.send(objectVersionsCommands);
+
+    objectVersions.Versions?.forEach((version) => {
+      videoDeleteCommandPromises.push(
+        new Promise(async (resolve) => {
+          console.log(version.Key, version.VersionId);
+          resolve(
+            await s3VideosClient.send(
+              new DeleteObjectCommand({
+                Bucket: env.S3_MEDIA_BUCKET,
+                Key: version.Key,
+                VersionId: version.VersionId,
+              }),
+            ),
+          );
+        }),
+      );
+    });
+  }
 
   const thumbnailDeleteCommands: Promise<any>[] = [];
 
   if (videoData.smallThumbnailKey) {
-    thumbnailDeleteCommands.push(
-      new Promise(async (resolve) => {
-        resolve(
-          await s3ThumbsClient.send(
-            new DeleteObjectCommand({
-              Bucket: env.S3_THUMBS_BUCKET,
-              Key: videoData.smallThumbnailKey!,
-            }),
-          ),
-        );
+    const smallThumbnailVersions = await s3ThumbsClient.send(
+      new ListObjectVersionsCommand({
+        Bucket: env.S3_THUMBS_BUCKET,
+        Prefix: videoData.smallThumbnailKey,
       }),
     );
+
+    smallThumbnailVersions.Versions?.forEach((version) => {
+      thumbnailDeleteCommands.push(
+        new Promise(async (resolve) => {
+          console.log(version.Key, version.VersionId);
+          resolve(
+            await s3ThumbsClient.send(
+              new DeleteObjectCommand({
+                Bucket: env.S3_THUMBS_BUCKET,
+                Key: version.Key,
+                VersionId: version.VersionId,
+              }),
+            ),
+          );
+        }),
+      );
+    });
   }
 
   if (videoData.largeThumbnailKey) {
-    thumbnailDeleteCommands.push(
-      new Promise(async (resolve) => {
-        resolve(
-          await s3ThumbsClient.send(
-            new DeleteObjectCommand({
-              Bucket: env.S3_THUMBS_BUCKET,
-              Key: videoData.largeThumbnailKey!,
-            }),
-          ),
-        );
+    const largeThumbnailVersions = await s3ThumbsClient.send(
+      new ListObjectVersionsCommand({
+        Bucket: env.S3_THUMBS_BUCKET,
+        Prefix: videoData.largeThumbnailKey,
       }),
     );
+
+    largeThumbnailVersions.Versions?.forEach((version) => {
+      thumbnailDeleteCommands.push(
+        new Promise(async (resolve) => {
+          console.log(version.Key, version.VersionId);
+          resolve(
+            await s3ThumbsClient.send(
+              new DeleteObjectCommand({
+                Bucket: env.S3_THUMBS_BUCKET,
+                Key: version.Key,
+                VersionId: version.VersionId,
+              }),
+            ),
+          );
+        }),
+      );
+    });
   }
 
   try {
