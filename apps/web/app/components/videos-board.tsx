@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 import { Eye, Copy, Loader2, HardDriveDownload, Trash, EyeOff, ListTodo, Play } from "lucide-react";
@@ -6,10 +7,10 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { handleCopyLink, humanFileSize, formatSecondsToTimestamp } from "~/lib/utils";
 import { Link } from "@remix-run/react";
-import axios from "axios";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { RelativeDate } from "./relative-date";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export type VideoBoardProps = {
   videos: {
@@ -22,6 +23,9 @@ export type VideoBoardProps = {
     isProcessing: boolean;
     isPrivate: boolean;
     createdAt: number;
+    pendingDeletion?: {
+      daysLeft: number;
+    };
   }[];
 };
 
@@ -49,6 +53,9 @@ type UploadedVideoProps = {
   fileSizeBytes: number;
   smallThumbnailUrl: string;
   videoLengthSeconds: number | null;
+  pendingDeletion?: {
+    daysLeft: number;
+  };
   isPrivate: boolean;
   createdAt: number;
 };
@@ -91,6 +98,24 @@ function UploadedVideo(video: UploadedVideoProps) {
         <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
+        {video.pendingDeletion !== undefined && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="z-[99999999]">
+                <span className="p-1 bg-destructive/50 rounded-md rounded-tr-sm backdrop-blur-md">
+                  Pending Deletion
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                This video will be deleted in {video.pendingDeletion.daysLeft} day(s).{" "}
+                <Link to="/pricing" prefetch="intent">
+                  <span className="text-blue-600 underline">Upgrade your account</span>
+                </Link>{" "}
+                to keep it forever.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {!isNaN(parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
             {formatSecondsToTimestamp(video.videoLengthSeconds ?? 0)}s

@@ -4,7 +4,7 @@ import { redirect } from "@vercel/remix";
 import { Await, Link, useLoaderData } from "@remix-run/react";
 import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { db, desc, sql, videos } from "db";
+import { db, desc, videos } from "db";
 import { Suspense } from "react";
 import TopNav from "~/components/TopNav";
 import { Separator } from "~/components/ui/separator";
@@ -16,7 +16,7 @@ import { EditVideoDialog } from "~/components/edit-video-dialog";
 import { VideosBoard } from "~/components/videos-board";
 import { humanFileSize, HumanFileSizeMotion } from "~/lib/utils";
 import { Footer } from "~/components/Footer";
-import { PLAN_STORAGE_SIZES } from "cms";
+import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "cms";
 import { useSetAtom } from "jotai";
 import { isUploadDialogOpenAtom } from "~/atoms";
 import { UploadVideoDialogContainer } from "~/components/upload-video-dialog";
@@ -24,6 +24,10 @@ import { UploadingVideosContainer } from "~/components/uploading-videos-containe
 import { FullPageDropzone } from "~/components/full-page-dropzone";
 import { env } from "env/web";
 import { TrimVideoDialogContainer } from "~/components/trim-video-dialog";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 export const config = { runtime: "edge" };
 
@@ -67,15 +71,48 @@ export async function loader(args: LoaderFunctionArgs) {
       },
     })
     .execute()
-    .then((data) => ({
-      ...data,
-      videos: data?.videos.map((video) => ({
-        ...video,
-        smallThumbnailUrl: video.smallThumbnailKey
-          ? `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`
-          : undefined,
-      })),
-    }));
+    .then((data) => {
+      let injectedData = {
+        ...data,
+        videos: (data?.videos ?? []).map((video) => ({
+          ...video,
+          smallThumbnailUrl: video.smallThumbnailKey
+            ? `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`
+            : undefined,
+        })),
+      };
+
+      const isUserFreeTier = data?.accountTier === "free";
+
+      if (isUserFreeTier) {
+        const currentDate = dayjs().utc();
+
+        injectedData = {
+          ...injectedData,
+          videos: injectedData.videos.map((video) => {
+            const videoDeletionDate = dayjs(video.createdAt)
+              .utc()
+              .add(FREE_PLAN_VIDEO_RETENION_DAYS, "days");
+
+            const daysLeftTilDeletion = videoDeletionDate.diff(currentDate, "day");
+            const isPendingDeletion = daysLeftTilDeletion <= 7;
+
+            if (isPendingDeletion) {
+              return {
+                ...video,
+                pendingDeletion: {
+                  daysLeft: daysLeftTilDeletion,
+                },
+              };
+            }
+
+            return video;
+          }),
+        };
+      }
+
+      return injectedData;
+    });
 
   return defer({
     userData,
