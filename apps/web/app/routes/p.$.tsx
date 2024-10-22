@@ -272,7 +272,9 @@ export default function VideoPlayerRouter() {
           storage="player"
         >
           <MediaProvider>
-            <Poster className="vds-poster" src={largeThumbnailUrl ?? undefined} />
+            {largeThumbnailUrl !== undefined && (
+              <Poster className="vds-poster" src={largeThumbnailUrl} />
+            )}
           </MediaProvider>
           <DefaultVideoLayout icons={defaultLayoutIcons} />
         </MediaPlayer>
