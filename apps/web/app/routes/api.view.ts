@@ -17,5 +17,5 @@ export async function action({ request }: ActionFunctionArgs) {
     validateStatus: () => true,
   });
 
-  return json({ succes: response.status === 200 }, { status: response.status });
+  return json(response.data, { status: response.status });
 }
