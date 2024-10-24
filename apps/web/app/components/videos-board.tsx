@@ -11,6 +11,10 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { RelativeDate } from "./relative-date";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 export type VideoBoardProps = {
   videos: {
@@ -22,10 +26,8 @@ export type VideoBoardProps = {
     videoLengthSeconds?: number;
     isProcessing: boolean;
     isPrivate: boolean;
-    createdAt: number;
-    pendingDeletion?: {
-      daysLeft: number;
-    };
+    createdAt: string;
+    deletionDate?: string;
   }[];
 };
 
@@ -42,7 +44,7 @@ export function VideosBoard({ videos }: VideoBoardProps) {
   }, [videos]);
 
   return data.map((video) => {
-    return <UploadedVideo key={video.id} {...(video as any)} />;
+    return <UploadedVideo key={video.id} {...video} />;
   });
 }
 
@@ -51,13 +53,11 @@ type UploadedVideoProps = {
   title: string;
   views: number;
   fileSizeBytes: number;
-  smallThumbnailUrl: string;
-  videoLengthSeconds: number | null;
-  pendingDeletion?: {
-    daysLeft: number;
-  };
+  smallThumbnailUrl?: string;
+  videoLengthSeconds?: number | null;
+  deletionDate?: string;
   isPrivate: boolean;
-  createdAt: number;
+  createdAt: string;
 };
 
 function UploadedVideo(video: UploadedVideoProps) {
@@ -98,23 +98,8 @@ function UploadedVideo(video: UploadedVideoProps) {
         <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
-        {video.pendingDeletion !== undefined && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger className="z-[99999999]">
-                <span className="p-1 bg-destructive/50 rounded-md rounded-tr-sm backdrop-blur-md">
-                  Pending Deletion
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                This video will be deleted in {video.pendingDeletion.daysLeft} day(s).{" "}
-                <Link to="/pricing" prefetch="intent">
-                  <span className="text-blue-600 underline">Upgrade your account</span>
-                </Link>{" "}
-                to keep it forever.
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {video.deletionDate !== undefined && (
+          <PendingDeletionChip deletionDate={video.deletionDate} />
         )}
         {!isNaN(parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
@@ -248,5 +233,32 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
     <div className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full h-2/3 flex flex-col gap-2 items-center justify-center">
       <Loader2 className="w-12 h-12 aspect-square animate-spin text-muted" />
     </div>
+  );
+}
+
+function PendingDeletionChip({ deletionDate }: { deletionDate: string }) {
+  const daysAway = dayjs(deletionDate).utc().local().diff(dayjs(), "days");
+
+  if (daysAway > 7) {
+    return null;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger className="z-[99999999]">
+          <span className="p-1 bg-destructive/50 rounded-md rounded-tr-sm backdrop-blur-md">
+            Pending Deletion
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          This video will be deleted in {daysAway} day(s).{" "}
+          <Link to="/pricing" prefetch="intent">
+            <span className="text-blue-600 underline">Upgrade your account</span>
+          </Link>{" "}
+          to keep it forever.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

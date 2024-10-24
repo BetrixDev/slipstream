@@ -67,6 +67,7 @@ export async function loader(args: LoaderFunctionArgs) {
             isProcessing: true,
             createdAt: true,
             smallThumbnailKey: true,
+            deletionDate: true,
           },
         },
       },
@@ -84,33 +85,6 @@ export async function loader(args: LoaderFunctionArgs) {
       };
 
       const isUserFreeTier = data?.accountTier === "free";
-
-      if (isUserFreeTier) {
-        const currentDate = dayjs().utc();
-
-        injectedData = {
-          ...injectedData,
-          videos: injectedData.videos.map((video) => {
-            const videoDeletionDate = dayjs(video.createdAt)
-              .utc()
-              .add(FREE_PLAN_VIDEO_RETENION_DAYS, "days");
-
-            const daysLeftTilDeletion = videoDeletionDate.diff(currentDate, "day");
-            const isPendingDeletion = daysLeftTilDeletion <= 7;
-
-            if (isPendingDeletion) {
-              return {
-                ...video,
-                pendingDeletion: {
-                  daysLeft: daysLeftTilDeletion,
-                },
-              };
-            }
-
-            return video;
-          }),
-        };
-      }
 
       return {
         ...injectedData,
