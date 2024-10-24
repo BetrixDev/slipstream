@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRevalidator } from "@remix-run/react";
+import { notNanOrDefault } from "~/lib/utils";
 
 export function DeleteVideoDialog() {
   const queryClient = useQueryClient();
@@ -26,9 +27,8 @@ export function DeleteVideoDialog() {
         videosQueryData.filter((video) => video.id !== deleteVideo.id),
       );
 
-      queryClient.setQueryData<number>(
-        ["totalStorageUsed"],
-        (prev) => (prev ?? 0) - deleteVideo.contentLength,
+      queryClient.setQueryData<number>(["totalStorageUsed"], (prev) =>
+        Math.max(notNanOrDefault(prev) - deleteVideo.contentLength, 0),
       );
 
       const videoId = deleteVideo.id;

@@ -1,4 +1,5 @@
 import { execa } from "execa";
+import { LOWEST_BITRATE_THRESHOLD } from "../../../../packages/cms/src/index";
 
 type Resolution = {
   width: number;
@@ -44,4 +45,8 @@ export async function getVideoFileBitrate(path: string) {
   const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
 
   return !isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
+}
+
+export function shouldKeepTranscoding(currentBitrate: number) {
+  return currentBitrate > LOWEST_BITRATE_THRESHOLD;
 }

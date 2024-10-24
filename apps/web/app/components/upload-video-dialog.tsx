@@ -62,11 +62,7 @@ function UploadVideoDialog() {
   useEffect(() => {
     form.reset();
 
-    console.log(isUploadDialogOpen);
-
     if (isUploadDialogOpen && customFileToUpload) {
-      // form.setFieldValue("file", customFileToUpload);
-
       form.update({
         defaultValues: {
           file: customFileToUpload,
@@ -122,6 +118,12 @@ function UploadVideoDialog() {
             validators={{
               onChange: ({ value }) => {
                 const fileSize = value?.size ?? 0;
+
+                const maxFileUpload = queryClient.getQueryData<number>(["maxFileUpload"]);
+
+                if (maxFileUpload !== undefined && fileSize > maxFileUpload) {
+                  return "File size exceeds maximum file upload size for your account tier";
+                }
 
                 const totalStorageUsed =
                   queryClient.getQueryData<number>(["totalStorageUsed"]) ?? 0;

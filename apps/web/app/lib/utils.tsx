@@ -49,3 +49,17 @@ export function handleCopyLink(link: string, title: string) {
     description: title,
   });
 }
+
+export function notNanOrDefault(number?: number | string | null, defaultValue = 0) {
+  if (number === undefined || number === null) {
+    return defaultValue;
+  }
+
+  const value = parseFloat(number.toString());
+
+  if (!isNaN(value)) {
+    return value;
+  }
+
+  return defaultValue;
+}

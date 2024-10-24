@@ -3,11 +3,11 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { ActionFunctionArgs } from "@vercel/remix";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { db, eq, sql, users, videos } from "db";
+import { db, eq, SQL, sql, users, videos } from "db";
 import { json } from "@vercel/remix";
 import { env } from "env/web";
 import axios from "axios";
-import { PLAN_STORAGE_SIZES } from "cms";
+import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 
 const schema = z.object({
   key: z.string(),
@@ -58,9 +58,11 @@ export async function action(args: ActionFunctionArgs) {
     return json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
+
   if (
-    userData.totalStorageUsed + response.ContentLength >
-    PLAN_STORAGE_SIZES[userData.accountTier]
+    userData.totalStorageUsed + response.ContentLength > PLAN_STORAGE_SIZES[userData.accountTier] ||
+    response.ContentLength > maxFileSize
   ) {
     try {
       await s3RootClient.send(
@@ -70,7 +72,7 @@ export async function action(args: ActionFunctionArgs) {
         }),
       );
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
 
     return json(
@@ -92,15 +94,14 @@ export async function action(args: ActionFunctionArgs) {
     videoId = nanoid(8);
   }
 
-  const [videoData] = await db.transaction(async (tx) => {
-    await tx
+  const [_, [videoData]] = await db.batch([
+    db
       .update(users)
       .set({
         totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
       })
-      .where(eq(users.id, userId));
-
-    return await tx
+      .where(eq(users.id, userId)),
+    db
       .insert(videos)
       .values({
         id: videoId,
@@ -108,6 +109,10 @@ export async function action(args: ActionFunctionArgs) {
         nativeFileKey: data.key,
         fileSizeBytes: response?.ContentLength ?? 0,
         title: data.title,
+        deletionDate:
+          userData.accountTier === "free"
+            ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
+            : undefined,
         sources: [
           {
             isNative: true,
@@ -116,8 +121,8 @@ export async function action(args: ActionFunctionArgs) {
           },
         ],
       })
-      .returning();
-  });
+      .returning(),
+  ]);
 
   try {
     await axios.put(
@@ -134,15 +139,17 @@ export async function action(args: ActionFunctionArgs) {
   } catch (e) {
     console.error(e);
 
-    await db.transaction(async (tx) => {
-      tx.update(users)
+    await db.batch([
+      db
+        .update(users)
         .set({
           totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
         })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, userId)),
 
-      tx.delete(videos).where(eq(videos.id, videoData.id));
-    });
+      db.delete(videos).where(eq(videos.id, videoData.id)),
+    ]);
+
     return json({ success: false, message: "Failed to process video" }, { status: 500 });
   }
 

@@ -264,7 +264,6 @@ export default function VideoPlayerRouter() {
           src={videoSources as any}
           viewType="video"
           streamType="on-demand"
-          logLevel="debug"
           playsInline
           title={title}
           poster={largeThumbnailUrl ?? undefined}

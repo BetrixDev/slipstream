@@ -5,6 +5,7 @@ import { queryClient } from "./root";
 import axios from "axios";
 import { SerializeFrom } from "@vercel/remix";
 import { VideoBoardProps } from "./components/videos-board";
+import { notNanOrDefault } from "./lib/utils";
 
 type UploadingVideo = {
   id: string;
@@ -97,7 +98,10 @@ async function handleVideoUpload(video: UploadingVideo) {
       throw new Error("Malformed response data");
     }
 
-    queryClient.setQueryData<number>(["totalStorageUsed"], (prev) => (prev ?? 0) + video.file.size);
+    queryClient.setQueryData<number>(
+      ["totalStorageUsed"],
+      (prev) => notNanOrDefault(prev) + video.file.size,
+    );
 
     await axios(uploadPreflight.url!, {
       onUploadProgress: (e) => {
@@ -149,10 +153,12 @@ async function handleVideoUpload(video: UploadingVideo) {
       return videos;
     });
   } catch (error) {
-    console.log("Error", error);
+    console.error("Error", error);
     toast.error("Failed to upload video", { description: video.title });
 
-    queryClient.setQueryData<number>(["totalStorageUsed"], (prev) => (prev ?? 0) - video.file.size);
+    queryClient.setQueryData<number>(["totalStorageUsed"], (prev) =>
+      Math.max(notNanOrDefault(prev) - video.file.size, 0),
+    );
   } finally {
     useUploadingVideosStore.getState().removeVideo(video.id);
   }

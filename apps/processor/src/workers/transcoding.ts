@@ -19,7 +19,11 @@ import * as stream from "stream";
 import { promisify } from "util";
 import { execa } from "execa";
 import { db, eq, videos } from "db";
-import { generateSmallerResolutions, getVideoFileBitrate } from "../util/video.js";
+import {
+  generateSmallerResolutions,
+  getVideoFileBitrate,
+  shouldKeepTranscoding,
+} from "../util/video.js";
 import { rimraf } from "rimraf";
 
 type VideoSource = {
@@ -187,6 +191,10 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       },
     ];
 
+    function shouldTranscode() {
+      return shouldKeepTranscoding(videoSources.at(-1)?.bitrate ?? 0);
+    }
+
     const resolutionsToGenerate = generateSmallerResolutions({
       width: nativeFileWidth,
       height: nativeFileHeight,
@@ -342,6 +350,10 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
         bitrate: await getVideoFileBitrate(outPath),
         ...resolution,
       });
+
+      if (!shouldTranscode()) {
+        break;
+      }
     }
 
     jobLogger.info("Generated sources for video", { videoSources });

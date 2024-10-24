@@ -23,6 +23,12 @@ export function FullPageDropzone() {
 
     const totalStorageUsed = queryClient.getQueryData<number>(["totalStorageUsed"]) ?? 0;
     const tatalStorageAvailable = queryClient.getQueryData<number>(["totalStorageAvailable"]) ?? 0;
+    const maxFileUpload = queryClient.getQueryData<number>(["maxFileUpload"]);
+
+    if (maxFileUpload !== undefined && file.size > maxFileUpload) {
+      setErrorMessage("File too big! Upgrade your account to a paid tier upload larger files");
+      return false;
+    }
 
     if (totalStorageUsed + file.size > tatalStorageAvailable) {
       setErrorMessage("Uploading this video would exceed your storage limits");

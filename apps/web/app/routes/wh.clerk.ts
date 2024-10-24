@@ -1,7 +1,7 @@
 import { Webhook } from "svix";
 import { ActionFunctionArgs } from "@vercel/remix";
 import { WebhookEvent } from "@clerk/remix/ssr.server";
-import { db, users, eq } from "db";
+import { db, users, eq, sql } from "db";
 import { json } from "@vercel/remix";
 import { env } from "env/web";
 
@@ -45,7 +45,7 @@ export async function action(args: ActionFunctionArgs) {
     await db.insert(users).values({
       id: event.data.id,
       email: userPrimaryEmail.email_address,
-      createdAt: event.data.created_at,
+      createdAt: sql`to_timestamp(${event.data.created_at})`,
     });
   } else if (event.type === "user.deleted") {
     if (event.data.id && event.data.deleted) {

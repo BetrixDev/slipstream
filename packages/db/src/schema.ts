@@ -33,8 +33,7 @@ export const videos = pgTable(
   "videos",
   {
     id: text("id").primaryKey(),
-    // TODO: update to author_id
-    authorId: text("user_id")
+    authorId: text("author_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     title: text("title").notNull(),
@@ -43,6 +42,7 @@ export const videos = pgTable(
     largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: false }).notNull().defaultNow(),
+    deletionDate: timestamp("deletion_date", { withTimezone: false }),
     isPrivate: boolean("is_private").notNull().default(false),
     views: bigint("views", { mode: "number" }).notNull().default(0),
     fileSizeBytes: real("file_size_bytes").notNull(),
@@ -66,6 +66,7 @@ export const videos = pgTable(
     authorId_idx: index("authorId_idx").on(table.authorId),
     videoId_idx: index("videoId_idx").on(table.id),
     createdAt_idx: index("createdAt_idx").on(table.createdAt),
+    deletionDate_idx: index("deletionDate_idx").on(table.deletionDate),
   }),
 );
 

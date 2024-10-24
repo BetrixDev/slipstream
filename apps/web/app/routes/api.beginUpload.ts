@@ -5,7 +5,7 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { json } from "@vercel/remix";
 import { z } from "zod";
 import { db } from "db";
-import { PLAN_STORAGE_SIZES } from "cms";
+import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import axios from "axios";
 
 type AuthorizeAccountResponse = {
@@ -46,9 +46,11 @@ export async function action(args: LoaderFunctionArgs) {
     return json(null, { status: 401 });
   }
 
+  const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
+
   if (
-    userData.totalStorageUsed + payload.contentLength >
-    PLAN_STORAGE_SIZES[userData.accountTier]
+    userData.totalStorageUsed + payload.contentLength > PLAN_STORAGE_SIZES[userData.accountTier] ||
+    payload.contentLength > maxFileSize
   ) {
     return json(
       {

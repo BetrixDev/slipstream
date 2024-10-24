@@ -1,9 +1,9 @@
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { migrate } from "drizzle-orm/neon-http/migrator";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import path from "path";
 
-const client = postgres(process.env.DATABASE_URL, { prepare: false });
+const client = neon(process.env.DATABASE_URL);
 export const db = drizzle(client);
 
 await migrate(db, {

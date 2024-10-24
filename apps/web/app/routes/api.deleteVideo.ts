@@ -1,9 +1,4 @@
-import {
-  DeleteObjectCommand,
-  DeleteObjectsCommand,
-  ListObjectVersionsCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, ListObjectVersionsCommand, S3Client } from "@aws-sdk/client-s3";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { ActionFunctionArgs, json } from "@vercel/remix";
 import { z } from "zod";
@@ -138,24 +133,19 @@ export async function action(args: ActionFunctionArgs) {
   }
 
   try {
-    await db.transaction(async (tx) => {
-      try {
-        await Promise.all([
-          ...videoDeleteCommandPromises,
-          ...thumbnailDeleteCommands,
-          tx.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
-          tx
-            .update(users)
-            .set({
-              totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
-            })
-            .where(eq(users.id, userId)),
-        ]);
-      } catch (e) {
-        console.log(e);
-        tx.rollback();
-      }
-    });
+    await Promise.all([
+      ...videoDeleteCommandPromises,
+      ...thumbnailDeleteCommands,
+      db.batch([
+        db.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
+        db
+          .update(users)
+          .set({
+            totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
+          })
+          .where(eq(users.id, userId)),
+      ]),
+    ]);
   } catch (e) {
     return json({ success: false, message: "Failed to delete video." }, { status: 500 });
   }

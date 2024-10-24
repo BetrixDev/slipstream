@@ -14,9 +14,9 @@ import { defer } from "@vercel/remix";
 import { DeleteVideoDialog } from "~/components/delete-video-dialog";
 import { EditVideoDialog } from "~/components/edit-video-dialog";
 import { VideosBoard } from "~/components/videos-board";
-import { humanFileSize, HumanFileSizeMotion } from "~/lib/utils";
+import { humanFileSize, HumanFileSizeMotion, notNanOrDefault } from "~/lib/utils";
 import { Footer } from "~/components/Footer";
-import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "cms";
+import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import { useSetAtom } from "jotai";
 import { isUploadDialogOpenAtom } from "~/atoms";
 import { UploadVideoDialogContainer } from "~/components/upload-video-dialog";
@@ -26,6 +26,7 @@ import { env } from "env/web";
 import { TrimVideoDialogContainer } from "~/components/trim-video-dialog";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import MotionNumber from "motion-number";
 
 dayjs.extend(utc);
 
@@ -111,7 +112,10 @@ export async function loader(args: LoaderFunctionArgs) {
         };
       }
 
-      return injectedData;
+      return {
+        ...injectedData,
+        maxFileUpload: isUserFreeTier ? MAX_FILE_SIZE_FREE_TIER : undefined,
+      };
     });
 
   return defer({
@@ -143,6 +147,7 @@ function VideosDashboard() {
                     <StorageUsedText
                       maxStorage={PLAN_STORAGE_SIZES[userData.accountTier ?? "free"]}
                       totalStorageUsed={userData.totalStorageUsed ?? 0}
+                      maxFileUpload={userData.maxFileUpload}
                     />
                   )}
                 </Await>
@@ -180,22 +185,26 @@ function VideosDashboard() {
 type StorageUsedTextProps = {
   totalStorageUsed: number;
   maxStorage: number;
+  maxFileUpload?: number;
 };
 
-function StorageUsedText({ maxStorage, totalStorageUsed }: StorageUsedTextProps) {
+function StorageUsedText({ maxStorage, totalStorageUsed, maxFileUpload }: StorageUsedTextProps) {
   const queryClient = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ["totalStorageUsed"],
-    initialData: totalStorageUsed,
+    initialData: notNanOrDefault(totalStorageUsed),
   });
 
-  queryClient.setQueryData(["totalStorageAvailable"], maxStorage);
+  queryClient.setQueryData(["totalStorageAvailable"], notNanOrDefault(maxStorage));
+  queryClient.setQueryData(["maxFileUpload"], maxFileUpload);
 
   return (
     <Link to="/pricing">
       <Button variant="ghost" className="h-12 text-md">
-        Storage used: <HumanFileSizeMotion size={data} /> / {humanFileSize(maxStorage)}
+        Storage used: <HumanFileSizeMotion size={data} /> / {humanFileSize(maxStorage)} (
+        <MotionNumber value={((data / maxStorage) * 100).toFixed(2)} />
+        %)
       </Button>
     </Link>
   );
