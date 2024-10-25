@@ -1,5 +1,6 @@
 import { execa } from "execa";
-import { LOWEST_BITRATE_THRESHOLD } from "../../../../packages/cms/src/index";
+import { LOWEST_BITRATE_THRESHOLD } from "cms";
+import { logger } from "~/utils/logger";
 
 type Resolution = {
   width: number;
@@ -38,13 +39,18 @@ export function generateSmallerResolutions(nativeResolution: Resolution): Resolu
 }
 
 export async function getVideoFileBitrate(path: string) {
-  const { all: transcodedFileBitRateString } = await execa({
-    all: true,
-  })`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`;
+  try {
+    const { all: transcodedFileBitRateString } = await execa({
+      all: true,
+    })`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`;
 
-  const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
+    const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
 
-  return !isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
+    return !isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
+  } catch (error) {
+    logger.error(`Failed to get video file bitrate for ${path}`, { ...error, videoFilePath: path });
+    return;
+  }
 }
 
 export function shouldKeepTranscoding(currentBitrate: number) {

@@ -125,7 +125,7 @@ export async function action(args: ActionFunctionArgs) {
   ]);
 
   try {
-    await axios.put(
+    await axios.post(
       `${env.PROCESSOR_API_URL}/videoUploaded`,
       {
         videoId,

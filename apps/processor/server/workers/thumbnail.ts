@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { logger } from "../logger.js";
+import { logger } from "../utils/logger";
 import { db, eq, videos } from "db";
 import path from "path";
 import { createWriteStream, existsSync } from "fs";
@@ -9,13 +9,12 @@ import type { Stream } from "stream";
 import {
   authorizeDownloadAccount,
   authorizeThumbnailUploadAccount,
-  authorizeVideoUploadAccount,
   getAuthorizedDownload,
   getUploadUrl,
   type AuthorizeAccountResponse,
   type DownloadAuthorizationResponse,
   type UploadUrlResponse,
-} from "../util/backblaze.js";
+} from "../utils/backblaze.js";
 import { env } from "env/processor";
 import { promisify } from "util";
 import * as stream from "stream";
@@ -334,7 +333,7 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
         largeThumbnailKey: thumbnails.large,
         smallThumbnailKey: thumbnails.small,
         videoLengthSeconds: videoDurationSeconds,
-      })
+      } as any)
       .where(eq(videos.id, videoData.id));
 
     jobLogger.info("Removing files from disk");
@@ -352,6 +351,8 @@ export const thumbnailWorker = new Worker<{ videoId: string }>(
       password: env.QUEUE_REDIS_PASSWORD,
     },
     concurrency: 3,
+    removeOnComplete: { count: 0 },
+    removeOnFail: { count: 0 },
   },
 );
 

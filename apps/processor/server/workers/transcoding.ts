@@ -1,9 +1,9 @@
 import { Worker } from "bullmq";
 import { env } from "env/processor";
-import { createReadStream, createWriteStream, existsSync, rmSync } from "fs";
+import { createReadStream, createWriteStream, existsSync } from "fs";
 import { mkdir, rm, stat } from "fs/promises";
 import path from "path";
-import { logger } from "../logger.js";
+import { logger } from "../utils/logger";
 import {
   authorizeDownloadAccount,
   authorizeVideoUploadAccount,
@@ -12,7 +12,7 @@ import {
   type AuthorizeAccountResponse,
   type DownloadAuthorizationResponse,
   type UploadUrlResponse,
-} from "../util/backblaze.js";
+} from "../utils/backblaze.js";
 import axios, { AxiosError } from "axios";
 import type { Stream } from "stream";
 import * as stream from "stream";
@@ -23,7 +23,7 @@ import {
   generateSmallerResolutions,
   getVideoFileBitrate,
   shouldKeepTranscoding,
-} from "../util/video.js";
+} from "../utils/video.js";
 import { rimraf } from "rimraf";
 
 type VideoSource = {
@@ -365,7 +365,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       .set({
         sources: videoSources,
         isProcessing: false,
-      })
+      } as any)
       .where(eq(videos.id, videoData.id));
 
     jobLogger.debug("Removing files from disk");
@@ -383,6 +383,8 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       password: env.QUEUE_REDIS_PASSWORD,
     },
     concurrency: 3,
+    removeOnComplete: { count: 0 },
+    removeOnFail: { count: 0 },
   },
 );
 
