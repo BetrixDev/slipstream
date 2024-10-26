@@ -8,11 +8,37 @@ import { json } from "@vercel/remix";
 import { env } from "env/web";
 import axios from "axios";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
+import { Queue } from "bullmq";
 
 const schema = z.object({
   key: z.string(),
   title: z.string(),
   shouldCompress: z.boolean().default(false),
+});
+
+export const transcodingQueue = new Queue("{transcoding}", {
+  connection: {
+    host: env.REDIS_HOST,
+    port: Number(env.REDIS_PORT),
+    password: env.REDIS_PASSWORD,
+  },
+});
+
+export const thumbnailQueue = new Queue("{thumbnail}", {
+  connection: {
+    host: env.REDIS_HOST,
+    port: Number(env.REDIS_PORT),
+    password: env.REDIS_PASSWORD,
+  },
+});
+
+const s3RootClient = new S3Client({
+  endpoint: env.S3_VIDEOS_ENDPOINT,
+  region: env.S3_VIDEOS_BUCKET,
+  credentials: {
+    accessKeyId: env.S3_ROOT_ACCESS_KEY,
+    secretAccessKey: env.S3_ROOT_SECRET_KEY,
+  },
 });
 
 export async function action(args: ActionFunctionArgs) {
@@ -27,15 +53,6 @@ export async function action(args: ActionFunctionArgs) {
   const headObjectCommand = new HeadObjectCommand({
     Bucket: env.S3_VIDEOS_BUCKET,
     Key: data.key,
-  });
-
-  const s3RootClient = new S3Client({
-    endpoint: env.S3_VIDEOS_ENDPOINT,
-    region: env.S3_VIDEOS_BUCKET,
-    credentials: {
-      accessKeyId: env.S3_ROOT_ACCESS_KEY,
-      secretAccessKey: env.S3_ROOT_SECRET_KEY,
-    },
   });
 
   const response = await s3RootClient.send(headObjectCommand);
@@ -125,19 +142,37 @@ export async function action(args: ActionFunctionArgs) {
   ]);
 
   try {
-    await axios.post(
-      `${env.PROCESSOR_API_URL}/videoUploaded`,
-      {
-        videoId,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${env.PROCESSOR_SECRET_KEY}`,
+    await Promise.all([
+      transcodingQueue.add(
+        `transcoding-${videoId}`,
+        { videoId },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 1000,
+          },
         },
-      },
-    );
+      ),
+      thumbnailQueue.add(
+        `thumbnail-${videoId}`,
+        {
+          videoId,
+          nativeFileKey: videoData.nativeFileKey,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 1000,
+          },
+        },
+      ),
+    ]);
   } catch (e) {
     console.error(e);
+
+    // TODO: create a common function so this can do everything the delete video endpoint does
 
     await db.batch([
       db

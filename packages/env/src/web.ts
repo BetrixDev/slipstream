@@ -21,10 +21,6 @@ const webEnvSchema = z.object({
   S3_THUMBS_BUCKET: z.string(),
   S3_THUMBS_REGION: z.string(),
   S3_THUMBS_ENDPOINT: z.string(),
-  PROCESSOR_API_URL: z.string(),
-  PROCESSOR_SECRET_KEY: z.string(),
-  VIEWS_API_URL: z.string(),
-  VIEWS_SECRET_KEY: z.string(),
   JWT_SIGNING_SECRET: z.string(),
   AXIOM_TOKEN: z.string(),
   AXIOM_DATASET: z.string(),
@@ -34,6 +30,11 @@ const webEnvSchema = z.object({
   B2_VIDEOS_WRITE_APP_KEY: z.string(),
   VIDEOS_BUCKET_ID: z.string(),
   THUMBNAIL_BASE_URL: z.string(),
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.string(),
+  REDIS_PASSWORD: z.string(),
+  CRON_SECRET: z.string(),
+  ADMIN_SECRET: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);
