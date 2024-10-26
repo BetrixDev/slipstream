@@ -10,6 +10,8 @@ import { FieldInfo } from "./edit-video-dialog";
 import { useEffect, useRef } from "react";
 import { useUploadingVideosStore } from "~/stores";
 import { Scissors } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { HumanFileSizeMotion } from "~/lib/utils";
 
 type FormData = {
   title?: string;
@@ -144,7 +146,14 @@ function UploadVideoDialog() {
             children={(field) => {
               return (
                 <div>
-                  <Label htmlFor={field.name}>File</Label>
+                  <Label htmlFor={field.name}>
+                    File{" "}
+                    {field.state.value && (
+                      <span className="text-muted">
+                        ({<HumanFileSizeMotion size={field.state.value.size} />})
+                      </span>
+                    )}{" "}
+                  </Label>
                   {customFileToUpload ? (
                     <Input disabled placeholder="Using trimmed file" />
                   ) : (
@@ -168,17 +177,31 @@ function UploadVideoDialog() {
           <form.Subscribe selector={(state) => state.values.file}>
             {(file) => (
               <DialogClose asChild>
-                <Button
-                  disabled={file === undefined}
-                  className="h-8 flex gap-2 w-full"
-                  variant="outline"
-                  type="button"
-                  onClick={() => {
-                    setTrimVideoData({ file: file, title: form.state.values.title });
-                  }}
-                >
-                  <Scissors className="h-4 w-4" /> Trim Video
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipContent>
+                      <p>
+                        Once you select a file, you can choose to trim the video to reduce it's
+                        total size and show the key moment
+                      </p>
+                    </TooltipContent>
+                    <TooltipTrigger>
+                      <DialogClose asChild>
+                        <Button
+                          disabled={file === undefined}
+                          className="h-8 flex gap-2 w-full"
+                          variant="outline"
+                          type="button"
+                          onClick={() => {
+                            setTrimVideoData({ file: file, title: form.state.values.title });
+                          }}
+                        >
+                          <Scissors className="h-4 w-4" /> Trim Video
+                        </Button>
+                      </DialogClose>
+                    </TooltipTrigger>
+                  </Tooltip>
+                </TooltipProvider>
               </DialogClose>
             )}
           </form.Subscribe>
@@ -187,6 +210,7 @@ function UploadVideoDialog() {
             className="w-full bg-blue-500 hover:bg-blue-600 text-primary mt-2"
             type="button"
             onMouseDown={() => {
+              setCustomFileToUpload(undefined);
               form.handleSubmit();
             }}
           >

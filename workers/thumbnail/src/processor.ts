@@ -139,7 +139,10 @@ export default async (job: Job<{ videoId: string }>) => {
 
   jobLogger.debug("Frames found", { frames });
 
-  let brightestFrame = { file: frames[0], brightness: 0 };
+  let brightestFrame = { file: frames.at(0), brightness: 0 };
+
+  if (brightestFrame.file === undefined) {
+  }
 
   for (const frame of frames) {
     try {
@@ -169,7 +172,16 @@ export default async (job: Job<{ videoId: string }>) => {
 
   jobLogger.debug("Brightess Frame", brightestFrame);
 
-  const image = sharp(path.join(workingTempDir.path, brightestFrame.file));
+  let image: sharp.Sharp;
+
+  if (brightestFrame.file !== undefined) {
+    image = sharp(path.join(workingTempDir.path, brightestFrame.file));
+  } else {
+    // Create a black thumbnail if no frames could be extracted from video
+    image = sharp({
+      create: { height: 720, width: 1280, channels: 3, background: { r: 0, g: 0, b: 0 } },
+    });
+  }
 
   const smallThumbnailBuffer = await image
     .resize(1280, 720, { fit: "cover" })

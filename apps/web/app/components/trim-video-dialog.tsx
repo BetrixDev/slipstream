@@ -36,7 +36,7 @@ function TrimVideoDialog() {
 
   const { isLoading } = useQuery({
     queryKey: ["loadFfmpeg"],
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
@@ -121,11 +121,7 @@ function TrimVideoDialog() {
 
   function handleBackToUploadClick() {
     setTrimVideoData(undefined);
-
-    if (hasRendered) {
-      setCustomFileToUploadAtom(trimVideoData?.file);
-    }
-
+    setCustomFileToUploadAtom(trimVideoData?.file);
     setIsUploadDialogOpenAtom(true);
   }
 

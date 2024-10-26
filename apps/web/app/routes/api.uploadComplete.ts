@@ -145,12 +145,12 @@ export async function action(args: ActionFunctionArgs) {
     await Promise.all([
       transcodingQueue.add(
         `transcoding-${videoId}`,
-        { videoId },
+        { videoId, nativeFileKey: data.key },
         {
           attempts: 3,
           backoff: {
-            type: "exponential",
-            delay: 1000,
+            type: "fixed",
+            delay: 10000,
           },
         },
       ),
@@ -158,13 +158,12 @@ export async function action(args: ActionFunctionArgs) {
         `thumbnail-${videoId}`,
         {
           videoId,
-          nativeFileKey: videoData.nativeFileKey,
         },
         {
           attempts: 3,
           backoff: {
-            type: "exponential",
-            delay: 1000,
+            type: "fixed",
+            delay: 10000,
           },
         },
       ),
