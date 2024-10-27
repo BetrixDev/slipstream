@@ -176,7 +176,11 @@ function StorageUsedText({ maxStorage, totalStorageUsed, maxFileUpload }: Storag
   return (
     <Link to="/pricing">
       <Button variant="ghost" className="h-12 text-md">
-        Storage used: <HumanFileSizeMotion size={data} /> / {humanFileSize(maxStorage)} (
+        Storage used:
+        <span className="ml-1">
+          <HumanFileSizeMotion size={data} />
+        </span>{" "}
+        / {humanFileSize(maxStorage)} (
         <MotionNumber value={((data / maxStorage) * 100).toFixed(2)} />
         %)
       </Button>

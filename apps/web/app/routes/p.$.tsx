@@ -281,7 +281,7 @@ export default function VideoPlayerRouter() {
           <Card className="border-none">
             <CardContent className="p-0 space-y-4">
               <h1 className="text-2xl font-bold">{title}</h1>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
                 <span>
                   Uploaded on <WordyDate timestamp={createdAt} />
                 </span>
