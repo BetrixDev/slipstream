@@ -17,7 +17,7 @@
   },
   "packageManager": "pnpm@9.1.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "pnpm": {
     "supportedArchitectures": {

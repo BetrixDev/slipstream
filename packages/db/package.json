@@ -6,7 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     "types": "./src/index.ts",
-    "import": "./build/src/index.js"
+    "import": "./build/index.js"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
@@ -15,7 +15,7 @@
     "format": "prettier . --check --cache --cache-location=node_modules/.cache/.prettiercache",
     "format:fix": "prettier . --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
     "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "build": "esbuild src/**/*.ts --outdir=build --platform=node --target=esnext --sourcemap"
   },
   "type": "module",
   "dependencies": {
@@ -23,6 +23,9 @@
     "drizzle-orm": "^0.33.0"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.24.2"
+    "drizzle-kit": "^0.24.2",
+    "@types/node": "^22.6.2",
+    "typescript": "^5.1.6",
+    "esbuild": "^0.24.0"
   }
 }

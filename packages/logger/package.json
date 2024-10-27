@@ -12,11 +12,16 @@
         "format": "prettier . --check --cache --cache-location=node_modules/.cache/.prettiercache",
         "format:fix": "prettier . --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
         "typecheck": "tsc --noEmit",
-        "build": "tsc"
+        "build": "esbuild src/**/*.ts --outdir=build --platform=node --target=esnext --sourcemap"
     },
     "type": "module",
     "dependencies": {
         "@axiomhq/winston": "^1.2.0",
         "winston": "^3.15.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.6.2",
+        "typescript": "^5.1.6",
+        "esbuild": "^0.24.0"
     }
 }

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --watch src/ --ext js,ts --ignore build/ --exec \"pnpm build && pnpm preview\"",
-    "build": "tsc",
-    "preview": "bun run build/src/index.js",
+    "dev": "nodemon --watch src/ --ext js,ts --ignore build/ --exec \"pnpm build && pnpm start\"",
+    "build": "esbuild src/**/*.ts --outdir=build --platform=node --target=esnext --sourcemap",
+    "start": "bun run build/index.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.6.2",
+    "esbuild": "^0.24.0",
     "nodemon": "^3.1.7",
     "winston": "^3.15.0"
   }
