@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { queryClient } from "./root";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { SerializeFrom } from "@vercel/remix";
 import { VideoBoardProps } from "./components/videos-board";
 import { notNanOrDefault } from "./lib/utils";
@@ -153,8 +153,15 @@ async function handleVideoUpload(video: UploadingVideo) {
       return videos;
     });
   } catch (error) {
-    console.error("Error", error);
-    toast.error("Failed to upload video", { description: video.title });
+    if (error instanceof AxiosError && error.status === 429) {
+      toast.error("Daily upload limit reached!", {
+        description:
+          "You have reached the amount of videos you can upload today. Try again tomorrow",
+      });
+    } else {
+      console.error("Error", error);
+      toast.error("Failed to upload video", { description: video.title });
+    }
 
     queryClient.setQueryData<number>(["totalStorageUsed"], (prev) =>
       Math.max(notNanOrDefault(prev) - video.file.size, 0),

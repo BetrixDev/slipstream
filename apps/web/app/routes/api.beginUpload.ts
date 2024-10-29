@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "db";
 import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import axios from "axios";
+import { incrementUserUploadRateLimit } from "~/server/utils.server";
 
 type AuthorizeAccountResponse = {
   apiInfo: {
@@ -44,6 +45,12 @@ export async function action(args: LoaderFunctionArgs) {
 
   if (!userData) {
     return json(null, { status: 401 });
+  }
+
+  const canUploadVideoToday = await incrementUserUploadRateLimit(userId);
+
+  if (!canUploadVideoToday) {
+    return json(null, { status: 429 });
   }
 
   const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;

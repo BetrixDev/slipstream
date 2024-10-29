@@ -116,7 +116,10 @@ const Pricing: React.FC = () => {
             "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account.",
         },
         {
-          text: "No size or length limits",
+          text: "512mb max size per video",
+        },
+        {
+          text: "Upload 3 videos each day",
         },
         {
           text: "Native video quality",
@@ -136,17 +139,6 @@ const Pricing: React.FC = () => {
           infoTip:
             'Unlisted videos are not searchable and can only be viewed by those with the link. Private videos are only viewable by the owner. "Public" video with the typical definition are not apart of Flowble.',
         },
-        {
-          text: "Community support",
-          infoTip: (
-            <p>
-              Community support is accessible within our{" "}
-              <Link to="www.google.com">
-                <span className="underline text-blue-600">Discord server</span>
-              </Link>
-            </p>
-          ),
-        },
       ],
     },
     {
@@ -161,12 +153,13 @@ const Pricing: React.FC = () => {
         { text: "100GB of storage space" },
         { text: "Infinite video retention" },
         { text: "Ad-free experience" },
+        { text: "Upload 12 videos each day" },
       ],
     },
     {
       name: "Premium",
       price: 12,
-      annualPrice: 132,
+      annualPrice: 120,
       monthlyPaymentLink: "https://buy.stripe.com/14k7vib1e00Za8E14a",
       annualPaymentLink: "https://buy.stripe.com/fZeg1O5GU7trbcIeV1",
       description: "For professionals looking to reach everyone",
@@ -178,6 +171,7 @@ const Pricing: React.FC = () => {
           infoTip:
             "The additional quality levels of your video we process will be a higher quality.",
         },
+        { text: "No daily video upload limit" },
       ],
     },
   ];
