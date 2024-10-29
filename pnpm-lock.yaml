@@ -187,7 +187,7 @@ importers:
         version: 3.7.0(@remix-run/react@2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/server-runtime@2.12.1(typescript@5.4.5))
       remix-utils:
         specifier: ^7.7.0
-        version: 7.7.0(@remix-run/node@2.12.1(typescript@5.4.5))(@remix-run/react@2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/router@1.19.2)(is-ip@5.0.1)(react@18.3.1)(zod@3.23.8)
+        version: 7.7.0(@remix-run/node@2.12.1(typescript@5.4.5))(@remix-run/react@2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/router@1.19.2)(crypto-js@4.2.0)(is-ip@5.0.1)(react@18.3.1)(zod@3.23.8)
       sonner:
         specifier: ^1.5.0
         version: 1.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3453,6 +3453,9 @@ packages:
     peerDependenciesMeta:
       uWebSockets.js:
         optional: true
+
+  crypto-js@4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
 
   css-what@6.1.0:
     resolution: {integrity: sha512-HTUrgRJ7r4dsZKU6GjmpfRK1O76h97Z8MfS1G0FozR+oF2kG6Vfe8JE6zwrkbxigziPHinCJ+gCPjA9EaBDtRw==}
@@ -9818,6 +9821,9 @@ snapshots:
   crossws@0.2.4:
     optional: true
 
+  crypto-js@4.2.0:
+    optional: true
+
   css-what@6.1.0: {}
 
   cssesc@3.0.0: {}
@@ -12098,13 +12104,14 @@ snapshots:
       '@remix-run/server-runtime': 2.12.1(typescript@5.4.5)
       uuid: 8.3.2
 
-  remix-utils@7.7.0(@remix-run/node@2.12.1(typescript@5.4.5))(@remix-run/react@2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/router@1.19.2)(is-ip@5.0.1)(react@18.3.1)(zod@3.23.8):
+  remix-utils@7.7.0(@remix-run/node@2.12.1(typescript@5.4.5))(@remix-run/react@2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5))(@remix-run/router@1.19.2)(crypto-js@4.2.0)(is-ip@5.0.1)(react@18.3.1)(zod@3.23.8):
     dependencies:
       type-fest: 4.26.1
     optionalDependencies:
       '@remix-run/node': 2.12.1(typescript@5.4.5)
       '@remix-run/react': 2.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.4.5)
       '@remix-run/router': 1.19.2
+      crypto-js: 4.2.0
       is-ip: 5.0.1
       react: 18.3.1
       zod: 3.23.8
