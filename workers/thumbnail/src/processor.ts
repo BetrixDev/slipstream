@@ -141,9 +141,6 @@ export default async (job: Job<{ videoId: string }>) => {
 
   let brightestFrame = { file: frames.at(0), brightness: 0 };
 
-  if (brightestFrame.file === undefined) {
-  }
-
   for (const frame of frames) {
     try {
       const { data } = await sharp(path.join(workingTempDir.path, frame))
