@@ -1,8 +1,8 @@
-import { Job, Worker } from "bullmq";
+import { Job } from "bullmq";
 import { env } from "env/worker/transcoding";
 import { createReadStream, createWriteStream } from "fs";
 import { stat } from "fs/promises";
-import path, { parse } from "path";
+import path from "path";
 import { logger } from "./log.js";
 import {
   authorizeDownloadAccount,

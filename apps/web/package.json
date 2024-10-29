@@ -70,7 +70,7 @@
     "remix-auth": "^3.7.0",
     "remix-utils": "^7.7.0",
     "sonner": "^1.5.0",
-    "stripe": "^16.12.0",
+    "stripe": "^17.2.1",
     "svix": "^1.34.0",
     "swapy": "^0.4.1",
     "tailwind-merge": "^2.5.2",

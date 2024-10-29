@@ -22,7 +22,10 @@ export const users = pgTable(
       .default("free"),
     totalStorageUsed: real("totalStorageUsed").notNull().default(0),
   },
-  (table) => ({ userId_idx: index("userId_idx").on(table.id) }),
+  (table) => ({
+    userId_idx: index("userId_idx").on(table.id),
+    email_idx: index("email_idx").on(table.email),
+  }),
 );
 
 export const usersRelations = relations(users, ({ many }) => ({

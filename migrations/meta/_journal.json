@@ -29,6 +29,13 @@
       "when": 1729731818842,
       "tag": "0003_faithful_warstar",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1730237526639,
+      "tag": "0004_majestic_maginty",
+      "breakpoints": true
     }
   ]
 }

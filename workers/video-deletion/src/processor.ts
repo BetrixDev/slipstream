@@ -1,23 +1,8 @@
+import { Job } from "bullmq";
+import { db, eq, sql, users, videos } from "db";
+import { logger } from "log.js";
+import { env } from "env/worker/video-deletion";
 import { DeleteObjectCommand, ListObjectVersionsCommand, S3Client } from "@aws-sdk/client-s3";
-import { getAuth } from "@clerk/remix/ssr.server";
-import { ActionFunctionArgs, json } from "@vercel/remix";
-import { z } from "zod";
-import { db, videos, and, eq, users, sql } from "db";
-import { env } from "env/web";
-import { Queue } from "bullmq";
-import { logger } from "~/server/logger.server";
-
-const schema = z.object({
-  videoId: z.string(),
-});
-
-export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
-});
 
 const s3VideosClient = new S3Client({
   endpoint: env.S3_VIDEOS_ENDPOINT,
@@ -37,30 +22,24 @@ const s3ThumbsClient = new S3Client({
   },
 });
 
-export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args);
+export default async (job: Job<{ videoId: string }>) => {
+  const jobStart = Date.now();
 
-  if (!userId) {
-    return json(
-      { success: false, message: "You must be logged in to delete a video." },
-      { status: 401 },
-    );
-  }
+  const jobLogger = logger.child({
+    jobId: job.id,
+    jobQueue: "{video-deletion}",
+    jobData: job.data,
+  });
 
-  const parseResult = schema.safeParse(await args.request.json());
-
-  if (!parseResult.success) {
-    return json({ success: false, message: "Invalid request body." }, { status: 400 });
-  }
-
-  const { videoId } = parseResult.data;
+  jobLogger.info("Starting video deletion job");
 
   const videoData = await db.query.videos.findFirst({
-    where: (table, { and, eq }) => and(eq(table.id, videoId), eq(table.authorId, userId)),
+    where: (table, { eq }) => eq(table.id, job.data.videoId),
   });
 
   if (!videoData) {
-    return json({ success: false, message: "Video not found." }, { status: 404 });
+    jobLogger.error("Video data not found in database");
+    throw new Error(`Video with id ${job.data.videoId} not found`);
   }
 
   const videoDeleteCommandPromises: Promise<any>[] = [];
@@ -142,35 +121,21 @@ export async function action(args: ActionFunctionArgs) {
     });
   }
 
-  try {
-    try {
-      await Promise.all([
-        ...videoDeleteCommandPromises,
-        ...thumbnailDeleteCommands,
-        db.batch([
-          db.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
-          db
-            .update(users)
-            .set({
-              totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
-            })
-            .where(eq(users.id, userId)),
-        ]),
-      ]);
-    } catch (e) {
-      logger.error("Error deleting videos directly", {
-        ...(e as any),
-        endpoint: "api/deleteVideo",
-      });
-    }
+  await Promise.all([
+    ...videoDeleteCommandPromises,
+    ...thumbnailDeleteCommands,
+    db.batch([
+      db.delete(videos).where(eq(videos.id, job.data.videoId)),
+      db
+        .update(users)
+        .set({
+          totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
+        })
+        .where(eq(users.id, videoData.authorId)),
+    ]),
+  ]);
 
-    // Add to deletion queue just incase some things failed
-    await videoDeletionQueue.add(`video-deletion-${videoId}`, {
-      videoId,
-    });
-  } catch (e) {
-    return json({ success: false, message: "Failed to delete video." }, { status: 500 });
-  }
-
-  return json({ success: true, title: videoData.title });
-}
+  return {
+    elapsed: (Date.now() - jobStart) / 1000,
+  };
+};

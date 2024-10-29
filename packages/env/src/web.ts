@@ -35,6 +35,8 @@ const webEnvSchema = z.object({
   REDIS_PASSWORD: z.string(),
   CRON_SECRET: z.string(),
   ADMIN_SECRET: z.string(),
+  PREMIUM_PRODUCT_ID: z.string(),
+  PRO_PRODUCT_ID: z.string(),
 });
 
 export const env = webEnvSchema.parse(process.env);

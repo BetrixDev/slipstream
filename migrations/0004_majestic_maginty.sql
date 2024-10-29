@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "email_idx" ON "users" USING btree ("email");
