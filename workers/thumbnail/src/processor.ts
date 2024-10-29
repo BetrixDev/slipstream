@@ -194,6 +194,18 @@ export default async (job: Job<{ videoId: string }>) => {
     large: undefined,
   };
 
+  jobLogger.debug("Checking that video wasn't deleted before uploading files");
+
+  const videoExists =
+    (await db.query.videos.findFirst({
+      where: (table, { eq }) => eq(table.id, videoData.id),
+    })) !== undefined;
+
+  if (!videoExists) {
+    jobLogger.debug("Video was deleted, exiting early");
+    return;
+  }
+
   for (const thumb of [
     { name: `${videoData.nativeFileKey}-small.webp`, buffer: smallThumbnailBuffer },
     { name: `${videoData.nativeFileKey}-large.webp`, buffer: largeThumbnailBuffer },

@@ -222,6 +222,18 @@ export default async (job: Job<{ videoId: string; nativeFileKey: string }>) => {
       elapsed,
     });
 
+    jobLogger.debug("Checking that video wasn't deleted before uploading files");
+
+    const videoExists =
+      (await db.query.videos.findFirst({
+        where: (table, { eq }) => eq(table.id, videoData.id),
+      })) !== undefined;
+
+    if (!videoExists) {
+      jobLogger.debug("Video was deleted, exiting early");
+      return;
+    }
+
     jobLogger.debug("Getting upload url for Backblaze", {
       resolution,
     });
@@ -347,8 +359,6 @@ export default async (job: Job<{ videoId: string; nativeFileKey: string }>) => {
       isProcessing: false,
     } as any)
     .where(eq(videos.id, videoData.id));
-
-  jobLogger.debug("Removing files from disk");
 
   return {
     elapsed: (Date.now() - jobStart) / 1000,
