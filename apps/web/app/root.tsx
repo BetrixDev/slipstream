@@ -8,6 +8,7 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import { Analytics } from "@vercel/analytics/react";
 import styles from "./tailwind.css?url";
 import sonnerStyles from "./sonner.css?url";
+import clerkStyles from "./clerk.css?url";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/sonner";
 
@@ -28,6 +29,10 @@ export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
     href: sonnerStyles,
+  },
+  {
+    rel: "stylesheet",
+    href: clerkStyles,
   },
   {
     rel: "icon",
