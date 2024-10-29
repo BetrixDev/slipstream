@@ -89,12 +89,12 @@ export default function TopNav() {
             </span>
           </SignedIn>
           <SignedOut>
-            <Link to="sign-in">
+            <Link to="/sign-in">
               <Button className="rounded-full" variant="ghost">
                 Sign in
               </Button>
             </Link>
-            <Link to="sign-up">
+            <Link to="/sign-up">
               <Button className="rounded-full" variant="secondary">
                 Sign Up
               </Button>
