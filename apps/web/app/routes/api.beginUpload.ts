@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@vercel/remix";
 import { nanoid } from "nanoid";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { json } from "@vercel/remix";
 import { z } from "zod";

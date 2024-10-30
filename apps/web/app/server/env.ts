@@ -39,4 +39,4 @@ const webEnvSchema = z.object({
   PRO_PRODUCT_ID: z.string(),
 });
 
-export const env = webEnvSchema.parse(process.env);
+export const env = webEnvSchema.parse(import.meta.env);

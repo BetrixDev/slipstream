@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "env/worker/transcoding";
+import { env } from "./env.js";
 
 export type AuthorizeAccountResponse = {
   apiInfo: {

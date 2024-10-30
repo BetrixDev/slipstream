@@ -1,5 +1,5 @@
 import { db } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { Redis } from "ioredis";
 
 const USER_VIDEO_DAILY_LIMIT = {

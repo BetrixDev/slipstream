@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json } from "@vercel/remix";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import Stripe from "stripe";
 import { logger } from "~/server/logger.server";
 import { db, eq, users } from "db";

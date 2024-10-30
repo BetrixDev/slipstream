@@ -131,9 +131,6 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
-      env:
-        specifier: workspace:*
-        version: link:../../packages/env
       fast-jwt:
         specifier: ^4.0.5
         version: 4.0.5
@@ -284,22 +281,6 @@ importers:
         specifier: ^5.1.6
         version: 5.4.5
 
-  packages/env:
-    dependencies:
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@types/node':
-        specifier: ^22.6.2
-        version: 22.6.2
-      esbuild:
-        specifier: ^0.24.0
-        version: 0.24.0
-      typescript:
-        specifier: ^5.1.6
-        version: 5.4.5
-
   packages/flowble-util:
     dependencies:
       rimraf:
@@ -349,9 +330,6 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
-      env:
-        specifier: workspace:*
-        version: link:../../packages/env
       execa:
         specifier: ^9.4.0
         version: 9.4.1
@@ -370,6 +348,9 @@ importers:
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@types/node':
         specifier: ^22.6.2
@@ -398,9 +379,6 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
-      env:
-        specifier: workspace:*
-        version: link:../../packages/env
       execa:
         specifier: ^9.4.0
         version: 9.4.1
@@ -413,6 +391,9 @@ importers:
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@types/node':
         specifier: ^22.6.2
@@ -438,12 +419,12 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
-      env:
-        specifier: workspace:*
-        version: link:../../packages/env
       logger:
         specifier: workspace:*
         version: link:../../packages/logger
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       '@types/node':
         specifier: ^22.6.2

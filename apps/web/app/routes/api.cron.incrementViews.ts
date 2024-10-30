@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from "@vercel/remix";
 import { db, eq, sql, videos } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { Redis } from "ioredis";
 
 export async function loader({ request }: LoaderFunctionArgs) {

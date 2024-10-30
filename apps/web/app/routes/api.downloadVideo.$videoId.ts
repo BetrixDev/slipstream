@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { json, LoaderFunctionArgs } from "@vercel/remix";
 import { db } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);

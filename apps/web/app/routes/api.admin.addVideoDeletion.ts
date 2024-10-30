@@ -3,7 +3,7 @@ import { Queue } from "bullmq";
 import { db } from "db";
 import { env } from "~/server/env";
 
-export const thumbnailQueue = new Queue("{thumbnail}", {
+export const videoDeletionQueue = new Queue("{video-deletion}", {
   connection: {
     host: env.REDIS_HOST,
     port: Number(env.REDIS_PORT),
@@ -35,12 +35,12 @@ export async function action({ request }: ActionFunctionArgs) {
     );
   }
 
-  await thumbnailQueue.add(`thumbnail-${videoId}`, {
+  await videoDeletionQueue.add(`video-deletion-${videoId}`, {
     videoId,
   });
 
   return json({
     success: true,
-    message: `Added video "${videoData.title}" with id ${videoId} to thumbnail queue`,
+    message: `Added video "${videoData.title}" with id ${videoId} to video deletion queue`,
   });
 }

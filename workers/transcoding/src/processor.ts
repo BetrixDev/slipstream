@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { env } from "env/worker/transcoding";
+import { env } from "./env.js";
 import { createReadStream, createWriteStream } from "fs";
 import { stat } from "fs/promises";
 import path from "path";

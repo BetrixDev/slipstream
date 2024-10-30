@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { baseWorkerSchema } from "./base.js";
 
-const transcodingWorkerSchema = baseWorkerSchema.extend({
+const transcodingWorkerSchema = z.object({
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.string(),
+  REDIS_PASSWORD: z.string(),
+  AXIOM_DATASET: z.string(),
+  AXIOM_TOKEN: z.string(),
   B2_VIDEOS_READ_APP_KEY_ID: z.string(),
   B2_VIDEOS_READ_APP_KEY: z.string(),
   B2_VIDEOS_WRITE_APP_KEY_ID: z.string(),

@@ -1,7 +1,7 @@
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import { Queue } from "bullmq";
 import { db } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 
 export const transcodingQueue = new Queue("{transcoding}", {
   connection: {

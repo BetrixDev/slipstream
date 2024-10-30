@@ -14,7 +14,7 @@ import {
   type DownloadAuthorizationResponse,
   type UploadUrlResponse,
 } from "./backblaze.js";
-import { env } from "env/worker/thumbnail";
+import { env } from "./env.js";
 import { promisify } from "util";
 import * as stream from "stream";
 import { execa } from "execa";

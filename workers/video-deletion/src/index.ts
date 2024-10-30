@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { env } from "env/worker/transcoding";
+import { env } from "./env.js";
 import { logger } from "./log.js";
 import { pathToFileURL } from "url";
 import path from "path";
@@ -15,7 +15,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
       port: Number(env.REDIS_PORT),
       password: env.REDIS_PASSWORD,
     },
-    concurrency: 3,
+    concurrency: 5,
     removeOnComplete: { count: 0 },
     removeOnFail: { count: 0 },
   },

@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { baseWorkerSchema } from "./base.js";
 
-const videoDeletionWorkerSchema = baseWorkerSchema.extend({
+const videoDeletionWorkerSchema = z.object({
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.string(),
+  REDIS_PASSWORD: z.string(),
+  AXIOM_DATASET: z.string(),
+  AXIOM_TOKEN: z.string(),
   S3_ROOT_ACCESS_KEY: z.string(),
   S3_ROOT_SECRET_KEY: z.string(),
   S3_VIDEOS_ENDPOINT: z.string(),

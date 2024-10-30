@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db, eq, sql, users, videos } from "db";
 import { json } from "@vercel/remix";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
 

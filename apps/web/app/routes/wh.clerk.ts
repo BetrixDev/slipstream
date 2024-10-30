@@ -3,7 +3,7 @@ import { ActionFunctionArgs } from "@vercel/remix";
 import { WebhookEvent } from "@clerk/remix/ssr.server";
 import { db, users, eq, sql } from "db";
 import { json } from "@vercel/remix";
-import { env } from "env/web";
+import { env } from "~/server/env";
 
 export async function action(args: ActionFunctionArgs) {
   const headerPayload = args.request.headers;

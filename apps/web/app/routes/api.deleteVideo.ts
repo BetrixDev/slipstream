@@ -3,7 +3,7 @@ import { getAuth } from "@clerk/remix/ssr.server";
 import { ActionFunctionArgs, json } from "@vercel/remix";
 import { z } from "zod";
 import { db, videos, and, eq, users, sql } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { Queue } from "bullmq";
 import { logger } from "~/server/logger.server";
 

@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@vercel/remix";
 import { Queue } from "bullmq";
 import { db } from "db";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { nanoid } from "nanoid";
 import { logger } from "~/server/logger.server";
 

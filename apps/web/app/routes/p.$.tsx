@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Eye, Loader2, SquareArrowOutUpRight, Video } from "lucide-react";
 import { json } from "@vercel/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { env } from "env/web";
+import { env } from "~/server/env";
 import { Card, CardContent } from "~/components/ui/card";
 import { createSigner } from "fast-jwt";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";

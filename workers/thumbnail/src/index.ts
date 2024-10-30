@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { logger } from "./log.js";
 import path from "path";
-import { env } from "env/worker/thumbnail";
+import { env } from "./env.js";
 import { pathToFileURL } from "url";
 
 const processorUrl = pathToFileURL(path.join(__dirname, "processor.js"));
@@ -15,7 +15,6 @@ export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", pr
   concurrency: 3,
   removeOnComplete: { count: 0 },
   removeOnFail: { count: 0 },
-  stalledInterval: 60000,
 });
 
 logger.info("Thumbnail worker started successfully");
