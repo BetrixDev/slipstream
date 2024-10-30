@@ -3,66 +3,39 @@
   "ui": "stream",
   "tasks": {
     "topo": {
-      "dependsOn": [
-        "^topo"
-      ]
+      "dependsOn": ["^topo"]
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*"
-      ],
-      "outputs": [
-        "build/**"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["build/**"]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "//#format": {
-      "outputs": [
-        "node_modules/.cache/.prettiercache"
-      ]
+      "outputs": ["node_modules/.cache/.prettiercache"]
     },
     "format": {
-      "dependsOn": [
-        "^topo"
-      ],
-      "outputs": [
-        "node_modules/.cache/.prettiercache"
-      ]
+      "dependsOn": ["^topo"],
+      "outputs": ["node_modules/.cache/.prettiercache"]
     },
     "//#format:fix": {
-      "outputs": [
-        "node_modules/.cache/.prettiercache"
-      ],
+      "outputs": ["node_modules/.cache/.prettiercache"],
       "cache": false
     },
     "format:fix": {
-      "dependsOn": [
-        "^topo"
-      ],
-      "outputs": [
-        "node_modules/.cache/.prettiercache"
-      ],
+      "dependsOn": ["^topo"],
+      "outputs": ["node_modules/.cache/.prettiercache"],
       "cache": false
     },
     "typecheck": {
-      "dependsOn": [
-        "topo"
-      ],
-      "outputs": [
-        "node_modules/.cache/tsbuildinfo.json"
-      ]
+      "dependsOn": ["topo"],
+      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
     }
   }
 }
