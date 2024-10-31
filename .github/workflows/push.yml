@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  push:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,6 +29,3 @@ jobs:
 
       - name: Build services
         run: pnpm run build
-
-    #   - name: Test services
-    #     run: pnpm run test
