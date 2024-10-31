@@ -7,7 +7,9 @@ import { Button } from "./ui/button";
 import { formatSecondsToTimestamp } from "~/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import * as pkg from "@ffmpeg/util";
+const { toBlobURL, fetchFile } = pkg;
+
 import { Loader2 } from "lucide-react";
 import { PauseIcon, PlayIcon } from "@vidstack/react/icons";
 
