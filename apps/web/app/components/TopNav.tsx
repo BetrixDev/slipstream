@@ -20,7 +20,7 @@ export default function TopNav() {
           </Button>
         </Link>
         <div className="grow flex justify-center items-center">
-          <nav className="hidden md:flex mx-auto justify-center gap-4 sm:gap-6">
+          <nav className="hidden sm:flex mx-auto justify-center gap-4 sm:gap-6">
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
               to="/pricing"
@@ -44,7 +44,7 @@ export default function TopNav() {
               Support
             </Link>
           </nav>
-          <div className="block md:hidden">
+          <div className="block sm:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="rounded-full">
@@ -83,7 +83,7 @@ export default function TopNav() {
         <SignedOut>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full">
+              <Button variant="outline" className="rounded-full md:hidden block">
                 Account
               </Button>
             </DropdownMenuTrigger>
