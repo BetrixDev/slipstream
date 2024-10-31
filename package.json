@@ -5,6 +5,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "start": "turbo start",
     "format": "prettier . \"!apps/** !packages/** !tooling/**\" --check --cache --cache-location=node_modules/.cache/.prettiercache",
     "format:fix": "prettier . \"!apps/** !packages/** !tooling/**\" --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
     "generate-migration": "cd packages/db && pnpm run generate",
