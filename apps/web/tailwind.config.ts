@@ -1,9 +1,8 @@
 import type { Config } from "tailwindcss";
-import { withUt } from "uploadthing/tw";
 import flattenColorPalette from "tailwindcss/lib/util/flattenColorPalette";
 import svgToDataUri from "mini-svg-data-uri";
 
-export default withUt({
+export default {
   darkMode: ["class"],
   content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
   theme: {
@@ -90,7 +89,7 @@ export default withUt({
       );
     },
   ],
-}) satisfies Config;
+} satisfies Config;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function addVariablesForColors({ addBase, theme }: any) {
