@@ -30,8 +30,6 @@ import MotionNumber from "motion-number";
 
 dayjs.extend(utc);
 
-export const config = { runtime: "edge" };
-
 export const meta: MetaFunction = () => {
   return [
     {

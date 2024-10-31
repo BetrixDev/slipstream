@@ -20,8 +20,6 @@ import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 
-export const config = { runtime: "edge" };
-
 export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   const videoId = params["*"];
 

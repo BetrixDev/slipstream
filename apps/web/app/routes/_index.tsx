@@ -8,8 +8,6 @@ import { SignUpButton } from "@clerk/remix";
 import { HeroHighlight } from "~/components/ui/hero-highlight";
 import { Footer } from "~/components/Footer";
 
-export const config = { runtime: "edge" };
-
 export const headers: HeadersFunction = () => ({
   "Cache-Control": "max-age=3600, stale-while-revalidate=21600",
 });
