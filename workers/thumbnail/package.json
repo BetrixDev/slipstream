@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon --watch src/ --ext js,ts --ignore build/ --exec \"pnpm build && pnpm start\"",
     "build": "esbuild src/**/*.ts --outdir=build --platform=node --target=esnext --sourcemap",
-    "start": "bun run build/index.js",
+    "start": "node build/index.js",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
