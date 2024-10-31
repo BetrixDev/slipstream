@@ -9,9 +9,11 @@
     "format": "prettier . \"!apps/** !packages/** !tooling/**\" --check --cache --cache-location=node_modules/.cache/.prettiercache",
     "format:fix": "prettier . \"!apps/** !packages/** !tooling/**\" --write --cache --cache-location=node_modules/.cache/.prettiercache --log-level=warn",
     "generate-migration": "cd packages/db && pnpm run generate",
-    "migrate-dev": "node --env-file=packages/db/.env packages/db/migrate.js"
+    "migrate-dev": "node --env-file=packages/db/.env packages/db/migrate.js",
+    "workflow:migrate-db": "cross-env DATABASE_URL=${{ secrets.DATABASE_URL }} node packages/db/migrate.js"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "prettier": "^3.2.5",
     "turbo": "^2.1.2",
     "typescript": "^5.4.5"
