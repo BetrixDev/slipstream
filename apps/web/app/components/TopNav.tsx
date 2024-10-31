@@ -19,7 +19,7 @@ export default function TopNav() {
             <span className="ml-2 text-lg hidden md:inline md:text-2xl font-bold">Flowble</span>
           </Button>
         </Link>
-        <div className="grow flex justify-center items-center">
+        <div className="absolute w-full">
           <nav className="hidden sm:flex mx-auto justify-center gap-4 sm:gap-6">
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
@@ -44,7 +44,7 @@ export default function TopNav() {
               Support
             </Link>
           </nav>
-          <div className="block sm:hidden">
+          <div className="flex justify-center sm:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="rounded-full">
