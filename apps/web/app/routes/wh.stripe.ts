@@ -100,6 +100,8 @@ export async function action({ request }: ActionFunctionArgs) {
         customerEmail,
       },
     );
+
+    return json({ success: true, message: "Event processing finished" }, { status: 200 });
   } else if (
     event.type === "customer.subscription.deleted" ||
     event.type === "customer.subscription.paused"
@@ -154,7 +156,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     await videoDeletionQueue.addBulk(jobs);
+    return json({ success: true, message: "Event processing finished" }, { status: 200 });
   }
 
-  return json({ success: true, message: "Event processing finished" }, { status: 200 });
+  return json({ success: false, message: "No event found" }, { status: 404 });
 }
