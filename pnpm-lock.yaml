@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@ffmpeg/util@0.12.1':
+    hash: ibgkji2d5fjnxsptyi6rcxvs7i
+    path: patches/@ffmpeg__util@0.12.1.patch
+
 importers:
 
   .:
@@ -37,7 +42,7 @@ importers:
         version: 0.12.10
       '@ffmpeg/util':
         specifier: ^0.12.1
-        version: 0.12.1
+        version: 0.12.1(patch_hash=ibgkji2d5fjnxsptyi6rcxvs7i)
       '@radix-ui/react-checkbox':
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -7532,7 +7537,7 @@ snapshots:
 
   '@ffmpeg/types@0.12.2': {}
 
-  '@ffmpeg/util@0.12.1': {}
+  '@ffmpeg/util@0.12.1(patch_hash=ibgkji2d5fjnxsptyi6rcxvs7i)': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:

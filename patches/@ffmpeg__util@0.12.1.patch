@@ -1,0 +1,10 @@
+diff --git a/package.json b/package.json
+index 3afedb4c0fd279eef1c4330bff7b9325c7dc94c1..b3dc13cbf166e7cad8ed5eb388c50f24e0181ebe 100644
+--- a/package.json
++++ b/package.json
+@@ -1,4 +1,5 @@
+ {
++  "type": "module",
+   "name": "@ffmpeg/util",
+   "version": "0.12.1",
+   "description": "browser utils for @ffmpeg/*",
