@@ -7,9 +7,11 @@ import { Button } from "./ui/button";
 import { formatSecondsToTimestamp } from "~/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import { Loader, Loader2 } from "lucide-react";
+import ffmpeg from "@ffmpeg/util";
+import { Loader2 } from "lucide-react";
 import { PauseIcon, PlayIcon } from "@vidstack/react/icons";
+
+const { fetchFile, toBlobURL } = ffmpeg;
 
 export function TrimVideoDialogContainer() {
   const [trimVideoData] = useAtom(trimVideoDataAtom);
