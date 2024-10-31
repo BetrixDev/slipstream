@@ -42,7 +42,7 @@ export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
 
   if (userId === null) {
-    return redirect("/sign-up");
+    return redirect("/sign-in");
   }
 
   const userData = db.query.users
