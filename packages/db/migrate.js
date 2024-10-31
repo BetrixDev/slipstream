@@ -7,7 +7,7 @@ const client = neon(process.env.DATABASE_URL);
 export const db = drizzle(client);
 
 await migrate(db, {
-  migrationsFolder: path.join(process.cwd(), "..", "..", "migrations"),
+  migrationsFolder: path.join(process.cwd(), "migrations"),
 });
 
 console.log("Database migrated");
