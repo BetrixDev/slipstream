@@ -175,7 +175,7 @@ function StorageUsedText({ maxStorage, totalStorageUsed, maxFileUpload }: Storag
     <Link to="/pricing">
       <Button variant="ghost" className="h-12 text-md">
         Storage used:
-        <span className="ml-1">
+        <span className="mx-1">
           <HumanFileSizeMotion size={data} />
         </span>{" "}
         / {humanFileSize(maxStorage)} (
