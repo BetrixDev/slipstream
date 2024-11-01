@@ -1,14 +1,11 @@
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import { Queue } from "bullmq";
 import { db } from "db";
+import { Redis } from "ioredis";
 import { env } from "~/server/env";
 
 export const transcodingQueue = new Queue("{transcoding}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

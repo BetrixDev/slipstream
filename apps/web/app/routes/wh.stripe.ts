@@ -5,15 +5,12 @@ import { logger } from "~/server/logger.server";
 import { db, eq, users } from "db";
 import { PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
+import { Redis } from "ioredis";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 const PRODUCT_IDS: Record<string, string> = {

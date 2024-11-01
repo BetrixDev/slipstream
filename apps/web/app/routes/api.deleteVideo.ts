@@ -6,17 +6,14 @@ import { db, videos, and, eq, users, sql } from "db";
 import { env } from "~/server/env";
 import { Queue } from "bullmq";
 import { logger } from "~/server/logger.server";
+import { Redis } from "ioredis";
 
 const schema = z.object({
   videoId: z.string(),
 });
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 const s3VideosClient = new S3Client({

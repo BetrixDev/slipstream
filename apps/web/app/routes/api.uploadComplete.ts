@@ -8,6 +8,7 @@ import { json } from "@vercel/remix";
 import { env } from "~/server/env";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
+import { Redis } from "ioredis";
 
 const schema = z.object({
   key: z.string(),
@@ -16,19 +17,11 @@ const schema = z.object({
 });
 
 export const transcodingQueue = new Queue("{transcoding}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 export const thumbnailQueue = new Queue("{thumbnail}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 const s3RootClient = new S3Client({

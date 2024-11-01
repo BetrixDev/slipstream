@@ -1,14 +1,11 @@
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import { Queue } from "bullmq";
+import { Redis } from "ioredis";
 import { db } from "db";
 import { env } from "~/server/env";
 
 export const thumbnailQueue = new Queue("{thumbnail}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

@@ -4,13 +4,10 @@ import { db } from "db";
 import { env } from "~/server/env";
 import { nanoid } from "nanoid";
 import { logger } from "~/server/logger.server";
+import { Redis } from "ioredis";
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
 });
 
 export async function loader({ request }: LoaderFunctionArgs) {
