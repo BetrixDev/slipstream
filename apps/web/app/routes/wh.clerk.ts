@@ -4,6 +4,7 @@ import { WebhookEvent } from "@clerk/remix/ssr.server";
 import { db, users, eq, sql } from "db";
 import { json } from "@vercel/remix";
 import { env } from "~/server/env";
+import { logger } from "~/server/logger.server";
 
 export async function action(args: ActionFunctionArgs) {
   const headerPayload = args.request.headers;
@@ -37,7 +38,15 @@ export async function action(args: ActionFunctionArgs) {
     });
   }
 
+  const whLogger = logger.child({
+    webhook: "clerk",
+  });
+
   if (event.type === "user.created") {
+    whLogger.info("New user created", {
+      id: event.data.id,
+    });
+
     const userPrimaryEmail = event.data.email_addresses.find(
       (e) => e.id === event.data.primary_email_address_id,
     )!;
@@ -48,10 +57,18 @@ export async function action(args: ActionFunctionArgs) {
       createdAt: sql`to_timestamp(${event.data.created_at})`,
     });
   } else if (event.type === "user.deleted") {
+    whLogger.info("User deleted", {
+      id: event.data.id,
+    });
+
     if (event.data.id && event.data.deleted) {
       await db.delete(users).where(eq(users.id, event.data.id));
     }
   } else if (event.type === "user.updated") {
+    whLogger.info("User updated", {
+      id: event.data.id,
+    });
+
     const userPrimaryEmail = event.data.email_addresses.find(
       (e) => e.id === event.data.primary_email_address_id,
     )!;
