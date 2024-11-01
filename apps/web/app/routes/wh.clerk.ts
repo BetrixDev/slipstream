@@ -54,7 +54,7 @@ export async function action(args: ActionFunctionArgs) {
     await db.insert(users).values({
       id: event.data.id,
       email: userPrimaryEmail.email_address,
-      createdAt: sql`to_timestamp(${event.data.created_at})`,
+      createdAt: sql`to_timestamp(${event.data.created_at} / 1000.0)`,
     });
   } else if (event.type === "user.deleted") {
     whLogger.info("User deleted", {
