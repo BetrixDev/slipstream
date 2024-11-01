@@ -4,7 +4,7 @@ import path from "path";
 import { env } from "./env.js";
 import { pathToFileURL } from "url";
 
-const processorUrl = pathToFileURL(path.join(__dirname, "processor.js"));
+const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
 
 export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", processorUrl, {
   connection: {

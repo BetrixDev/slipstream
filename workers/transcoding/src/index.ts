@@ -4,7 +4,7 @@ import { logger } from "./log.js";
 import { pathToFileURL } from "url";
 import path from "path";
 
-const processorUrl = pathToFileURL(path.join(__dirname, "processor.js"));
+const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
 
 export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: string }>(
   "{transcoding}",
