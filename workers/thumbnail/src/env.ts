@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 const thumbnailWorkerSchema = z.object({
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.string(),
-  REDIS_PASSWORD: z.string(),
+  REDIS_URL: z.string(),
   AXIOM_DATASET: z.string(),
   AXIOM_TOKEN: z.string(),
   VIDEOS_BUCKET_ID: z.string(),

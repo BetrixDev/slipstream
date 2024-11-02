@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 const videoDeletionWorkerSchema = z.object({
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.string(),
-  REDIS_PASSWORD: z.string(),
+  REDIS_URL: z.string(),
   AXIOM_DATASET: z.string(),
   AXIOM_TOKEN: z.string(),
   S3_ROOT_ACCESS_KEY: z.string(),

@@ -341,6 +341,9 @@ importers:
       glob:
         specifier: ^11.0.0
         version: 11.0.0
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.4.1
       logger:
         specifier: workspace:*
         version: link:../../packages/logger
@@ -387,6 +390,9 @@ importers:
       flowble-util:
         specifier: workspace:*
         version: link:../../packages/flowble-util
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.4.1
       logger:
         specifier: workspace:*
         version: link:../../packages/logger
@@ -421,6 +427,9 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.4.1
       logger:
         specifier: workspace:*
         version: link:../../packages/logger

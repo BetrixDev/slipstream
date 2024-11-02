@@ -3,6 +3,7 @@ import { env } from "./env.js";
 import { logger } from "./log.js";
 import { pathToFileURL } from "url";
 import path from "path";
+import { Redis } from "ioredis";
 
 const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
 
@@ -10,11 +11,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
   "{transcoding}",
   processorUrl,
   {
-    connection: {
-      host: env.REDIS_HOST,
-      port: Number(env.REDIS_PORT),
-      password: env.REDIS_PASSWORD,
-    },
+    connection: new Redis(env.REDIS_URL),
     concurrency: 1,
     removeOnComplete: { count: 0 },
     removeOnFail: { count: 0 },

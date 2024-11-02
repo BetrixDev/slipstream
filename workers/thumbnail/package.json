@@ -21,6 +21,7 @@
     "execa": "^9.4.0",
     "flowble-util": "workspace:*",
     "glob": "^11.0.0",
+    "ioredis": "^5.4.1",
     "logger": "workspace:*",
     "rimraf": "^6.0.1",
     "sharp": "^0.33.5",

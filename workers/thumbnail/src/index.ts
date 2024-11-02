@@ -3,15 +3,12 @@ import { logger } from "./log.js";
 import path from "path";
 import { env } from "./env.js";
 import { pathToFileURL } from "url";
+import { Redis } from "ioredis";
 
 const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
 
 export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", processorUrl, {
-  connection: {
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  },
+  connection: new Redis(env.REDIS_URL),
   concurrency: 3,
   removeOnComplete: { count: 0 },
   removeOnFail: { count: 0 },

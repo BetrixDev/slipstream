@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 const transcodingWorkerSchema = z.object({
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.string(),
-  REDIS_PASSWORD: z.string(),
+  REDIS_URL: z.string(),
   AXIOM_DATASET: z.string(),
   AXIOM_TOKEN: z.string(),
   B2_VIDEOS_READ_APP_KEY_ID: z.string(),
