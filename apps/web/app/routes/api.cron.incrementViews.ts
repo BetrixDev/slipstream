@@ -3,14 +3,14 @@ import { db, eq, sql, videos } from "db";
 import { env } from "~/server/env";
 import { Redis } from "ioredis";
 
+const redis = new Redis(env.REDIS_URL);
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const token = request.headers.get("Authorization")?.split(" ")?.at(1);
 
   if (token !== env.CRON_SECRET) {
     return json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
-
-  const redis = new Redis(env.REDIS_URL);
 
   const oldestKeys = await redis.zrange("views", 0, 9);
 
