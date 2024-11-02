@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 const s3VideosClient = new S3Client({

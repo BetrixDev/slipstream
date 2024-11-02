@@ -17,11 +17,11 @@ const schema = z.object({
 });
 
 export const transcodingQueue = new Queue("{transcoding}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 export const thumbnailQueue = new Queue("{thumbnail}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 const s3RootClient = new S3Client({

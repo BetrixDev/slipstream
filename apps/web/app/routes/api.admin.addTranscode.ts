@@ -5,7 +5,7 @@ import { Redis } from "ioredis";
 import { env } from "~/server/env";
 
 export const transcodingQueue = new Queue("{transcoding}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

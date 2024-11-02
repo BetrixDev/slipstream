@@ -11,7 +11,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
   "{transcoding}",
   processorUrl,
   {
-    connection: new Redis(env.REDIS_URL),
+    connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
     concurrency: 1,
     removeOnComplete: { count: 0 },
     removeOnFail: { count: 0 },

@@ -5,7 +5,7 @@ import { db } from "db";
 import { env } from "~/server/env";
 
 export const thumbnailQueue = new Queue("{thumbnail}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

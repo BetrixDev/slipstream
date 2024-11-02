@@ -7,7 +7,7 @@ import { logger } from "~/server/logger.server";
 import { Redis } from "ioredis";
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 export async function loader({ request }: LoaderFunctionArgs) {

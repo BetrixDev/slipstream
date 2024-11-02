@@ -4,11 +4,19 @@ import path from "path";
 import { env } from "./env.js";
 import { pathToFileURL } from "url";
 import { Redis } from "ioredis";
+import { createServer } from "http";
+
+createServer((_, res) => {
+  res.writeHead(200);
+  res.end();
+}).listen(env.PORT, () => {
+  logger.info(`Thumbnail worker health check listening on port ${env.PORT}`);
+});
 
 const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
 
 export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", processorUrl, {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
   concurrency: 3,
   removeOnComplete: { count: 0 },
   removeOnFail: { count: 0 },

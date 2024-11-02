@@ -15,6 +15,7 @@ const thumbnailWorkerSchema = z.object({
   B2_THUMBS_WRITE_APP_KEY_ID: z.string(),
   B2_THUMBS_WRITE_APP_KEY: z.string(),
   DATABASE_URL: z.string(),
+  PORT: z.coerce.number(),
 });
 
 export const env = thumbnailWorkerSchema.parse(process.env);

@@ -5,7 +5,7 @@ import { Redis } from "ioredis";
 import { env } from "~/server/env";
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

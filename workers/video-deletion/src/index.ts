@@ -11,7 +11,7 @@ export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: str
   "{video-deletion}",
   processorUrl,
   {
-    connection: new Redis(env.REDIS_URL),
+    connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
     concurrency: 5,
     removeOnComplete: { count: 0 },
     removeOnFail: { count: 0 },

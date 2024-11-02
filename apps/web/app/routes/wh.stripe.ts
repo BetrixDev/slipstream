@@ -10,7 +10,7 @@ import { Redis } from "ioredis";
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
 export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL),
+  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 const PRODUCT_IDS: Record<string, string> = {
