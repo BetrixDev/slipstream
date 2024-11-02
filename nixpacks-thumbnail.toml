@@ -1,4 +1,4 @@
-providers = ['...']
+providers = ['turborepo']
 buildImage = 'ghcr.io/railwayapp/nixpacks:ubuntu-1727136237'
 
 [variables]
@@ -6,14 +6,10 @@ CI = 'true'
 NIXPACKS_METADATA = 'node'
 NODE_ENV = 'production'
 NPM_CONFIG_PRODUCTION = 'false'
-
-[phases.setup]
-nixPkgs = ['nodejs_22', 'pnpm-9_x', 'openssl']
-nixLibs = ['gcc-unwrapped']
-nixOverlays = [
-    'https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz',
-]
-nixpkgsArchive = 'e05605ec414618eab4a7a6aea8b38f6fbbcc8f08'
+[phases.build]
+dependsOn = ['install']
+cmds = ['pnpm run build']
+cacheDirectories = ['node_modules/.cache']
 
 [phases.install]
 dependsOn = ['setup']
@@ -24,11 +20,12 @@ cmds = [
 cacheDirectories = ['/root/.local/share/pnpm/store/v3']
 paths = ['/app/node_modules/.bin']
 
-[phases.build]
-dependsOn = ['install']
-nixPkgs = ['bun', 'ffmpeg_6']
-cmds = ['pnpm run build']
-cacheDirectories = ['node_modules/.cache']
+[phases.setup]
+nixPkgs = ['bun', 'ffmpeg_6', 'nodejs_22', 'pnpm-9_x', 'openssl']
+nixLibs = ['gcc-unwrapped']
+nixOverlays = []
+nixpkgsArchive = 'e05605ec414618eab4a7a6aea8b38f6fbbcc8f08'
+aptPkgs = []
 
 [start]
 cmd = 'pnpm start --filter=thumbnail'
