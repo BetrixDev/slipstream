@@ -7,11 +7,7 @@ import { Redis } from "ioredis";
 
 dayjs.extend(utc);
 
-const redis = new Redis({
-  host: env.REDIS_HOST,
-  port: Number(env.REDIS_PORT),
-  password: env.REDIS_PASSWORD,
-});
+const redis = new Redis(env.REDIS_URL);
 
 export async function action({ request }: ActionFunctionArgs) {
   const token = request.headers.get("Authorization")?.split(" ")?.at(1);

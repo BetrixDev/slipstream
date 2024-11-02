@@ -10,11 +10,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  const redis = new Redis({
-    host: env.REDIS_HOST,
-    port: Number(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD,
-  });
+  const redis = new Redis(env.REDIS_URL);
 
   const oldestKeys = await redis.zrange("views", 0, 9);
 

@@ -7,11 +7,7 @@ const USER_VIDEO_DAILY_LIMIT = {
   pro: 12,
 };
 
-const redis = new Redis({
-  host: env.REDIS_HOST,
-  port: Number(env.REDIS_PORT),
-  password: env.REDIS_PASSWORD,
-});
+const redis = new Redis(env.REDIS_URL);
 
 export async function incrementUserUploadRateLimit(userId: string) {
   const userData = await db.query.users.findFirst({
