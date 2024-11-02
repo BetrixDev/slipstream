@@ -2,6 +2,8 @@ import winston from "winston";
 import os from "node:os";
 import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 
+console.log(process.env);
+
 if (!process.env.AXIOM_TOKEN) {
   throw new Error("AXIOM_TOKEN not set in environment");
 }
