@@ -1,4 +1,4 @@
-providers = []
+providers = ['...']
 buildImage = 'ghcr.io/railwayapp/nixpacks:ubuntu-1727136237'
 
 [variables]
