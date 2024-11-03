@@ -1,9 +1,9 @@
 import * as schema from "./schema.js";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { Client } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 
-const neon = new Client({ connectionString: process.env.DATABASE_URL! });
-export const db = drizzle(neon, { schema });
+const client = neon(process.env.DATABASE_URL!);
+export const db = drizzle(client, { schema });
 
 export * from "./schema.js";
 export * from "drizzle-orm";
