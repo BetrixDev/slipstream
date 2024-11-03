@@ -140,7 +140,7 @@ function VideosDashboard() {
           <div className="container flex flex-col gap-6">
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <UploadingVideosContainer />
-              <Suspense fallback={<Skeleton className="rounded-lg w-full aspect-video" />}>
+              <Suspense>
                 <Await resolve={userData}>
                   {({ videos }) => <VideosBoard videos={videos as any} />}
                 </Await>
