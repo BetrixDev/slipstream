@@ -2,30 +2,19 @@ import { db } from "db";
 import { env } from "~/server/env";
 import { Redis } from "ioredis";
 
-const USER_VIDEO_DAILY_LIMIT = {
+const USER_VIDEO_DAILY_LIMIT: Record<string, number> = {
   free: 3,
   pro: 12,
 };
 
 const redis = new Redis(env.REDIS_URL);
 
-export async function incrementUserUploadRateLimit(userId: string) {
-  const userData = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
-    columns: {
-      accountTier: true,
-    },
-  });
-
-  if (!userData) {
-    return false;
-  }
-
-  if (userData.accountTier === "premium" || userData.accountTier === "ultimate") {
+export async function incrementUserUploadRateLimit(accountTier: string, userId: string) {
+  if (accountTier === "premium" || accountTier === "ultimate") {
     return true;
   }
 
-  const userDailyLimit = USER_VIDEO_DAILY_LIMIT[userData.accountTier] ?? 3;
+  const userDailyLimit = USER_VIDEO_DAILY_LIMIT[accountTier] ?? 3;
 
   const rateLimitKey = `uploadLimit:${userId}`;
 

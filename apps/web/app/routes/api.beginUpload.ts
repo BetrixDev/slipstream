@@ -39,15 +39,18 @@ export async function action(args: LoaderFunctionArgs) {
 
   const payload = schema.parse(await args.request.json());
 
+  console.log("getting user data");
   const userData = await db.query.users.findFirst({
     where: (table, { eq }) => eq(table.id, userId),
   });
+
+  console.log("user data", { userData });
 
   if (!userData) {
     return json(null, { status: 401 });
   }
 
-  const canUploadVideoToday = await incrementUserUploadRateLimit(userId);
+  const canUploadVideoToday = await incrementUserUploadRateLimit(userData.accountTier, userId);
 
   if (!canUploadVideoToday) {
     return json(null, { status: 429 });
