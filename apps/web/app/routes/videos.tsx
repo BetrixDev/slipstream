@@ -27,6 +27,7 @@ import { TrimVideoDialogContainer } from "~/components/trim-video-dialog";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import MotionNumber from "motion-number";
+import { track } from "@vercel/analytics/react";
 
 dayjs.extend(utc);
 
@@ -125,7 +126,10 @@ function VideosDashboard() {
                 </Await>
               </Suspense>
               <Button
-                onMouseDown={() => setIsUploadDialogOpen(true)}
+                onMouseDown={() => {
+                  track("Upload button pressed");
+                  setIsUploadDialogOpen(true);
+                }}
                 variant="ghost"
                 className="relative inline-flex h-12 overflow-hidden rounded-md p-[1px] focus:outline-none focus:ring-2 hover:ring-2 focus:ring-offset-2"
               >

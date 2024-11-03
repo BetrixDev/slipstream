@@ -12,6 +12,7 @@ import { useUploadingVideosStore } from "~/stores";
 import { Scissors } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { HumanFileSizeMotion } from "~/lib/utils";
+import { track } from "@vercel/analytics/react";
 
 type FormData = {
   title?: string;
@@ -193,6 +194,7 @@ function UploadVideoDialog() {
                           variant="outline"
                           type="button"
                           onClick={() => {
+                            track("Trim video button pressed");
                             setTrimVideoData({ file: file, title: form.state.values.title });
                           }}
                         >
