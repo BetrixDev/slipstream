@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-console.log(process.env);
-
 const thumbnailWorkerSchema = z.object({
   REDIS_URL: z.string(),
   AXIOM_DATASET: z.string(),
