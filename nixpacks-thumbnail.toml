@@ -25,7 +25,6 @@ paths = ['/app/node_modules/.bin']
 nixPkgs = ['bun', 'ffmpeg_6', 'nodejs_22', 'pnpm', 'openssl']
 nixLibs = ['gcc-unwrapped']
 nixOverlays = []
-nixpkgsArchive = 'e05605ec414618eab4a7a6aea8b38f6fbbcc8f08'
 aptPkgs = []
 
 [start]
