@@ -22,7 +22,7 @@ import { db } from "db";
 import { Footer } from "~/components/Footer";
 
 export const headers: HeadersFunction = () => ({
-  "Cache-Control": "max-age=3600, stale-while-revalidate=21600",
+  "Cache-Control": "max-age=0, s-maxage=86400",
 });
 
 export const meta: MetaFunction = () => {
