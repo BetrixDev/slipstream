@@ -4,16 +4,10 @@ import { ActionFunctionArgs, json } from "@vercel/remix";
 import { z } from "zod";
 import { db, videos, and, eq, users, sql } from "db";
 import { env } from "~/server/env";
-import { Queue } from "bullmq";
 import { logger } from "~/server/logger.server";
-import { Redis } from "ioredis";
 
 const schema = z.object({
   videoId: z.string(),
-});
-
-export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 const s3VideosClient = new S3Client({
@@ -160,11 +154,6 @@ export async function action(args: ActionFunctionArgs) {
         endpoint: "api/deleteVideo",
       });
     }
-
-    // Add to deletion queue just incase some things failed
-    await videoDeletionQueue.add(`video-deletion-${videoId}`, {
-      videoId,
-    });
   } catch (e) {
     return json({ success: false, message: "Failed to delete video." }, { status: 500 });
   }
