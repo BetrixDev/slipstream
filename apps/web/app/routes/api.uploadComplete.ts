@@ -1,10 +1,9 @@
 import { DeleteObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { ActionFunctionArgs } from "@vercel/remix";
+import { type ActionFunctionArgs, json } from "@vercel/remix";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db, eq, sql, users, videos } from "db";
-import { json } from "@vercel/remix";
 import { env } from "~/server/env";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
@@ -13,7 +12,6 @@ import { Redis } from "ioredis";
 const schema = z.object({
   key: z.string(),
   title: z.string(),
-  shouldCompress: z.boolean().default(false),
 });
 
 export const transcodingQueue = new Queue("{transcoding}", {
