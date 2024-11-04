@@ -138,15 +138,13 @@ export async function action(args: ActionFunctionArgs) {
       await Promise.all([
         ...videoDeleteCommandPromises,
         ...thumbnailDeleteCommands,
-        db.batch([
-          db.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
-          db
-            .update(users)
-            .set({
-              totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
-            })
-            .where(eq(users.id, userId)),
-        ]),
+        db.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
+        db
+          .update(users)
+          .set({
+            totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
+          })
+          .where(eq(users.id, userId)),
       ]);
     } catch (e) {
       logger.error("Error deleting videos directly", {

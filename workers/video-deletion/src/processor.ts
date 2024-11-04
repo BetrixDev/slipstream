@@ -124,15 +124,13 @@ export default async (job: Job<{ videoId: string }>) => {
   await Promise.all([
     ...videoDeleteCommandPromises,
     ...thumbnailDeleteCommands,
-    db.batch([
-      db.delete(videos).where(eq(videos.id, job.data.videoId)),
-      db
-        .update(users)
-        .set({
-          totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
-        })
-        .where(eq(users.id, videoData.authorId)),
-    ]),
+    db.delete(videos).where(eq(videos.id, job.data.videoId)),
+    db
+      .update(users)
+      .set({
+        totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
+      })
+      .where(eq(users.id, videoData.authorId)),
   ]);
 
   return {

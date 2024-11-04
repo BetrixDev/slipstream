@@ -101,35 +101,34 @@ export async function action(args: ActionFunctionArgs) {
     videoId = nanoid(8);
   }
 
-  const [_, [videoData]] = await db.batch([
-    db
-      .update(users)
-      .set({
-        totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
-      })
-      .where(eq(users.id, userId)),
-    db
-      .insert(videos)
-      .values({
-        id: videoId,
-        authorId: userId,
-        nativeFileKey: data.key,
-        fileSizeBytes: response?.ContentLength ?? 0,
-        title: data.title,
-        deletionDate:
-          userData.accountTier === "free"
-            ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
-            : undefined,
-        sources: [
-          {
-            isNative: true,
-            key: data.key,
-            type: "video/mp4",
-          },
-        ],
-      })
-      .returning(),
-  ]);
+  await db
+    .update(users)
+    .set({
+      totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
+    })
+    .where(eq(users.id, userId));
+
+  const [videoData] = await db
+    .insert(videos)
+    .values({
+      id: videoId,
+      authorId: userId,
+      nativeFileKey: data.key,
+      fileSizeBytes: response?.ContentLength ?? 0,
+      title: data.title,
+      deletionDate:
+        userData.accountTier === "free"
+          ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
+          : undefined,
+      sources: [
+        {
+          isNative: true,
+          key: data.key,
+          type: "video/mp4",
+        },
+      ],
+    })
+    .returning();
 
   try {
     await Promise.all([
@@ -163,16 +162,14 @@ export async function action(args: ActionFunctionArgs) {
 
     // TODO: create a common function so this can do everything the delete video endpoint does
 
-    await db.batch([
-      db
-        .update(users)
-        .set({
-          totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
-        })
-        .where(eq(users.id, userId)),
+    await db
+      .update(users)
+      .set({
+        totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
+      })
+      .where(eq(users.id, userId));
 
-      db.delete(videos).where(eq(videos.id, videoData.id)),
-    ]);
+    await db.delete(videos).where(eq(videos.id, videoData.id));
 
     return json({ success: false, message: "Failed to process video" }, { status: 500 });
   }
