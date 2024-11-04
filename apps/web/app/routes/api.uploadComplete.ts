@@ -8,6 +8,7 @@ import { env } from "~/server/env";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
+import { logger } from "~/server/logger.server";
 
 const schema = z.object({
   key: z.string(),
@@ -40,147 +41,161 @@ export async function action(args: ActionFunctionArgs) {
 
   const data = schema.parse(await args.request.json());
 
-  const headObjectCommand = new HeadObjectCommand({
-    Bucket: env.S3_VIDEOS_BUCKET,
-    Key: data.key,
-  });
+  try {
+    const headObjectCommand = new HeadObjectCommand({
+      Bucket: env.S3_VIDEOS_BUCKET,
+      Key: data.key,
+    });
 
-  const response = await s3RootClient.send(headObjectCommand);
+    const response = await s3RootClient.send(headObjectCommand);
 
-  if (response.ContentLength === undefined) {
-    return json({ success: false, message: "File not found" }, { status: 404 });
-  }
+    if (response.ContentLength === undefined) {
+      return json({ success: false, message: "File not found" }, { status: 404 });
+    }
 
-  const userData = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
-  });
+    const userData = await db.query.users.findFirst({
+      where: (table, { eq }) => eq(table.id, userId),
+    });
 
-  if (!userData) {
-    await s3RootClient.send(
-      new DeleteObjectCommand({
-        Bucket: env.S3_VIDEOS_BUCKET,
-        Key: data.key,
-      }),
-    );
-    return json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
-
-  if (
-    userData.totalStorageUsed + response.ContentLength > PLAN_STORAGE_SIZES[userData.accountTier] ||
-    response.ContentLength > maxFileSize
-  ) {
-    try {
+    if (!userData) {
       await s3RootClient.send(
         new DeleteObjectCommand({
           Bucket: env.S3_VIDEOS_BUCKET,
           Key: data.key,
         }),
       );
-    } catch (e) {
-      console.error(e);
+      return json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    return json(
-      {
-        success: false,
-        message: "Storage limit reached",
-      },
-      { status: 413 },
-    );
-  }
+    const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
 
-  let videoId = nanoid(8);
+    if (
+      userData.totalStorageUsed + response.ContentLength >
+        PLAN_STORAGE_SIZES[userData.accountTier] ||
+      response.ContentLength > maxFileSize
+    ) {
+      try {
+        await s3RootClient.send(
+          new DeleteObjectCommand({
+            Bucket: env.S3_VIDEOS_BUCKET,
+            Key: data.key,
+          }),
+        );
+      } catch (e) {
+        console.error(e);
+      }
 
-  while (
-    (await db.query.videos.findFirst({
-      where: (table, { eq }) => eq(table.id, videoId),
-    })) !== undefined
-  ) {
-    videoId = nanoid(8);
-  }
-
-  await db
-    .update(users)
-    .set({
-      totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
-    })
-    .where(eq(users.id, userId));
-
-  const [videoData] = await db
-    .insert(videos)
-    .values({
-      id: videoId,
-      authorId: userId,
-      nativeFileKey: data.key,
-      fileSizeBytes: response?.ContentLength ?? 0,
-      title: data.title,
-      deletionDate:
-        userData.accountTier === "free"
-          ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
-          : undefined,
-      sources: [
+      return json(
         {
-          isNative: true,
-          key: data.key,
-          type: "video/mp4",
+          success: false,
+          message: "Storage limit reached",
         },
-      ],
-    })
-    .returning();
+        { status: 413 },
+      );
+    }
 
-  try {
-    await Promise.all([
-      transcodingQueue.add(
-        `transcoding-${videoId}`,
-        { videoId, nativeFileKey: data.key },
-        {
-          attempts: 3,
-          backoff: {
-            type: "fixed",
-            delay: 10000,
-          },
-        },
-      ),
-      thumbnailQueue.add(
-        `thumbnail-${videoId}`,
-        {
-          videoId,
-        },
-        {
-          attempts: 3,
-          backoff: {
-            type: "fixed",
-            delay: 10000,
-          },
-        },
-      ),
-    ]);
-  } catch (e) {
-    console.error(e);
+    let videoId = nanoid(8);
 
-    // TODO: create a common function so this can do everything the delete video endpoint does
+    while (
+      (await db.query.videos.findFirst({
+        where: (table, { eq }) => eq(table.id, videoId),
+      })) !== undefined
+    ) {
+      videoId = nanoid(8);
+    }
 
     await db
       .update(users)
       .set({
-        totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
+        totalStorageUsed: userData.totalStorageUsed + (response!.ContentLength ?? 0),
       })
       .where(eq(users.id, userId));
 
-    await db.delete(videos).where(eq(videos.id, videoData.id));
+    const [videoData] = await db
+      .insert(videos)
+      .values({
+        id: videoId,
+        authorId: userId,
+        nativeFileKey: data.key,
+        fileSizeBytes: response?.ContentLength ?? 0,
+        title: data.title,
+        deletionDate:
+          userData.accountTier === "free"
+            ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
+            : undefined,
+        sources: [
+          {
+            isNative: true,
+            key: data.key,
+            type: "video/mp4",
+          },
+        ],
+      })
+      .returning();
 
-    return json({ success: false, message: "Failed to process video" }, { status: 500 });
+    try {
+      await Promise.all([
+        transcodingQueue.add(
+          `transcoding-${videoId}`,
+          { videoId, nativeFileKey: data.key },
+          {
+            attempts: 3,
+            backoff: {
+              type: "fixed",
+              delay: 10000,
+            },
+          },
+        ),
+        thumbnailQueue.add(
+          `thumbnail-${videoId}`,
+          {
+            videoId,
+          },
+          {
+            attempts: 3,
+            backoff: {
+              type: "fixed",
+              delay: 10000,
+            },
+          },
+        ),
+      ]);
+    } catch (e) {
+      console.error(e);
+
+      // TODO: create a common function so this can do everything the delete video endpoint does
+
+      await db
+        .update(users)
+        .set({
+          totalStorageUsed: Math.max(userData.totalStorageUsed - (response?.ContentLength ?? 0), 0),
+        })
+        .where(eq(users.id, userId));
+
+      await db.delete(videos).where(eq(videos.id, videoData.id));
+
+      return json({ success: false, message: "Failed to process video" }, { status: 500 });
+    }
+
+    return json({
+      success: true,
+      video: {
+        id: videoData.id,
+        title: videoData.title,
+        fileSizeBytes: videoData.fileSizeBytes,
+        createdAt: videoData.createdAt,
+      },
+    });
+  } catch (e) {
+    logger.error("Unknown error occurred when trying to complete upload", e);
+
+    await s3RootClient.send(
+      new DeleteObjectCommand({
+        Bucket: env.S3_VIDEOS_BUCKET,
+        Key: data.key,
+      }),
+    );
+
+    return json({ success: false }, { status: 500 });
   }
-
-  return json({
-    success: true,
-    video: {
-      id: videoData.id,
-      title: videoData.title,
-      fileSizeBytes: videoData.fileSizeBytes,
-      createdAt: videoData.createdAt,
-    },
-  });
 }
