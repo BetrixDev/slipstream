@@ -75,7 +75,6 @@ function UploadedVideo(video: UploadedVideoProps) {
       window.open(data.url);
     },
     onError: (error) => {
-      console.log(error);
       toast.error("Unable to download video at this time", { description: video.title });
     },
   });

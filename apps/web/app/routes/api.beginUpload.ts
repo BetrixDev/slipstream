@@ -39,12 +39,9 @@ export async function action(args: LoaderFunctionArgs) {
 
   const payload = schema.parse(await args.request.json());
 
-  console.log("getting user data");
   const userData = await db.query.users.findFirst({
     where: (table, { eq }) => eq(table.id, userId),
   });
-
-  console.log("user data", { userData });
 
   if (!userData) {
     return json(null, { status: 401 });

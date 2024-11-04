@@ -8,7 +8,7 @@ if (!process.env.AXIOM_TOKEN) {
 
 export function createLogger(serviceName: string) {
   const logger = winston.createLogger({
-    level: process.env.NODE_ENV !== "production" ? "debug" : "info",
+    level: "debug",
     format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
     defaultMeta: { hostname: os.hostname(), service: serviceName },
     transports: [

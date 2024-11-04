@@ -25,7 +25,6 @@ import { createTempDirectory } from "flowble-util/fs";
 const finished = promisify(stream.finished);
 
 export default async (job: Job<{ videoId: string }>) => {
-  console.log("ALSDKJASLKDJALSKDJLAKSDJ");
   const jobStart = Date.now();
   sharp.cache(false);
 
