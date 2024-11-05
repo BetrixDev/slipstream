@@ -20,6 +20,8 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "The fastest video sharing service" },
     { name: "og:description", content: "The fastest video sharing service" },
     { name: "twitter:description", content: "The fastest video sharing service" },
+    { name: "og:site_name", content: "Flowble" },
+    { name: "og:url", content: "https://www.flowble.app" },
     {
       name: "og:type",
       content: "website",

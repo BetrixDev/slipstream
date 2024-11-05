@@ -44,6 +44,7 @@ export const meta: MetaFunction = () => {
       name: "og:url",
       content: "https://www.flowble.app/pricing",
     },
+    { name: "og:site_name", content: "Flowble" },
     {
       name: "og:type",
       content: "website",
