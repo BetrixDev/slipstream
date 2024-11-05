@@ -64,28 +64,28 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
     ],
   );
 
-  const nativeSource = data.videoSources.find((v) => v.isNative);
+  const videoSource = data.videoSources[0];
 
-  if (nativeSource) {
-    tags.push({ name: "og:video", content: nativeSource.src });
-    tags.push({ name: "og:secure_url", content: nativeSource.src });
+  if (videoSource) {
+    tags.push({ name: "og:video", content: videoSource.src });
+    tags.push({ name: "og:secure_url", content: videoSource.src });
 
     if (!data.isPrivate) {
       tags.push({ name: "twitter:card", content: "player" });
     }
 
-    if (nativeSource.width) {
-      tags.push({ name: "og:video:width", content: nativeSource.width });
-      tags.push({ name: "twitter:player:width", content: nativeSource.width });
+    if (videoSource.width) {
+      tags.push({ name: "og:video:width", content: videoSource.width });
+      tags.push({ name: "twitter:player:width", content: videoSource.width });
     }
 
-    if (nativeSource.height) {
-      tags.push({ name: "og:video:height", content: nativeSource.height });
-      tags.push({ name: "twitter:player:height", content: nativeSource.height });
+    if (videoSource.height) {
+      tags.push({ name: "og:video:height", content: videoSource.height });
+      tags.push({ name: "twitter:player:height", content: videoSource.height });
     }
 
-    if (nativeSource.type) {
-      tags.push({ name: "og:video:type", content: nativeSource.type });
+    if (videoSource.type) {
+      tags.push({ name: "og:video:type", content: videoSource.type });
     }
   }
 
