@@ -64,29 +64,33 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
     ],
   );
 
-  const videoSource = data.videoSources[0];
+  const nativeSource = data.videoSources.find((v) => v.isNative);
 
-  if (videoSource) {
-    tags.push({ name: "og:video", content: videoSource.src });
-    tags.push({ name: "og:secure_url", content: videoSource.src });
+  if (nativeSource) {
+    tags.push({ name: "og:video", content: nativeSource.src });
+    tags.push({ name: "og:secure_url", content: nativeSource.src });
 
     if (!data.isPrivate) {
       tags.push({ name: "twitter:card", content: "player" });
     }
 
-    if (videoSource.width) {
-      tags.push({ name: "og:video:width", content: videoSource.width });
-      tags.push({ name: "twitter:player:width", content: videoSource.width });
+    if (nativeSource.width) {
+      tags.push({ name: "og:video:width", content: nativeSource.width });
+      tags.push({ name: "twitter:player:width", content: nativeSource.width });
     }
 
-    if (videoSource.height) {
-      tags.push({ name: "og:video:height", content: videoSource.height });
-      tags.push({ name: "twitter:player:height", content: videoSource.height });
+    if (nativeSource.height) {
+      tags.push({ name: "og:video:height", content: nativeSource.height });
+      tags.push({ name: "twitter:player:height", content: nativeSource.height });
     }
 
-    if (videoSource.type) {
-      tags.push({ name: "og:video:type", content: videoSource.type });
+    if (nativeSource.type) {
+      tags.push({ name: "og:video:type", content: nativeSource.type });
     }
+  }
+
+  if (data.videoLengthSeconds) {
+    tags.push({ name: "og:video:duration", content: data.videoLengthSeconds });
   }
 
   if (data.largeThumbnailUrl) {
@@ -232,7 +236,10 @@ export async function loader(args: LoaderFunctionArgs) {
     views: videoData.views,
     title: videoData.title,
     isProcessing: videoData.isProcessing,
-    largeThumbnailUrl: `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`,
+    largeThumbnailUrl:
+      videoData.largeThumbnailKey !== null
+        ? `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`
+        : null,
     isPrivate: videoData.isPrivate,
     videoLengthSeconds: videoData.videoLengthSeconds,
     createdAt: videoData.createdAt,
@@ -309,7 +316,7 @@ export default function VideoPlayerRouter() {
           storage="player"
         >
           <MediaProvider>
-            {largeThumbnailUrl !== undefined && (
+            {largeThumbnailUrl !== null && (
               <Poster className="vds-poster" src={largeThumbnailUrl} />
             )}
           </MediaProvider>
