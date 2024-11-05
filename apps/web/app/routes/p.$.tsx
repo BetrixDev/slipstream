@@ -61,10 +61,6 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
         name: "og:type",
         content: "video",
       },
-      {
-        name: "twitter:card",
-        content: data.isPrivate ? "summary_large_image" : "player",
-      },
     ],
   );
 
@@ -74,12 +70,18 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
     tags.push({ name: "og:video", content: nativeSource.src });
     tags.push({ name: "og:secure_url", content: nativeSource.src });
 
+    if (!data.isPrivate) {
+      tags.push({ name: "twitter:card", content: "player" });
+    }
+
     if (nativeSource.width) {
       tags.push({ name: "og:video:width", content: nativeSource.width });
+      tags.push({ name: "twitter:player:width", content: nativeSource.width });
     }
 
     if (nativeSource.height) {
       tags.push({ name: "og:video:height", content: nativeSource.height });
+      tags.push({ name: "twitter:player:height", content: nativeSource.height });
     }
 
     if (nativeSource.type) {
@@ -88,6 +90,10 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   }
 
   if (data.largeThumbnailUrl) {
+    if (data.isPrivate) {
+      tags.push({ name: "twitter:card", content: "summary_large_image" });
+    }
+
     tags.push(
       ...[
         {
