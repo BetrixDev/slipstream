@@ -28,6 +28,10 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
       name: "og:url",
       content: `https://flowble.app/p/${videoId}`,
     },
+    {
+      title: data?.title ? `${data?.title} | Flowble` : "Watch on demand with Flowble",
+    },
+    { name: "og:site_name", content: "Flowble" },
   ];
 
   if (!data) {
@@ -44,10 +48,7 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
         name: "twitter:title",
         content: data.title,
       },
-      {
-        name: "og:image",
-        content: data.largeThumbnailUrl,
-      },
+      { name: "description", content: `Watch ${data.title} on Flowble!` },
       {
         name: "og:description",
         content: `Watch ${data.title} on Flowble!`,
@@ -61,19 +62,49 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
         content: "video",
       },
       {
-        name: "twitter:image",
-        content: data.largeThumbnailUrl,
-      },
-      {
-        name: "og:image",
-        content: data.largeThumbnailUrl,
-      },
-      {
         name: "twitter:card",
         content: data.isPrivate ? "summary_large_image" : "player",
       },
     ],
   );
+
+  const nativeSource = data.videoSources.find((v) => v.isNative);
+
+  if (nativeSource) {
+    tags.push({ name: "og:video", content: nativeSource.src });
+    tags.push({ name: "og:secure_url", content: nativeSource.src });
+
+    if (nativeSource.width) {
+      tags.push({ name: "og:video:width", content: nativeSource.width });
+    }
+
+    if (nativeSource.height) {
+      tags.push({ name: "og:video:height", content: nativeSource.height });
+    }
+
+    if (nativeSource.type) {
+      tags.push({ name: "og:video:type", content: nativeSource.type });
+    }
+  }
+
+  if (data.largeThumbnailUrl) {
+    tags.push(
+      ...[
+        {
+          name: "og:image",
+          content: data.largeThumbnailUrl,
+        },
+        {
+          name: "twitter:image",
+          content: data.largeThumbnailUrl,
+        },
+        {
+          name: "og:image",
+          content: data.largeThumbnailUrl,
+        },
+      ],
+    );
+  }
 
   return tags;
 };
@@ -132,42 +163,45 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const videoSources = await Promise.all(
     videoData.sources.map((source) => {
-      return new Promise<{ src: string; type: string; width?: number; height?: number }>(
-        async (resolve) => {
-          const downloadAuthorizeResponse = await axios<DownloadAuthorizationResponse>(
-            `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_download_authorization`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: authorizeResponse.data.authorizationToken,
-              },
-              data: {
-                bucketId: env.VIDEOS_BUCKET_ID,
-                fileNamePrefix: source.key,
-                validDurationInSeconds: 60 * 60 * 24,
-                b2ContentDisposition: "inline",
-                b2ContentType: source.type,
-              },
+      return new Promise<{
+        src: string;
+        type: string;
+        width?: number;
+        height?: number;
+        isNative: boolean;
+      }>(async (resolve) => {
+        const downloadAuthorizeResponse = await axios<DownloadAuthorizationResponse>(
+          `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/b2api/v3/b2_get_download_authorization`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: authorizeResponse.data.authorizationToken,
             },
-          );
+            data: {
+              bucketId: env.VIDEOS_BUCKET_ID,
+              fileNamePrefix: source.key,
+              validDurationInSeconds: 60 * 60 * 24,
+              b2ContentDisposition: "inline",
+              b2ContentType: source.type,
+            },
+          },
+        );
 
-          resolve({
-            src: `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/file/${authorizeResponse.data.apiInfo.storageApi.bucketName}/${source.key}?Authorization=${encodeURIComponent(downloadAuthorizeResponse.data.authorizationToken)}&b2ContentDisposition=inline&b2ContentType=${encodeURIComponent(source.type)}`,
-            type: source.type,
-            width: source.width,
-            height: source.height,
-          });
-        },
-      );
+        resolve({
+          src: `${authorizeResponse.data.apiInfo.storageApi.apiUrl}/file/${authorizeResponse.data.apiInfo.storageApi.bucketName}/${source.key}?Authorization=${encodeURIComponent(downloadAuthorizeResponse.data.authorizationToken)}&b2ContentDisposition=inline&b2ContentType=${encodeURIComponent(source.type)}`,
+          type: source.type,
+          width: source.width,
+          height: source.height,
+          isNative: source.isNative,
+        });
+      });
     }),
   );
 
   const { userId } = await getAuth(args);
 
-  if (videoData.isPrivate) {
-    if (userId === null || videoData.authorId !== userId) {
-      return redirect("/");
-    }
+  if (videoData.isPrivate && (userId === null || videoData.authorId !== userId)) {
+    return redirect("/");
   }
 
   const ipAddress = getClientIPAddress(args.request);
