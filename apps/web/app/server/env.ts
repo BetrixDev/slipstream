@@ -31,7 +31,7 @@ const webEnvSchema = z.object({
   VIDEOS_BUCKET_ID: z.string(),
   THUMBNAIL_BASE_URL: z.string(),
   REDIS_URL: z.string(),
-  CRON_SECRET: z.string(),
+  CRON_SECRET: z.string().optional(),
   ADMIN_SECRET: z.string(),
   PREMIUM_PRODUCT_ID: z.string(),
   PRO_PRODUCT_ID: z.string(),
