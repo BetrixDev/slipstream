@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://www.flowble.app/</loc>
+        <lastmod>2024-11-05T04:23:17+01:00</lastmod>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://www.flowble.app/pricing</loc>
+        <lastmod>2024-11-05T04:23:17+01:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://www.flowble.app/sign-in</loc>
+        <lastmod>2024-11-05T04:23:17+01:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://www.flowble.app/sign-up</loc>
+        <lastmod>2024-11-05T04:23:17+01:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+</urlset>
