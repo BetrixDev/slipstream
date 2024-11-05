@@ -177,6 +177,11 @@ export async function action(args: ActionFunctionArgs) {
       return json({ success: false, message: "Failed to process video" }, { status: 500 });
     }
 
+    logger.info("Uploaded new video", {
+      videoId: videoData.id,
+      fileSizeBytes: videoData.fileSizeBytes,
+    });
+
     return json({
       success: true,
       video: {
