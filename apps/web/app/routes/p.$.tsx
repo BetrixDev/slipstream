@@ -69,6 +69,7 @@ export const meta: MetaFunction<typeof loader> = ({ params, data }) => {
   if (nativeSource) {
     tags.push({ name: "og:video", content: nativeSource.src });
     tags.push({ name: "og:secure_url", content: nativeSource.src });
+    tags.push({ name: "twitter:player", content: nativeSource.src });
 
     if (!data.isPrivate) {
       tags.push({ name: "twitter:card", content: "player" });
