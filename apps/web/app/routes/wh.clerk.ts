@@ -5,6 +5,9 @@ import { db, users, eq, sql } from "db";
 import { json } from "@vercel/remix";
 import { env } from "~/server/env";
 import { logger } from "~/server/logger.server";
+import Stripe from "stripe";
+
+const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
 export async function action(args: ActionFunctionArgs) {
   const headerPayload = args.request.headers;
@@ -51,18 +54,30 @@ export async function action(args: ActionFunctionArgs) {
       (e) => e.id === event.data.primary_email_address_id,
     )!;
 
+    const stripeCustomer = await stripe.customers.create({
+      email: userPrimaryEmail.email_address,
+      name: event.data.username ?? undefined,
+      phone: event.data.phone_numbers.find((p) => p.id === event.data.primary_phone_number_id)
+        ?.phone_number,
+    });
+
     await db.insert(users).values({
       id: event.data.id,
       email: userPrimaryEmail.email_address,
       createdAt: sql`to_timestamp(${event.data.created_at} / 1000.0)`,
+      stripeCustomerId: stripeCustomer.id,
     });
   } else if (event.type === "user.deleted") {
+    // TODO: add videos to deletion queue for user that is deleted
+
     whLogger.info("User deleted", {
       id: event.data.id,
     });
 
     if (event.data.id && event.data.deleted) {
-      await db.delete(users).where(eq(users.id, event.data.id));
+      const [deletedUser] = await db.delete(users).where(eq(users.id, event.data.id)).returning();
+
+      await stripe.customers.del(deletedUser.stripeCustomerId);
     }
   } else if (event.type === "user.updated") {
     whLogger.info("User updated", {
@@ -73,12 +88,15 @@ export async function action(args: ActionFunctionArgs) {
       (e) => e.id === event.data.primary_email_address_id,
     )!;
 
-    await db
+    const [updatedUser] = await db
       .update(users)
       .set({
         email: userPrimaryEmail.email_address,
       })
-      .where(eq(users.id, event.data.id));
+      .where(eq(users.id, event.data.id))
+      .returning();
+
+    await stripe.customers.update(updatedUser.stripeCustomerId, { email: updatedUser.email });
   }
 
   return json({ success: true }, { status: 200 });
