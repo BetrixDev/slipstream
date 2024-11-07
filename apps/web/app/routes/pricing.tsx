@@ -1,8 +1,6 @@
-import { SignUpButton } from "@clerk/remix";
-import { getAuth } from "@clerk/remix/ssr.server";
-import { LoaderFunctionArgs, MetaFunction, HeadersFunction } from "@vercel/remix";
-import { json } from "@vercel/remix";
-import { Link, useLoaderData } from "@remix-run/react";
+import { SignUpButton, useUser } from "@clerk/remix";
+import { MetaFunction, HeadersFunction } from "@vercel/remix";
+import { Link } from "@remix-run/react";
 import { Check, Info } from "lucide-react";
 import React, { useState } from "react";
 import TopNav from "~/components/TopNav";
@@ -18,7 +16,6 @@ import {
 import { HeroHighlight } from "~/components/ui/hero-highlight";
 import { Tabs } from "~/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { db } from "db";
 import { Footer } from "~/components/Footer";
 
 export const headers: HeadersFunction = () => ({
@@ -75,24 +72,6 @@ export const meta: MetaFunction = () => {
     },
   ];
 };
-
-export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args);
-
-  if (!userId) {
-    return json({ email: null });
-  }
-
-  const userData = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
-  });
-
-  if (!userData) {
-    return json({ email: null });
-  }
-
-  return json({ email: userData.email });
-}
 
 const Pricing: React.FC = () => {
   const tiers: {
@@ -175,9 +154,10 @@ const Pricing: React.FC = () => {
     },
   ];
 
-  const loaderData = useLoaderData<typeof loader>();
-
   const [billingOption, setBillingOption] = useState("monthly");
+
+  const user = useUser();
+  const userPrimaryEmail = user.user?.primaryEmailAddress?.emailAddress;
 
   const origin = typeof window === "object" ? window.origin : "";
 
@@ -270,11 +250,11 @@ const Pricing: React.FC = () => {
                       <Link
                         className="w-full"
                         to={
-                          loaderData.email === null
+                          userPrimaryEmail === undefined
                             ? "/sign-up"
                             : billingOption === "monthly"
-                              ? `${tier.monthlyPaymentLink}?prefilled_email=${loaderData.email}`
-                              : `${tier.annualPaymentLink}?prefilled_email=${loaderData.email}`
+                              ? `${tier.monthlyPaymentLink}?prefilled_email=${userPrimaryEmail}`
+                              : `${tier.annualPaymentLink}?prefilled_email=${userPrimaryEmail}`
                         }
                       >
                         <Button className="w-full">
