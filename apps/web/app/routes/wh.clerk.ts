@@ -98,7 +98,6 @@ export async function action(args: ActionFunctionArgs) {
 
     await stripe.customers.update(updatedUser.stripeCustomerId, {
       email: updatedUser.email,
-      name: event.data.username ?? undefined,
     });
   }
 
