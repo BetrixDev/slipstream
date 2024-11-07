@@ -9,7 +9,7 @@ import { HeroHighlight } from "~/components/ui/hero-highlight";
 import { Footer } from "~/components/Footer";
 
 export const headers: HeadersFunction = () => ({
-  "Cache-Control": "max-age=0, s-maxage=86400",
+  "Cache-Control": "public, max-age=86400, s-maxage=86400",
 });
 
 export const meta: MetaFunction = () => {
