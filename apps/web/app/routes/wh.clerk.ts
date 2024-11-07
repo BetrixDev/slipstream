@@ -96,7 +96,10 @@ export async function action(args: ActionFunctionArgs) {
       .where(eq(users.id, event.data.id))
       .returning();
 
-    await stripe.customers.update(updatedUser.stripeCustomerId, { email: updatedUser.email });
+    await stripe.customers.update(updatedUser.stripeCustomerId, {
+      email: updatedUser.email,
+      name: event.data.username ?? undefined,
+    });
   }
 
   return json({ success: true }, { status: 200 });
