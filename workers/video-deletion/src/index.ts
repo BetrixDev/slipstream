@@ -1,15 +1,12 @@
 import { Worker } from "bullmq";
 import { env } from "./env.js";
 import { logger } from "./log.js";
-import { pathToFileURL } from "url";
-import path from "path";
 import { Redis } from "ioredis";
-
-const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
+import { processor } from "processor.js";
 
 export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: string }>(
   "{video-deletion}",
-  processorUrl,
+  processor,
   {
     connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
     concurrency: 5,

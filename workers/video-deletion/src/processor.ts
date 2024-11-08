@@ -22,7 +22,7 @@ const s3ThumbsClient = new S3Client({
   },
 });
 
-export default async (job: Job<{ videoId: string }>) => {
+export const processor = async (job: Job<{ videoId: string }>) => {
   const jobStart = Date.now();
 
   const jobLogger = logger.child({

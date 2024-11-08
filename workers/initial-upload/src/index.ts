@@ -1,21 +1,22 @@
 import { Worker } from "bullmq";
 import { logger } from "./log.js";
-import path from "path";
 import { env } from "./env.js";
-import { pathToFileURL } from "url";
 import { Redis } from "ioredis";
-import { createServer } from "http";
+import { processor } from "processor.js";
 
-createServer((_, res) => {
-  res.writeHead(200);
-  res.end();
-}).listen(env.PORT, () => {
-  logger.info(`Thumbnail worker health check listening on port ${env.PORT}`);
+const server = Bun.serve({
+  port: env.PORT,
+  static: {
+    "/": new Response(undefined, { status: 200 }),
+  },
+  fetch() {
+    return new Response("404!");
+  },
 });
 
-const processorUrl = pathToFileURL(path.join(import.meta.dirname, "processor.js"));
+logger.info(`Thumbnail worker health check listening on ${server.url}`);
 
-export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", processorUrl, {
+export const thumbnailWorker = new Worker<{ videoId: string }>("{thumbnail}", processor, {
   connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
   concurrency: 3,
   removeOnComplete: { count: 0 },

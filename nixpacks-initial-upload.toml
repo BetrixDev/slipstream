@@ -9,14 +9,14 @@ NPM_CONFIG_PRODUCTION = "false"
 
 [phases.build]
 dependsOn = ['install']
-cmds = ['pnpm run build --filter=thumbnail...']
+cmds = ['pnpm run build --filter=initial-upload...']
 cacheDirectories = ['node_modules/.cache']
 
 [phases.install]
 dependsOn = ['setup']
 cmds = [
     'npm install -g corepack@0.24.1 && corepack enable',
-    'pnpm install --filter=thumbnail...',
+    'pnpm install --filter=initial-upload...',
 ]
 cacheDirectories = ['/root/.local/share/pnpm/store/v3']
 paths = ['/app/node_modules/.bin']
@@ -28,4 +28,4 @@ nixOverlays = []
 aptPkgs = []
 
 [start]
-cmd = 'bun run workers/thumbnail/build/index.js'
+cmd = 'bun run workers/initial-upload/build/index.js'

@@ -33,7 +33,7 @@ type VideoSource = {
 
 const finished = promisify(stream.finished);
 
-export default async (job: Job<{ videoId: string; nativeFileKey: string }>) => {
+export const processor = async (job: Job<{ videoId: string; nativeFileKey: string }>) => {
   const jobStart = Date.now();
 
   const jobLogger = logger.child({ jobId: job.id, jobQueue: "{transcoding}", jobData: job.data });
