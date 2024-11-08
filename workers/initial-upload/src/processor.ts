@@ -125,12 +125,6 @@ export const processor = async (job: Job<{ videoId: string }>) => {
   await axios<Stream>(downloadUrl, {
     method: "GET",
     responseType: "stream",
-    onDownloadProgress: (e) => {
-      const percentage = e.total ? Math.floor((e.loaded / e.total) * 100) : null;
-      jobLogger.info(
-        `Downloaded ${percentage}% of file, estimated ${e.estimated} seconds remain going at ${e.rate} bytes/s`,
-      );
-    },
   }).then((res) => {
     res.data.pipe(writer);
     return finished(writer);
@@ -141,7 +135,7 @@ export const processor = async (job: Job<{ videoId: string }>) => {
     timeInSeconds: downloadTimeInSeconds,
   });
 
-  await execa`ffmpeg -i ${nativeFilePath} -vf fps=0.25 ${nativeFilePath}_%04d.jpg`;
+  await execa`ffmpeg -i ${nativeFilePath} -vf fps=0.25 -vframes 4 ${nativeFilePath}_%04d.jpg`;
 
   jobLogger.debug("Frames glob", { glob: "*_*.jpg", cwd: workingTempDir });
 
@@ -278,13 +272,6 @@ export const processor = async (job: Job<{ videoId: string }>) => {
     try {
       const uploadStart = Date.now();
       const uploadFileResponse = await axios(uploadUrlResponse.uploadUrl, {
-        onUploadProgress: (e) => {
-          const percentDone = (e.progress ?? 0) * 100;
-          jobLogger.info(`Uploading file ${percentDone}% done of ${thumbnailSize} bytes`, {
-            thumbnailName: thumb.name,
-            percentDone,
-          });
-        },
         method: "POST",
         data: thumb.buffer,
         headers: {

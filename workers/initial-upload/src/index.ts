@@ -7,7 +7,7 @@ import { processor } from "processor.js";
 const server = Bun.serve({
   port: env.PORT,
   static: {
-    "/": new Response(undefined, { status: 200 }),
+    "/": new Response("Initial upload service is running", { status: 200 }),
   },
   fetch() {
     return new Response("404!");
