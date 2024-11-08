@@ -283,22 +283,6 @@ importers:
         specifier: ^5.1.6
         version: 5.4.5
 
-  packages/flowble-util:
-    dependencies:
-      rimraf:
-        specifier: ^6.0.1
-        version: 6.0.1
-    devDependencies:
-      '@types/node':
-        specifier: ^22.6.2
-        version: 22.6.2
-      esbuild:
-        specifier: ^0.24.0
-        version: 0.24.0
-      typescript:
-        specifier: ^5.1.6
-        version: 5.4.5
-
   packages/logger:
     dependencies:
       '@axiomhq/winston':
@@ -335,9 +319,6 @@ importers:
       execa:
         specifier: ^9.4.0
         version: 9.4.1
-      flowble-util:
-        specifier: workspace:*
-        version: link:../../packages/flowble-util
       glob:
         specifier: ^11.0.0
         version: 11.0.0
@@ -387,9 +368,6 @@ importers:
       execa:
         specifier: ^9.4.0
         version: 9.4.1
-      flowble-util:
-        specifier: workspace:*
-        version: link:../../packages/flowble-util
       ioredis:
         specifier: ^5.4.1
         version: 5.4.1
