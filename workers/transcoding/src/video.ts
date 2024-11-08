@@ -1,4 +1,4 @@
-import { execa } from "execa";
+import { $ } from "bun";
 import { LOWEST_BITRATE_THRESHOLD } from "cms";
 import { logger } from "./log.js";
 
@@ -40,9 +40,8 @@ export function generateSmallerResolutions(nativeResolution: Resolution): Resolu
 
 export async function getVideoFileBitrate(path: string) {
   try {
-    const { all: transcodedFileBitRateString } = await execa({
-      all: true,
-    })`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`;
+    const transcodedFileBitRateString =
+      await $`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`.text();
 
     const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
 

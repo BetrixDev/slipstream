@@ -17,12 +17,12 @@ import axios, { AxiosError } from "axios";
 import type { Stream } from "stream";
 import * as stream from "stream";
 import { promisify } from "util";
-import { execa } from "execa";
 import { db, eq, videos } from "db";
 import { generateSmallerResolutions, getVideoFileBitrate, shouldKeepTranscoding } from "./video.js";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { rimraf } from "rimraf";
+import { $ } from "bun";
 
 type VideoSource = {
   key: string;
@@ -144,15 +144,12 @@ export const processor = async (job: Job<{ videoId: string; nativeFileKey: strin
     timeInSeconds,
   });
 
-  const { all: nativeFileMimeType } = await execa({
-    all: true,
-  })`file -b --mime-type ${nativeFilePath}`;
+  const nativeFileMimeType = await $`file -b --mime-type ${nativeFilePath}`.text();
 
   jobLogger.info(`Native file mime type is ${nativeFileMimeType}`, { nativeFileMimeType });
 
-  const { all: nativeFileResolution } = await execa({
-    all: true,
-  })`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${nativeFilePath}`;
+  const nativeFileResolution =
+    await $`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${nativeFilePath}`.text();
 
   const [nativeFileWidthString, nativeFileHeightString] = nativeFileResolution.split("x");
 
@@ -184,9 +181,8 @@ export const processor = async (job: Job<{ videoId: string; nativeFileKey: strin
     height: nativeFileHeight,
   });
 
-  const { all: nativeFileFrameRateFraction } = await execa({
-    all: true,
-  })`ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 ${nativeFilePath}`;
+  const nativeFileFrameRateFraction =
+    await $`ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 ${nativeFilePath}`.text();
 
   const [top, bottom] = nativeFileFrameRateFraction.split("/");
 
@@ -219,7 +215,7 @@ export const processor = async (job: Job<{ videoId: string; nativeFileKey: strin
 
     const command = `ffmpeg -i ${nativeFilePath} -c:v libx264 -pix_fmt yuv420p -crf ${crf} -preset ${ffmpegPresetOption} -tune zerolatency -c:a aac -vf scale=${resolution.width}:${resolution.height} ${outPath}`;
 
-    await execa`${command}`;
+    await $`${command}`;
 
     const elapsed = (Date.now() - start) / 1000;
     jobLogger.debug(`Finished generating video source for ${resolution.height}p in ${elapsed}s`, {

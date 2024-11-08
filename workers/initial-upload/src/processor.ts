@@ -1,4 +1,4 @@
-import { Job, Worker } from "bullmq";
+import { Job } from "bullmq";
 import { logger } from "./log.js";
 import { db, eq, videos } from "db";
 import path from "path";
