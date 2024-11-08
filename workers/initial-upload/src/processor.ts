@@ -20,9 +20,20 @@ import * as stream from "stream";
 import { execa } from "execa";
 import { glob } from "glob";
 import sharp from "sharp";
-import { createTempDirectory } from "flowble-util/fs";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { rimraf } from "rimraf";
 
 const finished = promisify(stream.finished);
+
+async function createTempDirectory() {
+  const path = await mkdtemp(tmpdir());
+
+  return {
+    path,
+    [Symbol.asyncDispose]: () => rimraf(path, { maxRetries: 10 }) as unknown as Promise<void>,
+  };
+}
 
 export const processor = async (job: Job<{ videoId: string }>) => {
   const jobStart = Date.now();

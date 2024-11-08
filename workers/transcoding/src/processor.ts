@@ -20,7 +20,9 @@ import { promisify } from "util";
 import { execa } from "execa";
 import { db, eq, videos } from "db";
 import { generateSmallerResolutions, getVideoFileBitrate, shouldKeepTranscoding } from "./video.js";
-import { createTempDirectory } from "flowble-util/fs";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { rimraf } from "rimraf";
 
 type VideoSource = {
   key: string;
@@ -32,6 +34,15 @@ type VideoSource = {
 };
 
 const finished = promisify(stream.finished);
+
+async function createTempDirectory() {
+  const path = await mkdtemp(tmpdir());
+
+  return {
+    path,
+    [Symbol.asyncDispose]: () => rimraf(path, { maxRetries: 10 }) as unknown as Promise<void>,
+  };
+}
 
 export const processor = async (job: Job<{ videoId: string; nativeFileKey: string }>) => {
   const jobStart = Date.now();

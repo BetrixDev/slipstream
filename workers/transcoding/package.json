@@ -14,7 +14,6 @@
     "cms": "workspace:*",
     "db": "workspace:*",
     "execa": "^9.4.0",
-    "flowble-util": "workspace:*",
     "ioredis": "^5.4.1",
     "logger": "workspace:*",
     "rimraf": "^6.0.1",
