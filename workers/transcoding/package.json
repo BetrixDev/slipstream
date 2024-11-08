@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --watch src/ --ext js,ts --ignore build/ --exec \"pnpm build && node --env-file=.env build/index.js\"",
+    "dev": "nodemon --watch src/ --ext js,ts --ignore build/ --exec \"pnpm build && bun run build/index.js\"",
     "build": "esbuild src/**/*.ts --outdir=build --platform=node --target=esnext --sourcemap",
     "start": "node build/index.js",
     "typecheck": "tsc --noEmit"

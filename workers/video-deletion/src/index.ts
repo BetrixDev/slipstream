@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { env } from "./env.js";
 import { logger } from "./log.js";
 import { Redis } from "ioredis";
-import { processor } from "processor.js";
+import { processor } from "./processor.js";
 
 export const transcoderWorker = new Worker<{ videoId: string; nativeFileKey: string }>(
   "{video-deletion}",

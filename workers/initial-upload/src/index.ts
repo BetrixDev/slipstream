@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { logger } from "./log.js";
 import { env } from "./env.js";
 import { Redis } from "ioredis";
-import { processor } from "processor.js";
+import { processor } from "./processor.js";
 
 const server = Bun.serve({
   port: env.PORT,

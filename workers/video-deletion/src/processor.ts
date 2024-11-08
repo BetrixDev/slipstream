@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { db, eq, sql, users, videos } from "db";
-import { logger } from "log.js";
+import { logger } from "./log.js";
 import { env } from "./env.js";
 import { DeleteObjectCommand, ListObjectVersionsCommand, S3Client } from "@aws-sdk/client-s3";
 
