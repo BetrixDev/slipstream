@@ -17,12 +17,12 @@ import {
 import { env } from "./env.js";
 import { promisify } from "util";
 import * as stream from "stream";
-import { execa } from "execa";
 import { glob } from "glob";
 import sharp from "sharp";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { rimraf } from "rimraf";
+import { $ } from "bun";
 
 const finished = promisify(stream.finished);
 
@@ -135,7 +135,7 @@ export const processor = async (job: Job<{ videoId: string }>) => {
     timeInSeconds: downloadTimeInSeconds,
   });
 
-  await execa`ffmpeg -i ${nativeFilePath} -vf fps=0.25 -vframes 4 ${nativeFilePath}_%04d.jpg`;
+  await $`ffmpeg -i ${nativeFilePath} -vf fps=0.25 -vframes 4 ${nativeFilePath}_%04d.jpg`;
 
   jobLogger.debug("Frames glob", { glob: "*_*.jpg", cwd: workingTempDir });
 
@@ -313,9 +313,8 @@ export const processor = async (job: Job<{ videoId: string }>) => {
   try {
     jobLogger.debug("Getting video length");
 
-    const { all } = await execa({
-      all: true,
-    })`ffprobe -i ${nativeFilePath} -show_entries format=duration -v quiet -of csv=p=0`;
+    const all =
+      await $`ffprobe -i ${nativeFilePath} -show_entries format=duration -v quiet -of csv=p=0`.text();
 
     videoDurationSeconds = Math.round(Number(all.trim()));
   } catch (e) {

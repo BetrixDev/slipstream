@@ -18,7 +18,6 @@
     "bullmq": "^5.21.2",
     "cms": "workspace:*",
     "db": "workspace:*",
-    "execa": "^9.4.0",
     "glob": "^11.0.0",
     "ioredis": "^5.4.1",
     "logger": "workspace:*",

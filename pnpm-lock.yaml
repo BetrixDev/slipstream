@@ -316,9 +316,6 @@ importers:
       db:
         specifier: workspace:*
         version: link:../../packages/db
-      execa:
-        specifier: ^9.4.0
-        version: 9.4.1
       glob:
         specifier: ^11.0.0
         version: 11.0.0
