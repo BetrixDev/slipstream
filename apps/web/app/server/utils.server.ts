@@ -1,4 +1,3 @@
-import { db } from "db";
 import { env } from "~/server/env";
 import { Redis } from "ioredis";
 
@@ -7,7 +6,7 @@ const USER_VIDEO_DAILY_LIMIT: Record<string, number> = {
   pro: 12,
 };
 
-const redis = new Redis(env.REDIS_URL);
+const redis = new Redis(env.REDIS_URL, { tls: {} });
 
 export async function incrementUserUploadRateLimit(accountTier: string, userId: string) {
   if (accountTier === "premium" || accountTier === "ultimate") {
