@@ -37,4 +37,4 @@ jobs:
         run: pnpm run workflow:migrate-db
 
       - name: Deploy Trigger.dev
-        run: npx trigger.dev@latest deploy
+        run: cd apps/trigger && npx trigger.dev@latest deploy
