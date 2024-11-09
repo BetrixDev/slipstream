@@ -6,6 +6,8 @@ import { db, eq, users } from "db";
 import { PLAN_STORAGE_SIZES } from "cms";
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
+import { tasks } from "@trigger.dev/sdk/v3";
+import { videoDeletionTask } from "trigger";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
@@ -140,7 +142,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const difference = Math.abs(currentAmountOfStorage - futureAmountOfStorage);
     let videoSizeDeleted = 0;
 
-    const jobs: { name: string; data: { videoId: string } }[] = [];
+    const jobs: { payload: { videoId: string } }[] = [];
 
     for (const video of userData.videos) {
       if (videoSizeDeleted >= difference) {
@@ -149,10 +151,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
       videoSizeDeleted += video.fileSizeBytes;
 
-      jobs.push({ name: `video-deletion-${video.id}`, data: { videoId: video.id } });
+      jobs.push({ payload: { videoId: video.id } });
     }
 
-    await videoDeletionQueue.addBulk(jobs);
+    await tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs);
+
     return json({ success: true, message: "Event processing finished" }, { status: 200 });
   }
 

@@ -1,14 +1,10 @@
 import { json, type LoaderFunctionArgs } from "@vercel/remix";
-import { Queue } from "bullmq";
 import { db } from "db";
 import { env } from "~/server/env";
 import { nanoid } from "nanoid";
 import { logger } from "~/server/logger.server";
-import { Redis } from "ioredis";
-
-export const videoDeletionQueue = new Queue("{video-deletion}", {
-  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
-});
+import { tasks } from "@trigger.dev/sdk/v3";
+import { videoDeletionTask } from "trigger";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const token = request.headers.get("Authorization")?.split(" ")?.at(1);
@@ -37,12 +33,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   taskLogger.debug(`Found ${videosToDelete.length} video(s) to delete`);
 
-  const jobs = videosToDelete.map(({ id }) => ({
-    name: `video-deletion-${id}`,
-    data: { videoId: id },
-  }));
+  const jobs = videosToDelete.map(({ id }) => ({ payload: { videoId: id } }));
 
-  await videoDeletionQueue.addBulk(jobs);
+  await tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs);
 
   const taskTime = ((Date.now() - taskStart) / 1000).toFixed(2);
 
