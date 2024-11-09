@@ -19,7 +19,7 @@ export const videoDeletionTask = schemaTask({
   schema: z.object({
     videoId: z.string(),
   }),
-  run: async (payload, { ctx }) => {
+  run: async (payload) => {
     const env = envSchema.parse(process.env);
 
     const s3Client = new S3Client({
