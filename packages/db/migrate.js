@@ -11,3 +11,5 @@ await migrate(db, {
 });
 
 console.log("Database migrated");
+
+process.exit(0);
