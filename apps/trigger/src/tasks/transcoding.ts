@@ -24,7 +24,7 @@ type VideoSource = {
 export const transcodingTask = schemaTask({
   id: "transcoding",
   machine: {
-    preset: "medium-2x",
+    preset: "small-2x",
   },
   retry: {
     maxAttempts: 3,
