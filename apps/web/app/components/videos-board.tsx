@@ -27,7 +27,7 @@ export type VideoBoardProps = {
     isProcessing: boolean;
     isPrivate: boolean;
     createdAt: string;
-    deletionDate?: string;
+    deletionDate: string | null;
   }[];
 };
 
@@ -55,7 +55,7 @@ type UploadedVideoProps = {
   fileSizeBytes: number;
   smallThumbnailUrl?: string;
   videoLengthSeconds?: number | null;
-  deletionDate?: string;
+  deletionDate: string | null;
   isPrivate: boolean;
   createdAt: string;
 };
@@ -97,9 +97,7 @@ function UploadedVideo(video: UploadedVideoProps) {
         <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
-        {video.deletionDate !== undefined && (
-          <PendingDeletionChip deletionDate={video.deletionDate} />
-        )}
+        {video.deletionDate !== null && <PendingDeletionChip deletionDate={video.deletionDate} />}
         {!isNaN(parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
             {formatSecondsToTimestamp(video.videoLengthSeconds ?? 0)}s

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const initialUploadEnvSchema = z.object({
+export const envSchema = z.object({
   S3_ENDPOINT: z.string(),
   S3_REGION: z.string(),
   S3_ROOT_ACCESS_KEY: z.string(),

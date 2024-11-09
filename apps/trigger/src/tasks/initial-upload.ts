@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
-import { initialUploadEnvSchema } from "./utils/env.js";
+import { envSchema } from "../utils/env.js";
 import os from "node:os";
 import { db, eq, sql, videos } from "db";
 import path from "node:path";
@@ -27,10 +27,10 @@ export const initialUploadTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload, { ctx }) => {
-    const env = initialUploadEnvSchema.parse(process.env);
+    const env = envSchema.parse(process.env);
 
     const s3Client = new S3Client({
-      region: "auto",
+      region: env.S3_REGION,
       endpoint: env.S3_ENDPOINT,
       credentials: {
         accessKeyId: env.S3_ROOT_ACCESS_KEY,
@@ -80,7 +80,7 @@ export const initialUploadTask = schemaTask({
 
     const downloadFinish = Date.now();
     const downloadTime = (downloadFinish - downloadStart) / 1000;
-    const mpbs = ((videoFsStats.size * 8) / (1024 * 1024) / downloadTime).toFixed(2);
+    const mpbs = (videoFsStats.size / 125000 / downloadTime).toFixed(2);
     logger.info(`Finished video download ${mpbs}mpbs`, { mpbs });
 
     logger.info("Generating thumbnail from first frame of video");

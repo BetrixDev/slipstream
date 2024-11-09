@@ -6,23 +6,13 @@ import { z } from "zod";
 import { db, eq, sql, users, videos } from "db";
 import { env } from "~/server/env";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "cms";
-import { Queue } from "bullmq";
-import { Redis } from "ioredis";
 import { logger } from "~/server/logger.server";
-import type { initialUploadTask } from "trigger";
+import type { initialUploadTask, transcodingTask } from "trigger";
 import { tasks } from "@trigger.dev/sdk/v3";
 
 const schema = z.object({
   key: z.string(),
   title: z.string(),
-});
-
-export const transcodingQueue = new Queue("{transcoding}", {
-  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
-});
-
-export const thumbnailQueue = new Queue("{thumbnail}", {
-  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
 });
 
 const s3RootClient = new S3Client({
@@ -124,7 +114,7 @@ export async function action(args: ActionFunctionArgs) {
         deletionDate:
           userData.accountTier === "free"
             ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
-            : undefined,
+            : null,
         sources: [
           {
             isNative: true,
@@ -136,21 +126,10 @@ export async function action(args: ActionFunctionArgs) {
       .returning();
 
     try {
-      await tasks.trigger<typeof initialUploadTask>("initial-upload", { videoId });
-
-      // await Promise.all([
-      //   transcodingQueue.add(
-      //     `transcoding-${videoId}`,
-      //     { videoId, nativeFileKey: data.key },
-      //     {
-      //       attempts: 3,
-      //       backoff: {
-      //         type: "fixed",
-      //         delay: 10000,
-      //       },
-      //     },
-      //   ),
-      // ]);
+      await Promise.all([
+        tasks.trigger<typeof initialUploadTask>("initial-upload", { videoId }, { tags: [userId] }),
+        tasks.trigger<typeof transcodingTask>("transcoding", { videoId }, { tags: [userId] }),
+      ]);
     } catch (e) {
       console.error(e);
 
