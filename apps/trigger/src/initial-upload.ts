@@ -13,6 +13,7 @@ import sharp from "sharp";
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
+  maxDuration: 3 * 60,
   retry: {
     maxAttempts: 5,
   },
@@ -22,7 +23,7 @@ export const initialUploadTask = schemaTask({
   schema: z.object({
     videoId: z.string(),
   }),
-  run: async (payload, { ctx, signal }) => {
+  run: async (payload, { ctx }) => {
     const env = initialUploadEnvSchema.parse(process.env);
 
     const s3Client = new S3Client({
@@ -154,6 +155,10 @@ export const initialUploadTask = schemaTask({
       })
       .returning();
 
-    return { success: true, video: updatedVideo };
+    return {
+      success: true,
+      videoLengthSeconds: videoDurationSeconds,
+      smallThumbnailUrl: `${env.THUMBNAIL_BASE_URL}/${updatedVideo.smallThumbnailKey}`,
+    };
   },
 });
