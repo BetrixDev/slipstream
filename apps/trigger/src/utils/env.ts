@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const thumbnailWorkerSchema = z.object({
+export const initialUploadEnvSchema = z.object({
   S3_ENDPOINT: z.string(),
   S3_REGION: z.string(),
   S3_ROOT_ACCESS_KEY: z.string(),
@@ -9,5 +9,3 @@ const thumbnailWorkerSchema = z.object({
   THUMBS_BUCKET_NAME: z.string(),
   DATABASE_URL: z.string(),
 });
-
-export const env = thumbnailWorkerSchema.parse(process.env);

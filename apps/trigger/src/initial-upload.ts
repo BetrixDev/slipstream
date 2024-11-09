@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
-import { env } from "./utils/env.js";
+import { initialUploadEnvSchema } from "./utils/env.js";
 import os from "node:os";
 import { db, sql, videos } from "db";
 import path from "node:path";
@@ -10,15 +10,6 @@ import { createWriteStream } from "node:fs";
 import { Readable } from "node:stream";
 import { execa } from "execa";
 import sharp from "sharp";
-
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: env.S3_ENDPOINT,
-  credentials: {
-    accessKeyId: env.S3_ROOT_ACCESS_KEY,
-    secretAccessKey: env.S3_ROOT_SECRET_KEY,
-  },
-});
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
@@ -32,6 +23,17 @@ export const initialUploadTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload, { ctx, signal }) => {
+    const env = initialUploadEnvSchema.parse(process.env);
+
+    const s3Client = new S3Client({
+      region: "auto",
+      endpoint: env.S3_ENDPOINT,
+      credentials: {
+        accessKeyId: env.S3_ROOT_ACCESS_KEY,
+        secretAccessKey: env.S3_ROOT_SECRET_KEY,
+      },
+    });
+
     const videoData = await db.query.videos.findFirst({
       where: (table, { eq }) => eq(table.id, payload.videoId),
     });

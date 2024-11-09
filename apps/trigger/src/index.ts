@@ -1,1 +1,1 @@
-export * from "./initial-upload";
+export * from "./initial-upload.js";
