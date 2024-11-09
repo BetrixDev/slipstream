@@ -9,7 +9,8 @@ import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SI
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 import { logger } from "~/server/logger.server";
-import { initialUploadTask } from "trigger";
+import type { initialUploadTask } from "trigger";
+import { tasks } from "@trigger.dev/sdk/v3";
 
 const schema = z.object({
   key: z.string(),
@@ -135,7 +136,7 @@ export async function action(args: ActionFunctionArgs) {
       .returning();
 
     try {
-      await initialUploadTask.trigger({ videoId });
+      await tasks.trigger<typeof initialUploadTask>("initial-upload", { videoId });
 
       // await Promise.all([
       //   transcodingQueue.add(
