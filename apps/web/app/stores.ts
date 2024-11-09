@@ -36,6 +36,7 @@ export const useUploadingVideosStore = create<UploadingVideosState & UploadingVi
             uploadProgress: 0,
             videoSizeBytes: video.file.size,
             id: nanoid(10),
+            deletionDate: null,
           },
           ...state.uploadingVideos,
         ],
