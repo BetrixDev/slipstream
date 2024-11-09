@@ -21,7 +21,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ["bullmq"],
+      external: ["bullmq", "sharp"],
     },
   },
 });
