@@ -3,7 +3,7 @@ import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
 import { initialUploadEnvSchema } from "./utils/env.js";
 import os from "node:os";
-import { db, sql, videos } from "db";
+import { db, eq, sql, videos } from "db";
 import path from "node:path";
 import { mkdir, stat } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
@@ -91,6 +91,7 @@ export const initialUploadTask = schemaTask({
       resolveWithObject: true,
     });
 
+    // TODO: this doesn't work right now
     let totalBrightness = 0;
     for (let i = 0; i < data.length; i++) {
       totalBrightness += data[i];
@@ -156,6 +157,7 @@ export const initialUploadTask = schemaTask({
         videoLengthSeconds: videoDurationSeconds,
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
+      .where(eq(videos.id, videoData.id))
       .returning();
 
     return {
