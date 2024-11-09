@@ -75,7 +75,8 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8",
-    "zustand": "5.0.1"
+    "zustand": "5.0.1",
+    "@flowble/trigger": "workspace:*"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.12.0",

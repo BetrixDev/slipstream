@@ -9,6 +9,7 @@ import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SI
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 import { logger } from "~/server/logger.server";
+import { initialUploadTask } from "@flowble/trigger";
 
 const schema = z.object({
   key: z.string(),
@@ -134,23 +135,12 @@ export async function action(args: ActionFunctionArgs) {
       .returning();
 
     try {
+      await initialUploadTask.trigger({ videoId });
+
       await Promise.all([
         transcodingQueue.add(
           `transcoding-${videoId}`,
           { videoId, nativeFileKey: data.key },
-          {
-            attempts: 3,
-            backoff: {
-              type: "fixed",
-              delay: 10000,
-            },
-          },
-        ),
-        thumbnailQueue.add(
-          `thumbnail-${videoId}`,
-          {
-            videoId,
-          },
           {
             attempts: 3,
             backoff: {

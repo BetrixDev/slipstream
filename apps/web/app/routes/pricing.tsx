@@ -102,7 +102,7 @@ const Pricing: React.FC = () => {
         {
           text: "Native video quality",
           infoTip:
-            "We retain and give you the ability to view the native video file you uploaded at any time. We will still create mutliple more compatible and smaller versions of your video as well.",
+            "We retain and give you the ability to view the native video file you uploaded at any time. Upgrade to a paid tier to have mutliple video qualities available",
         },
         {
           text: "Basic analytics",
@@ -122,7 +122,7 @@ const Pricing: React.FC = () => {
     {
       name: "Pro",
       price: 3,
-      annualPrice: 33,
+      annualPrice: 30,
       description: "Great for anyone who needs more storage",
       monthlyPaymentLink: "https://buy.stripe.com/28o7vi1qEfZX3Kg4gk",
       annualPaymentLink: "https://buy.stripe.com/9AQ9Dq9XaaFD3KgeUZ",
@@ -130,6 +130,7 @@ const Pricing: React.FC = () => {
         { text: "Everything in Free Tier" },
         { text: "100GB of storage space" },
         { text: "Infinite video retention" },
+        { text: "Multiple qualities for each video" },
         { text: "Ad-free experience" },
         { text: "Upload 12 videos each day" },
       ],
@@ -156,8 +157,8 @@ const Pricing: React.FC = () => {
 
   const [billingOption, setBillingOption] = useState("monthly");
 
-  const user = useUser();
-  const userPrimaryEmail = user.user?.primaryEmailAddress?.emailAddress;
+  const { user } = useUser();
+  const userPrimaryEmail = user?.primaryEmailAddress?.emailAddress;
 
   const origin = typeof window === "object" ? window.origin : "";
 
