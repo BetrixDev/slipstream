@@ -13,6 +13,9 @@ import sharp from "sharp";
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
+  machine: {
+    preset: "small-2x",
+  },
   maxDuration: 3 * 60,
   retry: {
     maxAttempts: 5,
