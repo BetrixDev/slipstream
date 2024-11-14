@@ -7,14 +7,14 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import type { videoDeletionTask } from "trigger";
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-
 const PRODUCT_IDS: Record<string, string> = {
   [env.PRO_PRODUCT_ID]: "pro",
   [env.PREMIUM_PRODUCT_ID]: "premium",
 };
 
 export async function POST(request: Request) {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
   const sig = (await headers()).get("stripe-signature");
 
   if (!sig) {

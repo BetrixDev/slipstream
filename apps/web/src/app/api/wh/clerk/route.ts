@@ -7,9 +7,9 @@ import { db, eq, sql, users, videos } from "db";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { videoDeletionTask } from "trigger";
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-
 export async function POST(request: Request) {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 

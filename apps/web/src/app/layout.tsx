@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey="pk_live_Y2xlcmsuZmxvd2JsZS5hcHAk">
       <html lang="en" className="dark">
         <body className="antialiased font-dmSans">
           <div vaul-drawer-wrapper="">{children}</div>
