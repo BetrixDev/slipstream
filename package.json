@@ -31,9 +31,6 @@
         "x64",
         "arm64"
       ]
-    },
-    "patchedDependencies": {
-      "@ffmpeg/util@0.12.1": "patches/@ffmpeg__util@0.12.1.patch"
     }
   }
 }

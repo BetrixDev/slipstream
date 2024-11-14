@@ -1,7 +1,7 @@
 import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
 import { envSchema } from "../utils/env.js";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { db, eq, videos } from "db";
 import path from "path";
 import os from "node:os";
@@ -11,6 +11,7 @@ import { createReadStream, createWriteStream } from "node:fs";
 import { execa } from "execa";
 import { LOWEST_BITRATE_THRESHOLD } from "cms";
 import { fileTypeFromStream } from "file-type";
+import { Upload } from "@aws-sdk/lib-storage";
 
 type VideoSource = {
   key: string;
@@ -85,7 +86,6 @@ export const transcodingTask = schemaTask({
 
     const responseBody = response.Body;
 
-    logger.info("Starting video download");
     const downloadStart = Date.now();
 
     await new Promise((resolve, reject) => {
@@ -110,7 +110,7 @@ export const transcodingTask = schemaTask({
 
     logger.info("Getting native video's mime type");
 
-    const nativeFileType = await fileTypeFromStream(createReadStream(nativeFilePath));
+    const nativeFileType = await fileTypeFromStream(createReadStream(nativeFilePath) as any);
     const nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
 
     logger.info(`Native video's mime type is ${nativeFileMimeType}`, { mime: nativeFileMimeType });
@@ -161,6 +161,8 @@ export const transcodingTask = schemaTask({
       height: nativeFileHeight,
     });
 
+    const uploadPromises: Promise<any>[] = [];
+
     for (const resolution of resolutionsToGenerate) {
       const resStart = Date.now();
 
@@ -200,40 +202,19 @@ export const transcodingTask = schemaTask({
         return new AbortTaskRunError("Video was deleted");
       }
 
-      const transcodedStats = await stat(outPath);
-      const transocdedSizeMegabits = transcodedStats.size / 125000;
-
-      logger.info(
-        `Transcoded video size for ${resolution.height}p is ${transcodedStats.size}bytes`,
-        {
-          resolution,
-          bytes: transcodedStats.size,
-        },
-      );
-
-      const uploadStart = Date.now();
-      logger.info(`Uploading ${resolution.height}p resolution to bucket`);
-
       const key = `${videoData.nativeFileKey}-${resolution.height}p.mp4`;
 
-      const putObjectCommand = new PutObjectCommand({
-        Bucket: env.VIDEOS_BUCKET_NAME,
-        Key: key,
-        Body: createReadStream(outPath),
+      const upload = new Upload({
+        client: s3Client,
+        params: {
+          Bucket: env.VIDEOS_BUCKET_NAME,
+          Key: key,
+          Body: createReadStream(outPath),
+          ContentType: "video/mp4",
+        },
       });
 
-      await s3Client.send(putObjectCommand);
-
-      const uploadElapsed = (Date.now() - uploadStart) / 1000;
-      const mpbs = (transocdedSizeMegabits / uploadElapsed).toFixed(2);
-      logger.info(
-        `Uploaded transcoded video for ${resolution.height}p in ${resElapsed}s (${mpbs}mpbs)`,
-        {
-          resolution,
-          elapsed: resElapsed,
-          mpbs,
-        },
-      );
+      uploadPromises.push(upload.done());
 
       videoSources.push({
         key,
@@ -250,6 +231,8 @@ export const transcodingTask = schemaTask({
         break;
       }
     }
+
+    await Promise.all(uploadPromises);
 
     logger.info("Successfully generated all video sources for video");
 

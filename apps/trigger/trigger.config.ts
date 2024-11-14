@@ -1,5 +1,6 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
 import { ffmpeg } from "@trigger.dev/build/extensions/core";
+import { AwsInstrumentation } from "@opentelemetry/instrumentation-aws-sdk";
 
 export default defineConfig({
   project: "proj_kgjuvdnaikcqgregnfjq",
@@ -20,4 +21,5 @@ export default defineConfig({
     extensions: [ffmpeg()],
     external: ["sharp"],
   },
+  instrumentations: [new AwsInstrumentation()],
 });

@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
 import { envSchema } from "../utils/env.js";
@@ -10,6 +10,8 @@ import { createWriteStream } from "node:fs";
 import { Readable } from "node:stream";
 import { execa } from "execa";
 import sharp from "sharp";
+import { Upload } from "@aws-sdk/lib-storage";
+import { glob } from "glob";
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
@@ -60,7 +62,6 @@ export const initialUploadTask = schemaTask({
 
     const responseBody = response.Body;
 
-    logger.info("Starting video download");
     const downloadStart = Date.now();
 
     await new Promise((resolve, reject) => {
@@ -85,53 +86,78 @@ export const initialUploadTask = schemaTask({
 
     logger.info("Generating thumbnail from first frame of video");
 
-    await execa`ffmpeg -i ${nativeFilePath} -frames:v 1 -q:v 75 -f image2 ${nativeFilePath}.webp`;
+    let frameFilePath = `${nativeFilePath}.webp`;
 
-    const { data } = await sharp(`${nativeFilePath}.webp`).grayscale().raw().toBuffer({
+    await execa`ffmpeg -i ${nativeFilePath} -frames:v 1 -q:v 75 -f image2 ${frameFilePath}`;
+
+    const { data, info } = await sharp(`${nativeFilePath}.webp`).grayscale().raw().toBuffer({
       resolveWithObject: true,
     });
 
-    // TODO: this doesn't work right now
-    let totalBrightness = 0;
-    for (let i = 0; i < data.length; i++) {
-      totalBrightness += data[i];
-    }
+    const firstFrameBrightness = calculateBrightness(data, info.width, info.height);
+    let currentBrightestFrame = firstFrameBrightness;
 
-    if (totalBrightness < 5) {
+    if (firstFrameBrightness < 5) {
       logger.info("Frame was too dark, getting one in the future");
 
-      // The image is black and we will grab a frame that is
-      await execa`ffmpeg -y -i ${nativeFilePath} -vf "select='eq(n\,min(5*t\,n-1))'" -vsync vfr -frames:v 1 ${nativeFilePath}.webp`;
+      await execa`ffmpeg -i ${nativeFilePath} -vf fps=0.25 -vframes 10 -frames:v 1 -q:v 75 -f image2 ${nativeFilePath}_%04d.webp`;
+
+      const frames = await glob("*_*.webp", { cwd: workingDir });
+
+      for (const frame of frames) {
+        try {
+          const { data, info } = await sharp(path.join(workingDir, frame))
+            .grayscale()
+            .raw()
+            .toBuffer({
+              resolveWithObject: true,
+            });
+
+          const frameBrightness = calculateBrightness(data, info.width, info.height);
+
+          if (frameBrightness > currentBrightestFrame) {
+            frameFilePath = path.join(workingDir, frame);
+          }
+        } catch (e) {
+          logger.warn("Error processing frame", e as any);
+        }
+      }
     }
 
-    const image = sharp(`${nativeFilePath}.webp`);
+    const image = sharp(frameFilePath);
 
     const smallThumbnailBuffer = await image
       .resize(1280, 720, { fit: "cover" })
-      .webp({ quality: 65, effort: 6, lossless: false, alphaQuality: 80 })
+      .webp({ quality: 70, effort: 6, lossless: false, alphaQuality: 80 })
       .toBuffer();
 
     const largeThumbnailBuffer = await image
       .webp({ quality: 90, effort: 6, alphaQuality: 90 })
       .toBuffer();
 
-    const smallPutObjectCommand = new PutObjectCommand({
-      Bucket: env.THUMBS_BUCKET_NAME,
-      Key: `${videoData.nativeFileKey}-small.webp`,
-      Body: smallThumbnailBuffer,
+    const smallUpload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: env.THUMBS_BUCKET_NAME,
+        Key: `${videoData.nativeFileKey}-small.webp`,
+        Body: smallThumbnailBuffer,
+        ContentType: "image/webp",
+        CacheControl: "max-age=2419200",
+      },
     });
 
-    const largePutObjectCommand = new PutObjectCommand({
-      Bucket: env.THUMBS_BUCKET_NAME,
-      Key: `${videoData.nativeFileKey}-large.webp`,
-      Body: largeThumbnailBuffer,
+    const largeUpload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: env.THUMBS_BUCKET_NAME,
+        Key: `${videoData.nativeFileKey}-large.webp`,
+        Body: largeThumbnailBuffer,
+        ContentType: "image/webp",
+        CacheControl: "max-age=2419200",
+      },
     });
 
-    logger.info("Uploading thumbnails");
-
-    await Promise.all([s3Client.send(smallPutObjectCommand), s3Client.send(largePutObjectCommand)]);
-
-    logger.info("Done uploading");
+    await Promise.all([smallUpload.done(), largeUpload.done()]);
 
     let videoDurationSeconds: number | undefined = undefined;
 
@@ -167,3 +193,23 @@ export const initialUploadTask = schemaTask({
     };
   },
 });
+
+function calculateBrightness(data: Buffer, width: number, height: number): number {
+  let totalBrightness = 0;
+  const numPixels = width * height;
+
+  for (let i = 0; i < data.length; i += 4) {
+    // Extract RGB values
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    // Calculate brightness for this pixel using a common formula for perceived brightness
+    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    totalBrightness += brightness;
+  }
+
+  // Calculate average brightness
+  return totalBrightness / numPixels;
+}

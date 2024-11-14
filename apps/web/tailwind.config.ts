@@ -4,20 +4,15 @@ import svgToDataUri from "mini-svg-data-uri";
 
 export default {
   darkMode: ["class"],
-  content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
-      animation: {
-        aurora: "aurora 60s linear infinite",
-      },
       fontFamily: {
         dmSans: '"DM Sans"',
-        inter: "Inter",
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       colors: {
         background: "hsl(var(--background))",
@@ -61,15 +56,10 @@ export default {
           "5": "hsl(var(--chart-5))",
         },
       },
-      keyframes: {
-        aurora: {
-          from: {
-            backgroundPosition: "50% 50%, 50% 50%",
-          },
-          to: {
-            backgroundPosition: "350% 50%, 350% 50%",
-          },
-        },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
     },
   },
@@ -91,7 +81,6 @@ export default {
   ],
 } satisfies Config;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function addVariablesForColors({ addBase, theme }: any) {
   const allColors = flattenColorPalette(theme("colors"));
   const newVars = Object.fromEntries(

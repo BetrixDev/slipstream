@@ -9,4 +9,6 @@ export const envSchema = z.object({
   THUMBS_BUCKET_NAME: z.string(),
   THUMBNAIL_BASE_URL: z.string(),
   DATABASE_URL: z.string(),
+  REDIS_REST_URL: z.string(),
+  REDIS_REST_TOKEN: z.string(),
 });
