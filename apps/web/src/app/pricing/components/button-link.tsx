@@ -46,7 +46,7 @@ export function ButtonLink({ paymentLink, paymentTier, accountTier, email }: But
           ? `https://billing.stripe.com/p/login/14k6qN8w0dsueFG000${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
           : paymentTier === "free"
             ? "/videos"
-            : paymentLink
+            : `${paymentLink}${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
       }
     >
       <Button
