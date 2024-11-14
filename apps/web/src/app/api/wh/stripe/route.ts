@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     });
 
     if (product === undefined) {
-      return new Response("", { status: 404 });
+      return new Response("Cant find product", { status: 404 });
     }
 
     const productName = PRODUCT_IDS[product.plan.product as string];
@@ -52,13 +52,13 @@ export async function POST(request: Request) {
     const customerData = await stripe.customers.retrieve(event.data.object.customer as string);
 
     if (customerData.deleted) {
-      return new Response("", { status: 500 });
+      return new Response("Customer is deleted", { status: 500 });
     }
 
     const customerEmail = customerData.email;
 
     if (customerEmail === null) {
-      return new Response("", { status: 400 });
+      return new Response("Customer doesn't have an email", { status: 400 });
     }
 
     const [updatedUser] = await db
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     const customerEmail = customerData.email;
 
     if (customerEmail === null) {
-      return new Response("", { status: 400 });
+      return new Response("Customer is deleted", { status: 400 });
     }
 
     const userData = await db.query.users.findFirst({
