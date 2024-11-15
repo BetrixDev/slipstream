@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { deleteVideo } from "../../actions";
 import { toast } from "sonner";
 import { useUserVideoDatastore } from "../../stores/user-video-data";
+import { notNanOrDefault } from "@/lib/utils";
 
 export function DeleteVideoDialog() {
   const videos = useUserVideoDatastore((s) => s.videos);
@@ -23,20 +24,29 @@ export function DeleteVideoDialog() {
       return;
     }
 
-    console.log({ videos });
-
     const oldVideos = [...videos];
+    const oldTotalStorageUsed = useUserVideoDatastore.getState().totalStorageUsed;
 
     function reset(message?: string) {
       console.log("resetting videos to ", oldVideos);
-      useUserVideoDatastore.setState({ videos: oldVideos });
+      useUserVideoDatastore.setState({ videos: oldVideos, totalStorageUsed: oldTotalStorageUsed });
       toast.error("Failed to delete video.", { description: message });
     }
 
     try {
-      setDeleteVideoData(undefined);
+      const video = videos.find((v) => v.id === deleteVideoData.id);
 
-      useUserVideoDatastore.setState({ videos: videos.filter((v) => v.id !== deleteVideoData.id) });
+      useUserVideoDatastore.setState((state) => {
+        return {
+          videos: videos.filter((v) => v.id !== deleteVideoData.id),
+          totalStorageUsed: Math.max(
+            state.totalStorageUsed - notNanOrDefault(video?.fileSizeBytes),
+            0,
+          ),
+        };
+      });
+
+      setDeleteVideoData(undefined);
 
       const result = await deleteVideo(deleteVideoData.id);
 
