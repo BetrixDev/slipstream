@@ -23,69 +23,55 @@ export const experimental_ppr = true;
 export default async function Page({ params }: { params: Promise<{ videoId: string }> }) {
   const videoId = (await params).videoId;
 
-  const getCacheVideoPlayerData = unstable_cache(
-    async () => {
-      const videoData = await db.query.videos.findFirst({
-        where: (table, { eq }) => eq(table.id, videoId),
-        columns: {
-          title: true,
-          views: true,
-          isPrivate: true,
-          authorId: true,
-          isProcessing: true,
-          largeThumbnailKey: true,
-          videoLengthSeconds: true,
-          createdAt: true,
-          sources: true,
-        },
-      });
+  const videoData = await db.query.videos.findFirst({
+    where: (table, { eq }) => eq(table.id, videoId),
+    columns: {
+      title: true,
+      views: true,
+      isPrivate: true,
+      authorId: true,
+      isProcessing: true,
+      largeThumbnailKey: true,
+      videoLengthSeconds: true,
+      createdAt: true,
+      sources: true,
+    },
+  });
 
-      const s3Client = new S3Client({
-        endpoint: env.S3_ENDPOINT,
-        region: env.S3_REGION,
-        credentials: {
-          accessKeyId: env.S3_ROOT_ACCESS_KEY,
-          secretAccessKey: env.S3_ROOT_SECRET_KEY,
-        },
-      });
+  const s3Client = new S3Client({
+    endpoint: env.S3_ENDPOINT,
+    region: env.S3_REGION,
+    credentials: {
+      accessKeyId: env.S3_ROOT_ACCESS_KEY,
+      secretAccessKey: env.S3_ROOT_SECRET_KEY,
+    },
+  });
 
-      if (!videoData) {
-        return notFound();
-      }
+  if (!videoData) {
+    return notFound();
+  }
 
-      const videoSources = await Promise.all(
-        videoData.sources.map(async (source) => {
-          const url = await getSignedUrl(
-            s3Client,
-            new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: source.key }),
-            { expiresIn: 60 * 60 * 24 * 7 },
-          );
-
-          return {
-            src: url,
-            type: source.type,
-            width: source.width,
-            height: source.height,
-            isNative: source.isNative,
-          };
-        }),
+  const videoSources = await Promise.all(
+    videoData.sources.map(async (source) => {
+      const url = await getSignedUrl(
+        s3Client,
+        new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: source.key }),
+        { expiresIn: 60 * 60 * 24 * 7 },
       );
 
-      const largeThumbnailUrl =
-        videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
-      const videoCreatedAt = videoData.createdAt.toString();
-
-      return { videoData, videoSources, largeThumbnailUrl, videoCreatedAt };
-    },
-    [videoId],
-    {
-      tags: ["p", videoId],
-      revalidate: 60 * 60 * 24 * 6,
-    },
+      return {
+        src: url,
+        type: source.type,
+        width: source.width,
+        height: source.height,
+        isNative: source.isNative,
+      };
+    }),
   );
 
-  const { largeThumbnailUrl, videoCreatedAt, videoData, videoSources } =
-    await getCacheVideoPlayerData();
+  const largeThumbnailUrl =
+    videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+  const videoCreatedAt = videoData.createdAt.toString();
 
   const { userId } = await auth();
 
