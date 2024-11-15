@@ -324,7 +324,7 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
         {
           isNative: true,
           key: key,
-          type: mimeType,
+          type: mimeType === "video/quicktime" ? "video/mp4" : mimeType,
         },
       ],
     })

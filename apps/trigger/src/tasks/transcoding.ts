@@ -111,7 +111,11 @@ export const transcodingTask = schemaTask({
     logger.info("Getting native video's mime type");
 
     const nativeFileType = await fileTypeFromStream(createReadStream(nativeFilePath) as any);
-    const nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
+    let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
+
+    if (nativeFileMimeType === "video/quicktime") {
+      nativeFileMimeType = "video/mp4";
+    }
 
     logger.info(`Native video's mime type is ${nativeFileMimeType}`, { mime: nativeFileMimeType });
 
