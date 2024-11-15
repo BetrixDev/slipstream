@@ -11,8 +11,8 @@ import Link from "next/link";
 
 export default function TopNav() {
   return (
-    <div className="sticky top-2 flex justify-center z-[99] w-full">
-      <header className=" px-3 max-w-[48rem] w-[80%] bg-background/70 border rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm">
+    <div className="sticky md:top-2 flex justify-center z-[99] w-full">
+      <header className="px-3 max-w-[48rem] md:w-[80%] w-full bg-background/70 md:border border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm">
         <Link className="flex items-center" href="/" prefetch>
           <Button variant="ghost" className="flex-shrink-0 flex items-center rounded-full z-50">
             <Video className="h-8 w-8 text-blue-500" />
