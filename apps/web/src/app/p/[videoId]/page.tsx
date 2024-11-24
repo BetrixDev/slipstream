@@ -83,13 +83,6 @@ export async function generateMetadata({
 
   const { videoData, videoSources } = await getVideoData(videoId);
 
-  if (videoData.isPrivate) {
-    return {
-      title: "Private Video",
-      description: "This video is private and only accessible to the author.",
-    };
-  }
-
   const largeThumbnailUrl = `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
   return {
@@ -110,6 +103,7 @@ export async function generateMetadata({
       siteName: "Flowble",
       description: `Watch ${videoData.title} on Flowble`,
       type: "video.other",
+      images: [largeThumbnailUrl],
       locale: "en-US",
       videos: videoSources.map((source) => ({
         url: source.src,
