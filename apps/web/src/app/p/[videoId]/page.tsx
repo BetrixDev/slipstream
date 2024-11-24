@@ -102,7 +102,7 @@ export async function generateMetadata({
       url: `https://flowble.app/p/${videoId}`,
       siteName: "Flowble",
       description: `Watch ${videoData.title} on Flowble`,
-      type: "video" as any,
+      type: "video.other",
       images: [largeThumbnailUrl],
       locale: "en-US",
       videos: videoSources.map((source) => ({
