@@ -5,10 +5,44 @@ import { Button } from "@/components/ui/button";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Input } from "@/components/ui/input";
 import { Upload, Share2, Clapperboard } from "lucide-react";
+import { IMAGE_LINKS } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
+
+export const metadata = {
+  title: "Flowble - Share Videos in a Flash",
+  description: "Share Videos in a Flash",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  keywords: [
+    "Flowble",
+    "Share Videos",
+    "Upload Videos",
+    "Trim Videos",
+    "Fast Uploads",
+    "Free",
+    "Stream",
+    "Video Sharing",
+  ],
+  twitter: {
+    title: "Flowble - Share Videos in a Flash",
+    description: "Share Videos in a Flash",
+    card: "summary_large_image",
+    images: IMAGE_LINKS,
+  },
+  openGraph: {
+    title: "Flowble - Share Videos in a Flash",
+    description: "Share Videos in a Flash",
+    images: IMAGE_LINKS,
+    locale: "en-US",
+    siteName: "Flowble",
+    url: "https://flowble.app",
+    type: "website",
+  },
+};
 
 export default async function Home() {
   const origin = typeof window === "object" ? window.origin : "";

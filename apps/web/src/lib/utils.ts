@@ -65,3 +65,8 @@ export function formatBytes(
     sizeType === "accurate" ? accurateSizes[i] ?? "Bytest" : sizes[i] ?? "Bytes"
   }`;
 }
+
+export const IMAGE_LINKS = [
+  "https://utfs.io/f/GtjuzTxrWKtnc6xRppAT9nGXFIZqmMfu6KvNV0jWoxkREwr8",
+  "https://utfs.io/f/GtjuzTxrWKtnRbq0BufgEfAxHGYODCt4ko9J7qrb0Nnlywep",
+];

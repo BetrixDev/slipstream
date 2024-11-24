@@ -12,13 +12,109 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
 import { WordyDate } from "./components/wordy-date";
-import { unstable_cache } from "next/cache";
+import { Metadata } from "next";
 
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 
 export const experimental_ppr = true;
+
+async function getVideoData(videoId: string) {
+  const videoData = await db.query.videos.findFirst({
+    where: (table, { eq }) => eq(table.id, videoId),
+    columns: {
+      title: true,
+      views: true,
+      isPrivate: true,
+      authorId: true,
+      isProcessing: true,
+      largeThumbnailKey: true,
+      videoLengthSeconds: true,
+      createdAt: true,
+      sources: true,
+    },
+  });
+
+  const s3Client = new S3Client({
+    endpoint: env.S3_ENDPOINT,
+    region: env.S3_REGION,
+    credentials: {
+      accessKeyId: env.S3_ROOT_ACCESS_KEY,
+      secretAccessKey: env.S3_ROOT_SECRET_KEY,
+    },
+  });
+
+  if (!videoData) {
+    return notFound();
+  }
+
+  const videoSources = await Promise.all(
+    videoData.sources.map(async (source) => {
+      const url = await getSignedUrl(
+        s3Client,
+        new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: source.key }),
+        { expiresIn: 60 * 60 * 24 * 7 },
+      );
+
+      return {
+        src: url,
+        type: source.type,
+        width: source.width,
+        height: source.height,
+        isNative: source.isNative,
+      };
+    }),
+  );
+
+  const largeThumbnailUrl =
+    videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+  const videoCreatedAt = videoData.createdAt.toString();
+
+  return { videoData, videoSources, largeThumbnailUrl, videoCreatedAt };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ videoId: string }>;
+}): Promise<Metadata> {
+  const videoId = (await params).videoId;
+
+  const { videoData, videoSources } = await getVideoData(videoId);
+
+  const largeThumbnailUrl = `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+
+  return {
+    title: videoData.title,
+    description: `Watch ${videoData.title} on Flowble`,
+    twitter: {
+      title: videoData.title,
+      description: `Watch ${videoData.title} on Flowble`,
+      card: "summary_large_image",
+      images: [largeThumbnailUrl],
+    },
+    icons: {
+      icon: "/favicon.ico",
+    },
+    openGraph: {
+      title: videoData.title,
+      url: `https://flowble.app/p/${videoId}`,
+      siteName: "Flowble",
+      description: `Watch ${videoData.title} on Flowble`,
+      type: "video.other",
+      images: [largeThumbnailUrl],
+      locale: "en-US",
+      videos: videoSources.map((source) => ({
+        url: source.src,
+        secureUrl: source.src,
+        width: source.width,
+        height: source.height,
+        type: source.type,
+      })),
+    },
+  };
+}
 
 export default async function Page({ params }: { params: Promise<{ videoId: string }> }) {
   const videoId = (await params).videoId;
