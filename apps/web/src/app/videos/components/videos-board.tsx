@@ -1,7 +1,7 @@
 "use client";
 
 import { useSetAtom } from "jotai";
-import { deleteVideoAtom, editVideoAtom } from "../../atoms";
+import { deleteVideoAtom, editVideoAtom } from "../atoms";
 import { Card } from "@/components/ui/card";
 import { Copy, Eye, EyeOff, HardDriveDownload, ListTodo, Loader2Icon, Trash } from "lucide-react";
 import dayjs from "dayjs";
@@ -11,12 +11,12 @@ import { Button } from "@/components/ui/button";
 import { formatSecondsToTimestamp, humanFileSize, handleCopyLink } from "@/lib/utils";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useEffect, useState, type ComponentProps } from "react";
-import { getVideoDownloadDetails } from "../../actions";
+import { getVideoDownloadDetails } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { TriggerAuthContext, useRealtimeRunsWithTag } from "@trigger.dev/react-hooks";
 import type { initialUploadTask } from "trigger";
-import { useUserVideoDatastore, type Video } from "../../stores/user-video-data";
+import { useUserVideoDatastore, type Video } from "../stores/user-video-data";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -174,17 +174,18 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
     runs.forEach((run) => {
       if (run.output && run.output.success) {
         useUserVideoDatastore.setState((state) => ({
-          videos: state.videos.map((v) => {
-            if (v.id === props.videoId) {
-              return {
-                ...v,
-                smallThumbnailUrl: run.output!.smallThumbnailUrl,
-                videoLengthSeconds: run.output?.videoLengthSeconds,
-              };
-            }
-
-            return v;
-          }),
+          videos: state.videos
+            .map((v) => {
+              if (v.id === props.videoId) {
+                return {
+                  ...v,
+                  smallThumbnailUrl: run.output!.smallThumbnailUrl,
+                  videoLengthSeconds: run.output?.videoLengthSeconds,
+                };
+              }
+              return v;
+            })
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
         }));
       }
     });

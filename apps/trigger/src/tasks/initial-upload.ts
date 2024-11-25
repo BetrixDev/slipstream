@@ -124,14 +124,12 @@ export const initialUploadTask = schemaTask({
       }
     }
 
-    const image = sharp(frameFilePath);
-
-    const smallThumbnailBuffer = await image
+    const smallThumbnailBuffer = await sharp(frameFilePath)
       .resize(1280, 720, { fit: "cover" })
       .webp({ quality: 70, effort: 6, lossless: false, alphaQuality: 80 })
       .toBuffer();
 
-    const largeThumbnailBuffer = await image
+    const largeThumbnailBuffer = await sharp(frameFilePath)
       .webp({ quality: 90, effort: 6, alphaQuality: 90 })
       .toBuffer();
 

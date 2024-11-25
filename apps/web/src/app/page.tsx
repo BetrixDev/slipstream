@@ -1,13 +1,11 @@
 import { Footer } from "@/components/footer";
 import TopNav from "@/components/top-nav";
-import TopNavFallback from "@/components/top-nav-fallback";
 import { Button } from "@/components/ui/button";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Input } from "@/components/ui/input";
 import { Upload, Share2, Clapperboard } from "lucide-react";
 import { IMAGE_LINKS } from "@/lib/utils";
 import Link from "next/link";
-import { Suspense } from "react";
 
 export const experimental_ppr = true;
 
@@ -49,9 +47,7 @@ export default async function Home() {
 
   return (
     <HeroHighlight>
-      <Suspense fallback={<TopNavFallback />}>
-        <TopNav />
-      </Suspense>
+      <TopNav />
       <div className="flex flex-col min-h-screen">
         <main className="flex-1">
           <section className="w-full h-96 md:h-[700px] flex justify-center items-center">

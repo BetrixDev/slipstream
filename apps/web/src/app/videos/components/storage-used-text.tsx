@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { humanFileSize } from "@/lib/utils";
 import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
-import { useUserVideoDatastore } from "../../stores/user-video-data";
+import { useUserVideoDatastore } from "../stores/user-video-data";
 import { useEffect } from "react";
 
 type StorageUsedTextProps = {

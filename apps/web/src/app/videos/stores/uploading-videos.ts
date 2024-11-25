@@ -127,7 +127,7 @@ async function handleVideoUpload(video: UploadingVideo) {
 
       const videos = [newVideo, ...state.videos];
 
-      videos.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      videos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       return {
         videos,

@@ -22,6 +22,11 @@ import { tasks, auth as triggerAuth, runs } from "@trigger.dev/sdk/v3";
 import type { initialUploadTask, transcodingTask } from "trigger";
 import { Redis } from "@upstash/redis";
 
+const redis = new Redis({
+  url: env.REDIS_REST_URL,
+  token: env.REDIS_REST_TOKEN,
+});
+
 export async function getVideoDownloadDetails(videoId: string) {
   const { userId } = await auth();
 
@@ -143,7 +148,11 @@ export async function deleteVideo(videoId: string) {
   try {
     await Promise.all([
       ...deleteCommandPromises,
-      db.delete(videos).where(and(eq(videos.id, videoId), eq(videos.authorId, userId))),
+      redis.del(`video:${videoId}`),
+      db
+        .delete(videos)
+        .where(and(eq(videos.id, videoId), eq(videos.authorId, userId)))
+        .returning(),
       db
         .update(users)
         .set({
@@ -151,6 +160,18 @@ export async function deleteVideo(videoId: string) {
         })
         .where(eq(users.id, userId)),
     ]);
+
+    try {
+      const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
+
+      if (cachedVideos) {
+        await redis.hset(`videos:${userId}`, {
+          videos: cachedVideos.filter((v) => v.id !== videoId),
+        });
+      }
+    } catch {
+      redis.del(`videos:${userId}`);
+    }
   } catch {
     return { success: false, message: "Failed to delete video." };
   }
@@ -331,6 +352,16 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     .returning();
 
   try {
+    const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
+
+    if (cachedVideos) {
+      await redis.hset(`videos:${userId}`, { videos: [videoData, ...cachedVideos] });
+    }
+  } catch {
+    redis.del(`videos:${userId}`);
+  }
+
+  try {
     const promises: Promise<any>[] = [
       tasks.trigger<typeof initialUploadTask>(
         "initial-upload",
@@ -488,6 +519,48 @@ export async function updateVideoData(videoId: string, data: VideoUpdateData) {
 
   if (videoData === undefined) {
     return { success: false, message: "Video not found" };
+  }
+
+  try {
+    const largeThumbnailUrl =
+      videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+
+    const videoCreatedAt = videoData.createdAt.toString();
+
+    await redis.hset(`video:${videoId}`, {
+      videoData: {
+        title: videoData.title,
+        isPrivate: videoData.isPrivate,
+        videoLengthSeconds: videoData.videoLengthSeconds,
+        isProcessing: videoData.isProcessing,
+        views: videoData.views,
+        largeThumbnailKey: videoData.largeThumbnailKey,
+        authorId: videoData.authorId,
+        sources: videoData.sources,
+      },
+      largeThumbnailUrl,
+      videoCreatedAt,
+    });
+  } catch {
+    redis.del(`video:${videoId}`);
+  }
+
+  try {
+    const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
+
+    if (cachedVideos) {
+      await redis.hset(`videos:${userId}`, {
+        videos: cachedVideos.map((v) => {
+          if (v.id === videoData.id) {
+            return videoData;
+          }
+
+          return v;
+        }),
+      });
+    }
+  } catch {
+    redis.del(`videos:${userId}`);
   }
 
   return { success: true, message: "Video has been updated.", description: videoData.title };

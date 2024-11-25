@@ -4,7 +4,6 @@ import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Suspense } from "react";
 import { Server } from "./components/server";
 import { Fallback } from "./components/fallback";
-import TopNavFallback from "@/components/top-nav-fallback";
 import { type Metadata } from "next";
 import { IMAGE_LINKS } from "@/lib/utils";
 
@@ -49,9 +48,7 @@ export const metadata: Metadata = {
 export default async function Page() {
   return (
     <HeroHighlight className="min-h-screen flex flex-col">
-      <Suspense fallback={<TopNavFallback />}>
-        <TopNav />
-      </Suspense>
+      <TopNav />
       <Suspense fallback={<Fallback />}>
         <Server />
       </Suspense>
