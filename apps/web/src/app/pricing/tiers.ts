@@ -40,8 +40,8 @@ export const tiers = [
   {
     name: "Pro",
     id: "pro",
-    monthlyPaymentLink: "https://buy.stripe.com/aEU16U4CQdRP80w8wE",
-    annualPaymentLink: "https://buy.stripe.com/14k02Qedq00Z0y44gp",
+    monthlyPaymentLink: "https://pay.flowble.app/b/aEU16U4CQdRP80w8wE",
+    annualPaymentLink: "https://pay.flowble.app/b/14k02Qedq00Z0y44gp",
     priceMonthly: "4",
     priceAnually: "40",
     description: "Great for anyone who needs more storage",
@@ -57,8 +57,8 @@ export const tiers = [
   {
     name: "Premium",
     id: "premium",
-    monthlyPaymentLink: "https://buy.stripe.com/14k7vib1e00Za8E14a",
-    annualPaymentLink: "https://buy.stripe.com/fZeg1O5GU7trbcIeV1",
+    monthlyPaymentLink: "https://pay.flowble.app/b/14k7vib1e00Za8E14a",
+    annualPaymentLink: "https://pay.flowble.app/b/4gw8zm0mA5lja8E6oy",
     priceMonthly: "12",
     priceAnually: "120",
     description: "For professionals looking to reach everyone",
