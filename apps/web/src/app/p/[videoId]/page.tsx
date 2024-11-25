@@ -1,9 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { env } from "@/env";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { auth } from "@clerk/nextjs/server";
-import { db } from "db";
 import { Eye, Loader2, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,12 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
 import { WordyDate } from "./components/wordy-date";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { getVideoData } from "./data";
 
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
-import { getVideoData } from "./data";
 
 export const experimental_ppr = true;
 
@@ -49,7 +46,7 @@ export async function generateMetadata({
       url: `https://flowble.app/p/${videoId}`,
       siteName: "Flowble",
       description: `Watch ${videoData.title} on Flowble`,
-      type: "video.other",
+      type: "video.movie",
       images: [largeThumbnailUrl],
       locale: "en-US",
       videos: videoSources.map((source) => ({
