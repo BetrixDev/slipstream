@@ -11,11 +11,11 @@ const redis = new Redis({
 });
 
 const s3Client = new S3Client({
-  endpoint: env.S3_ENDPOINT,
-  region: env.S3_REGION,
+  endpoint: process.env.S3_ENDPOINT!,
+  region: process.env.S3_REGION!,
   credentials: {
-    accessKeyId: env.S3_ROOT_ACCESS_KEY,
-    secretAccessKey: env.S3_ROOT_SECRET_KEY,
+    accessKeyId: process.env.S3_ROOT_ACCESS_KEY!,
+    secretAccessKey: process.env.S3_ROOT_SECRET_KEY!,
   },
 });
 
