@@ -1,11 +1,17 @@
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 import { tasks } from "@trigger.dev/sdk/v3";
+import { Redis } from "@upstash/redis";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "cms";
 import { db, users, eq, videos, sql } from "db";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 import type { videoDeletionTask } from "trigger";
+
+const redis = new Redis({
+  url: process.env.REDIS_REST_URL,
+  token: process.env.REDIS_REST_TOKEN,
+});
 
 const PRODUCT_IDS: Record<string, string> = {
   [env.PRO_PRODUCT_ID]: "pro",
@@ -70,6 +76,7 @@ export async function POST(request: Request) {
       .returning();
 
     await Promise.all([
+      redis.del(`videos:${updatedUser.id}`),
       db.update(videos).set({ deletionDate: null }).where(eq(videos.authorId, updatedUser.id)),
       clerkClient().then((clerk) =>
         clerk.users.updateUserMetadata(updatedUser.id, {
@@ -144,7 +151,10 @@ export async function POST(request: Request) {
       jobs.push({ payload: { videoId: video.id } });
     }
 
-    await tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs);
+    await Promise.all([
+      tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs),
+      redis.del(`videos:${userData.id}`),
+    ]);
 
     return new Response("", { status: 200 });
   }
