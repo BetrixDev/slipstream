@@ -6,8 +6,8 @@ import { db } from "db";
 import { notFound } from "next/navigation";
 
 const redis = new Redis({
-  url: env.REDIS_REST_URL,
-  token: env.REDIS_REST_TOKEN,
+  url: process.env.REDIS_REST_URL,
+  token: process.env.REDIS_REST_TOKEN,
 });
 
 const s3Client = new S3Client({
