@@ -29,8 +29,17 @@ export async function generateMetadata({
 
   const largeThumbnailUrl = `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
+  if (videoData.isPrivate) {
+    return {
+      title: "Private video | Flowble",
+      description: "This video is private",
+    };
+  }
+
+  const nativeVideoSource = videoData.sources.find((source) => source.isNative)!;
+
   return {
-    title: videoData.title,
+    title: `${videoData.title} | Flowble`,
     description: `Watch ${videoData.title} on Flowble`,
     twitter: {
       title: videoData.title,
@@ -48,16 +57,27 @@ export async function generateMetadata({
       description: `Watch ${videoData.title} on Flowble`,
       images: [largeThumbnailUrl],
       locale: "en-US",
-      videos: videoSources.map((source) => ({
-        url: source.src,
-        secureUrl: source.src,
-        width: source.width,
-        height: source.height,
-        type: source.type,
-      })),
+      videos: videoSources
+        .filter((source) => source.isNative)
+        .map((source) => ({
+          url: source.src,
+          secureUrl: source.src,
+          width: source.width,
+          height: source.height,
+          type: source.type,
+        })),
     },
     other: {
       ["og:type"]: "video",
+      ...(nativeVideoSource.height && {
+        ["og:video:height"]: nativeVideoSource.height.toString(),
+      }),
+      ...(nativeVideoSource.width && {
+        ["og:video:width"]: nativeVideoSource.width.toString(),
+      }),
+      ...(videoData.videoLengthSeconds && {
+        ["og:video:duration"]: videoData.videoLengthSeconds.toString(),
+      }),
     },
   };
 }
