@@ -12,10 +12,6 @@ const envSchema = z.object({
   THUMBNAIL_BASE_URL: z.string().default(""),
   REDIS_REST_URL: z.string().default(""),
   REDIS_REST_TOKEN: z.string().default(""),
-  STRIPE_SECRET_KEY: z.string().default(""),
-  STRIPE_SIGNING_SECRET: z.string().default(""),
-  PREMIUM_PRODUCT_ID: z.string().default(""),
-  PRO_PRODUCT_ID: z.string().default(""),
   POLAR_WEBHOOK_SECRET: z.string().default(""),
   POLAR_ACCESS_TOKEN: z.string().default(""),
 });
