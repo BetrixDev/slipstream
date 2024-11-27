@@ -16,6 +16,8 @@ const envSchema = z.object({
   STRIPE_SIGNING_SECRET: z.string().default(""),
   PREMIUM_PRODUCT_ID: z.string().default(""),
   PRO_PRODUCT_ID: z.string().default(""),
+  POLAR_WEBHOOK_SECRET: z.string().default(""),
+  POLAR_ACCESS_TOKEN: z.string().default(""),
 });
 
 export const env = envSchema.parse(process.env);

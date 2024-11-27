@@ -147,7 +147,7 @@ export default async function Page({ params }: { params: Promise<{ videoId: stri
           <DefaultVideoLayout icons={defaultLayoutIcons} />
         </MediaPlayer>
         <div className="flex flex-col gap-4 min-w-96 w-96 grow">
-          <Card className="border-none">
+          <Card className="border-none shadow-none">
             <CardContent className="p-0 space-y-4">
               <h1 className="text-2xl font-bold">{videoData.title}</h1>
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
@@ -168,7 +168,7 @@ export default async function Page({ params }: { params: Promise<{ videoId: stri
             </CardContent>
           </Card>
           <Separator />
-          <Card className="grow min-h-64 border-none"></Card>
+          <Card className="grow min-h-64 border-none shadow-none"></Card>
         </div>
       </div>
     </div>
