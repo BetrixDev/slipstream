@@ -14,6 +14,7 @@ const envSchema = z.object({
   REDIS_REST_TOKEN: z.string().default(""),
   POLAR_WEBHOOK_SECRET: z.string().default(""),
   POLAR_ACCESS_TOKEN: z.string().default(""),
+  TOKEN_SIGNING_SECRET: z.string().default(""),
 });
 
 export const env = envSchema.parse(process.env);

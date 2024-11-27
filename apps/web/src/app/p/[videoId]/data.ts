@@ -1,8 +1,11 @@
+import "server-only";
+
 import { env } from "@/env";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Redis } from "@upstash/redis";
 import { db } from "db";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 const redis = new Redis({
@@ -104,4 +107,19 @@ async function getVideoDataFromDb(videoId: string) {
     largeThumbnailUrl,
     videoCreatedAt,
   };
+}
+
+export async function getIp() {
+  const requestHeaders = await headers();
+
+  const forwardedFor = requestHeaders.get("x-forwarded-for");
+  const realIp = requestHeaders.get("x-real-ip");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  } else if (realIp) {
+    return realIp.trim();
+  }
+
+  return null;
 }
