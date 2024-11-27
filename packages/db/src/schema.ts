@@ -21,7 +21,7 @@ export const users = pgTable(
     accountTier: text("account_tier", { enum: ["free", "pro", "premium", "ultimate"] })
       .notNull()
       .default("free"),
-    totalStorageUsed: real("totalStorageUsed").notNull().default(0),
+    totalStorageUsed: real("total_storage_used").notNull().default(0),
   },
   (table) => ({
     userId_idx: index("userId_idx").on(table.id),

@@ -50,6 +50,13 @@
       "when": 1732667226305,
       "tag": "0006_previous_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1732667434243,
+      "tag": "0007_fast_harrier",
+      "breakpoints": true
     }
   ]
 }
