@@ -44,7 +44,7 @@ export const tiers = [
     annualPaymentLink: "https://buy.polar.sh/polar_cl_ALfJqRn68pz52GCwQ0IqY99dvV9TiMZzuLf4SNu4XDs",
     priceMonthly: "4",
     priceAnually: "40",
-    description: "Great for anyone who needs more storage",
+    description: "Great for anyone who needs more storage and hates ads",
     features: [
       { text: "Everything in Free Tier" },
       { text: "100GB of storage space" },
