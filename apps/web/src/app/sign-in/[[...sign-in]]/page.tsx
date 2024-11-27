@@ -7,7 +7,17 @@ export const experimental_ppr = true;
 export const metadata = {
   title: "Sign in to Flowble",
   description: "Sign in to Flowble to upload and watch videos",
-  keywords: ["Flowble", "Share Videos", "Upload Videos", "Trim Videos", "Fast Uploads", "Free", "Stream", "Video Sharing", "Sign in"],
+  keywords: [
+    "Flowble",
+    "Share Videos",
+    "Upload Videos",
+    "Trim Videos",
+    "Fast Uploads",
+    "Free",
+    "Stream",
+    "Video Sharing",
+    "Sign in",
+  ],
   icons: {
     icon: "/favicon.ico",
   },
@@ -32,7 +42,7 @@ export default async function Page() {
   return (
     <div className="h-screen flex flex-col justify-center items-center">
       <div className="grow flex items-center justify-center">
-        <SignIn />
+        <SignIn signUpUrl="/sign-up" waitlistUrl="/waitlist" fallbackRedirectUrl="/" />
       </div>
       <Footer />
     </div>

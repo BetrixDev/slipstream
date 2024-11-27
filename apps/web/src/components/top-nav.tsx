@@ -105,9 +105,9 @@ export default function TopNav() {
               <DropdownMenuItem>
                 <Link
                   className="text-sm font-medium hover:underline underline-offset-4"
-                  href="/sign-up"
+                  href="/waitlist"
                 >
-                  Sign Up
+                  Join Waitlist
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -128,9 +128,9 @@ export default function TopNav() {
                 Sign in
               </Button>
             </Link>
-            <Link href="/sign-up">
+            <Link href="/waitlist">
               <Button className="rounded-full" variant="secondary">
-                Sign Up
+                Join Waitlist
               </Button>
             </Link>
           </div>
