@@ -11,7 +11,7 @@ import type {
 } from "@polar-sh/sdk/models/components";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/env";
-import { db, eq, sql, users, videos } from "db";
+import { db, eq, or, sql, users, videos } from "db";
 import { clerkClient } from "@clerk/nextjs/server";
 import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "cms";
 import { tasks } from "@trigger.dev/sdk/v3";
@@ -48,34 +48,64 @@ export async function POST(request: NextRequest) {
   console.log("Incoming Webhook", webhookPayload.type);
 
   switch (webhookPayload.type) {
-    case "subscription.active":
-      const productId = webhookPayload.data.product.metadata.productId;
+    case "checkout.created":
+    case "checkout.updated":
+      if (webhookPayload.data.customerEmail) {
+        await db
+          .update(users)
+          .set({
+            polarCustomerId: webhookPayload.data.customerId,
+          })
+          .where(eq(users.email, webhookPayload.data.customerEmail));
+      }
 
-      const [updatedUser] = await db
+      return NextResponse.json({
+        received: true,
+        success: true,
+        userId: webhookPayload.data.customerId,
+      });
+
+    case "subscription.active":
+      const productId =
+        webhookPayload.data.product.metadata.productId ?? webhookPayload.data.productId;
+
+      let [updatedUser] = await db
         .update(users)
         .set({
           accountTier: productId as any,
-          polarCustomerId: webhookPayload.data.userId,
         })
-        .where(eq(users.id, webhookPayload.data.user.email))
+        .where(eq(users.polarCustomerId, webhookPayload.data.userId))
         .returning();
 
-      try {
-        redis.del(`videos:${updatedUser.id}`);
-      } catch {}
+      if (!updatedUser) {
+        updatedUser = (
+          await db
+            .update(users)
+            .set({
+              accountTier: productId as any,
+            })
+            .where(eq(users.email, webhookPayload.data.user.email))
+            .returning()
+        )[0];
+      }
 
-      await db
-        .update(videos)
-        .set({ deletionDate: null })
-        .where(eq(videos.authorId, updatedUser.id));
+      if (!updatedUser) {
+        return new Response(`No user with polar customer id ${webhookPayload.data.userId} found`, {
+          status: 404,
+        });
+      }
 
-      const clerk = await clerkClient();
-
-      await clerk.users.updateUserMetadata(updatedUser.id, {
-        publicMetadata: {
-          accountTier: "free",
-        },
-      });
+      await Promise.all([
+        redis.del(`videos:${updatedUser.id}`).catch(() => {}),
+        db.update(videos).set({ deletionDate: null }).where(eq(videos.authorId, updatedUser.id)),
+        clerkClient().then((clerk) =>
+          clerk.users.updateUserMetadata(updatedUser.id, {
+            publicMetadata: {
+              accountTier: productId,
+            },
+          }),
+        ),
+      ]);
 
       return NextResponse.json({
         received: true,
@@ -85,14 +115,25 @@ export async function POST(request: NextRequest) {
 
     case "subscription.revoked":
     case "subscription.canceled":
-      const userData = await db.query.users.findFirst({
-        where: (table, { eq }) => eq(table.email, webhookPayload.data.user.email),
+      let userData = await db.query.users.findFirst({
+        where: (table, { eq }) => eq(table.polarCustomerId, webhookPayload.data.userId),
         with: {
           videos: {
             orderBy: (table, { asc }) => asc(table.createdAt),
           },
         },
       });
+
+      if (!userData) {
+        userData = await db.query.users.findFirst({
+          where: (table, { eq }) => eq(table.email, webhookPayload.data.user.email),
+          with: {
+            videos: {
+              orderBy: (table, { asc }) => asc(table.createdAt),
+            },
+          },
+        });
+      }
 
       if (!userData) {
         return new Response(`No user with polar customer id ${webhookPayload.data.userId} found`, {
@@ -136,7 +177,7 @@ export async function POST(request: NextRequest) {
 
       await Promise.all([
         tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs),
-        redis.del(`videos:${userData.id}`),
+        redis.del(`videos:${userData.id}`).catch(() => {}),
       ]);
 
       return NextResponse.json({
