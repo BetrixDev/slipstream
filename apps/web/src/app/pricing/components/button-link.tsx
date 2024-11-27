@@ -43,7 +43,7 @@ export function ButtonLink({ paymentLink, paymentTier, accountTier, email }: But
       rel={paymentTier === "free" && accountTier === "free" ? undefined : "noopener noreferrer"}
       href={
         isUserPayingCustomer
-          ? `https://billing.stripe.com/p/login/14k6qN8w0dsueFG000${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
+          ? `https://polar.sh/flowble${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
           : paymentTier === "free"
             ? "/videos"
             : `${paymentLink}${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
