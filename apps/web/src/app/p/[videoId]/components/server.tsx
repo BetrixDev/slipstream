@@ -11,6 +11,8 @@ import { WordyDate } from "./wordy-date";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import { ViewIncrementer } from "./view-incrementer";
+import { Suspense } from "react";
+import { AuthorInfo } from "./author-info";
 
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
@@ -89,6 +91,9 @@ export async function Server({ params }: { params: Promise<{ videoId: string }> 
                   less smooth than usual
                 </span>
               )}
+              <Suspense>
+                <AuthorInfo authorId={videoData.authorId} />
+              </Suspense>
             </CardContent>
           </Card>
           <Separator />

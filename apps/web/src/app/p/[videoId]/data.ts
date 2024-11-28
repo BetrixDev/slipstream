@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { createSigner } from "fast-jwt";
+import { clerkClient } from "@clerk/nextjs/server";
 
 dayjs.extend(utc);
 
@@ -210,6 +211,18 @@ async function getVideoDataFromDb(videoId: string) {
     },
     largeThumbnailUrl,
     videoCreatedAt,
+  };
+}
+
+export async function getVideoAuthorData(authorId: string) {
+  const clerk = await clerkClient();
+
+  const authorData = await clerk.users.getUser(authorId);
+
+  return {
+    username: authorData.username,
+    profileImageUrl: authorData.imageUrl,
+    accountTier: (authorData.publicMetadata.accountTier ?? "free") as string,
   };
 }
 
