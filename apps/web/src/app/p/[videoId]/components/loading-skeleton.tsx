@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EyeIcon, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { EyeIcon, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
 import Link from "next/link";
 
-export default function Loading() {
+export function LoadingSkeleton() {
   return (
-    <div className="max-w-screen h-screen flex flex-col">
+    <>
       <header className="max-h-16 h-16 flex justify-between items-center px-4">
         <Link className="flex items-center" href="/" prefetch>
           <button className="flex-shrink-0 flex items-center z-10">
@@ -41,6 +41,6 @@ export default function Loading() {
           <Card className="grow min-h-64 border-none"></Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

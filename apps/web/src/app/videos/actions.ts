@@ -481,11 +481,6 @@ export async function onUploadCancelled(videoId: string) {
   }
 
   if (userData.accountTier === "free" || userData.accountTier === "pro") {
-    const redis = new Redis({
-      url: env.REDIS_REST_URL,
-      token: env.REDIS_REST_TOKEN,
-    });
-
     const rateLimitKey = `uploadLimit:${userId}`;
 
     const currentLimitString = await redis.get<string>(rateLimitKey);
@@ -579,11 +574,6 @@ async function incrementUserUploadRateLimit(accountTier: string, userId: string)
   const userDailyLimit = USER_VIDEO_DAILY_LIMIT[accountTier] ?? 3;
 
   const rateLimitKey = `uploadLimit:${userId}`;
-
-  const redis = new Redis({
-    url: env.REDIS_REST_URL,
-    token: env.REDIS_REST_TOKEN,
-  });
 
   const currentLimitString = await redis.get<string>(rateLimitKey);
   const currentLimit = parseInt(currentLimitString ?? "0");

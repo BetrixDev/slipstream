@@ -80,7 +80,7 @@ export async function createVideoToken(
 async function generateVideoSources(
   videoData: Awaited<ReturnType<typeof getVideoDataFromDb>>["videoData"],
 ) {
-  return await Promise.all(
+  const sources = await Promise.all(
     videoData.sources.map(async (source) => {
       const url = await getSignedUrl(
         s3Client,
@@ -97,6 +97,8 @@ async function generateVideoSources(
       };
     }),
   );
+
+  return sources;
 }
 
 async function getVideoDataFromDb(videoId: string) {
