@@ -48,7 +48,9 @@ export const metadata: Metadata = {
 export default async function Page() {
   return (
     <HeroHighlight className="min-h-screen flex flex-col">
-      <TopNav />
+      <Suspense>
+        <TopNav />
+      </Suspense>
       <Suspense fallback={<Fallback />}>
         <Server />
       </Suspense>

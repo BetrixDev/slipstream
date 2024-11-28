@@ -12,12 +12,14 @@ export const experimental_ppr = true;
 export default async function Page() {
   return (
     <div className="min-h-screen flex flex-col">
+      <Suspense>
+        <TopNav />
+      </Suspense>
       <EditVideoDialog />
       <DeleteVideoDialog />
       <UploadVideoDialog />
       <TrimVideoDialog />
       <FullPageDropzone />
-      <TopNav />
       <Suspense>
         <Server />
       </Suspense>
