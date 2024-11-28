@@ -27,6 +27,77 @@ const s3Client = new S3Client({
   },
 });
 
+type VideoMetadata = {
+  title: string;
+  largeThumbnailKey: string | null;
+  isPrivate: boolean;
+  videoLengthSeconds?: number | null;
+  source: {
+    key: string;
+    width?: number | null;
+    height?: number | null;
+    type: string;
+  };
+};
+
+export async function getVideoMetaData(videoId: string) {
+  let videoData = await redis.hgetall<VideoMetadata>(`videoMetadata:${videoId}`);
+
+  if (!videoData) {
+    const videoDbData = await db.query.videos.findFirst({
+      where: (table, { eq }) => eq(table.id, videoId),
+      columns: {
+        title: true,
+        largeThumbnailKey: true,
+        sources: true,
+        isPrivate: true,
+        videoLengthSeconds: true,
+      },
+    });
+
+    if (!videoDbData) {
+      return notFound();
+    }
+
+    videoData = {
+      title: videoDbData.title,
+      largeThumbnailKey: videoDbData.largeThumbnailKey,
+      isPrivate: videoDbData.isPrivate,
+      videoLengthSeconds: videoDbData.videoLengthSeconds,
+      source: {
+        key: videoDbData.sources[0].key,
+        width: videoDbData.sources[0].width,
+        height: videoDbData.sources[0].height,
+        type: videoDbData.sources[0].type,
+      },
+    };
+
+    await redis.hset(`videoMetadata:${videoId}`, videoData);
+    await redis.expire(`videoMetadata:${videoId}`, 60 * 60 * 24 * 7);
+  }
+
+  let url: string | undefined;
+
+  if (!videoData.isPrivate) {
+    url = await getSignedUrl(
+      s3Client,
+      new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: videoData.source.key }),
+      { expiresIn: 60 * 60 * 24 * 7 },
+    );
+  }
+
+  return {
+    title: videoData.title,
+    largeThumbnailKey: videoData.largeThumbnailKey,
+    isPrivate: videoData.isPrivate,
+    videoLengthSeconds: videoData.videoLengthSeconds,
+    source: {
+      ...videoData.source,
+      url,
+    },
+  };
+}
+
 export async function getVideoData(videoId: string) {
   const cachedVideoData = await redis.hgetall<
     Omit<Awaited<ReturnType<typeof getVideoDataFromDb>>, "videoSources">

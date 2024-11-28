@@ -1,6 +1,6 @@
 import { env } from "@/env";
 import type { Metadata } from "next";
-import { getVideoData } from "./data";
+import { getVideoMetaData } from "./data";
 import { Suspense } from "react";
 import { Server } from "./components/server";
 import { LoadingSkeleton } from "./components/loading-skeleton";
@@ -15,15 +15,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const videoId = (await params).videoId;
 
-  const { videoData, videoSources } = await getVideoData(videoId);
+  const start = performance.now();
+
+  const videoData = await getVideoMetaData(videoId);
+
+  console.log({
+    event: "getVideoMetaData",
+    durationMs: performance.now() - start,
+  });
 
   const largeThumbnailUrl = `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
   if (videoData.isPrivate) {
     return notFound();
   }
-
-  const nativeVideoSource = videoData.sources.find((source) => source.isNative)!;
 
   return {
     title: `${videoData.title} | Flowble`,
@@ -44,23 +49,22 @@ export async function generateMetadata({
       description: `Watch ${videoData.title} on Flowble`,
       images: [largeThumbnailUrl],
       locale: "en-US",
-      videos: videoSources
-        .filter((source) => source.isNative)
-        .map((source) => ({
-          url: source.src,
-          secureUrl: source.src,
-          width: source.width,
-          height: source.height,
-          type: source.type,
-        })),
+      videos: [
+        {
+          url: videoData.source.url!,
+          height: videoData.source.height ?? 1920,
+          width: videoData.source.width ?? 1080,
+          type: videoData.source.type,
+        },
+      ],
     },
     other: {
       ["og:type"]: "video",
-      ...(nativeVideoSource.height && {
-        ["og:video:height"]: nativeVideoSource.height.toString(),
+      ...(videoData.source.height && {
+        ["og:video:height"]: videoData.source.height.toString(),
       }),
-      ...(nativeVideoSource.width && {
-        ["og:video:width"]: nativeVideoSource.width.toString(),
+      ...(videoData.source.width && {
+        ["og:video:width"]: videoData.source.width.toString(),
       }),
       ...(videoData.videoLengthSeconds && {
         ["og:video:duration"]: videoData.videoLengthSeconds.toString(),
