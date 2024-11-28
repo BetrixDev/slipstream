@@ -4,6 +4,7 @@ import { getVideoData } from "./data";
 import { Suspense } from "react";
 import { Server } from "./components/server";
 import { LoadingSkeleton } from "./components/loading-skeleton";
+import { notFound } from "next/navigation";
 
 export const experimental_ppr = true;
 
@@ -19,24 +20,7 @@ export async function generateMetadata({
   const largeThumbnailUrl = `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
   if (videoData.isPrivate) {
-    return {
-      title: "Video not found | Flowble",
-      description: "This video could not be found on Flowble",
-      openGraph: {
-        title: "Video not found",
-        description: "This video could not be found on Flowble",
-        siteName: "Flowble",
-        locale: "en-US",
-      },
-      twitter: {
-        card: "summary",
-        title: "Video not found",
-        description: "This video could not be found on Flowble",
-      },
-      icons: {
-        icon: "/favicon.ico",
-      },
-    };
+    return notFound();
   }
 
   const nativeVideoSource = videoData.sources.find((source) => source.isNative)!;

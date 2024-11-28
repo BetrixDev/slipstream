@@ -37,6 +37,7 @@ export const incrementViewsScheduledTask = schedules.task({
 
       await redis.del(entry.key);
       await redis.zrem("views", entry.key);
+      await redis.del(`video:${entry.videoId}`);
     }
 
     return { success: true };
