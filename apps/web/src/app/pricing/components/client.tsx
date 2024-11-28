@@ -5,6 +5,7 @@ import { CheckIcon } from "lucide-react";
 import { ButtonLink } from "../components/button-link";
 import { useState } from "react";
 import { tiers } from "../tiers";
+import { AccountTierText } from "@/components/account-tier-text";
 
 type ClientProps = {
   accountTier: string | null;
@@ -45,9 +46,9 @@ export function Client({ accountTier, email }: ClientProps) {
                 className="flex z-10 flex-col justify-between rounded-3xl bg-background p-6 shadow-xl ring-1 ring-gray-900/10 sm:p-8 dark:[border:1px_solid_rgba(100,100,255,.1)]"
               >
                 <div>
-                  <h3 id={tier.id} className="font-semibold leading-7 text-blue-500/90 text-lg">
-                    {tier.name}
-                  </h3>
+                  <AccountTierText accountTier={tier.id} defaultColor="text-blue-500">
+                    <span className="text-lg font-bold leading-7">{tier.name}</span>
+                  </AccountTierText>
                   <div className="mt-4 flex items-baseline">
                     <span className="text-4xl font-bold">$</span>
                     <span className="text-5xl font-bold tracking-tight text-primary font-sans">

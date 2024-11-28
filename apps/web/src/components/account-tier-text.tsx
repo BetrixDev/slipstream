@@ -1,9 +1,11 @@
 export function AccountTierText({
   accountTier,
   children,
+  defaultColor = "text-inherit",
 }: {
   accountTier: string;
   children: React.ReactNode;
+  defaultColor?: string;
 }) {
   if (accountTier === "pro") {
     return (
@@ -18,6 +20,6 @@ export function AccountTierText({
       </span>
     );
   } else {
-    return <span>{children}</span>;
+    return <span className={defaultColor}>{children}</span>;
   }
 }
