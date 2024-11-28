@@ -1,4 +1,4 @@
-import "server-only";
+"use server";
 
 import { auth } from "@clerk/nextjs/server";
 import { and, db, eq, sql, users, videos } from "db";

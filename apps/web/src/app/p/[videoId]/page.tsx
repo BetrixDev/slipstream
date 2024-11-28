@@ -10,17 +10,13 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
 import { WordyDate } from "./components/wordy-date";
 import type { Metadata } from "next";
-import { getIp, getVideoData } from "./data";
+import { createVideoToken, getIp, getVideoData } from "./data";
 import { createSigner } from "fast-jwt";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-
-dayjs.extend(utc);
+import { ViewIncrementer } from "./components/view-incrementer";
 
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
-import { ViewIncrementer } from "./components/view-incrementer";
 
 export const experimental_ppr = true;
 
@@ -116,23 +112,7 @@ export default async function Page({ params }: { params: Promise<{ videoId: stri
     return notFound();
   }
 
-  const ip = await getIp();
-
-  const tokenIdentifier = ip ?? userId ?? videoId;
-
-  const utcTimestamp = Math.round(dayjs.utc().valueOf() / 1000);
-
-  const signSync = createSigner({
-    key: process.env.TOKEN_SIGNING_SECRET,
-    clockTimestamp: utcTimestamp,
-  });
-
-  const token = signSync({
-    videoId,
-    identifier: tokenIdentifier,
-    videoDuration: videoData.videoLengthSeconds,
-    iat: utcTimestamp,
-  });
+  const token = await createVideoToken(videoId, videoData.videoLengthSeconds ?? 0, userId);
 
   return (
     <>

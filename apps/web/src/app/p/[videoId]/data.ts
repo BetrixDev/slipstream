@@ -7,6 +7,11 @@ import { Redis } from "@upstash/redis";
 import { db } from "db";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { createSigner } from "fast-jwt";
+
+dayjs.extend(utc);
 
 const redis = new Redis({
   url: process.env.REDIS_REST_URL,
@@ -44,6 +49,32 @@ export async function getVideoData(videoId: string) {
       videoSources: await generateVideoSources(videoData.videoData),
     };
   }
+}
+
+export async function createVideoToken(
+  videoId: string,
+  videoDuration: number,
+  userId?: string | null,
+) {
+  const ip = await getIp();
+
+  const tokenIdentifier = ip ?? userId ?? videoId;
+
+  const utcTimestamp = Math.round(dayjs.utc().valueOf() / 1000);
+
+  const signSync = createSigner({
+    key: process.env.TOKEN_SIGNING_SECRET,
+    clockTimestamp: utcTimestamp,
+  });
+
+  const token = signSync({
+    videoId,
+    identifier: tokenIdentifier,
+    videoDuration,
+    iat: utcTimestamp,
+  });
+
+  return token;
 }
 
 async function generateVideoSources(

@@ -1,4 +1,4 @@
-import "server-only";
+"use server";
 
 import { Redis } from "@upstash/redis";
 import { createVerifier } from "fast-jwt";
