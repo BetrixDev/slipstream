@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Server } from "./components/server";
 import { LoadingSkeleton } from "./components/loading-skeleton";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 
 export const experimental_ppr = true;
 
@@ -76,6 +77,10 @@ export async function generateMetadata({
 export default async function Page({ params }: { params: Promise<{ videoId: string }> }) {
   return (
     <>
+      <Script
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3191192737129047"
+        crossOrigin="anonymous"
+      />
       <div className="max-w-screen h-screen flex flex-col">
         <Suspense fallback={<LoadingSkeleton />}>
           <Server params={params} />
