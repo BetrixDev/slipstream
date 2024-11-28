@@ -8,6 +8,9 @@ import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Flowble",
+  other: {
+    "google-adsense-account": "ca-pub-3191192737129047",
+  },
 };
 
 export default function RootLayout({
