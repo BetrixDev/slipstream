@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import "./clerk.css";
 import Script from "next/script";
+import { CSPostHogProvider } from "./providers";
+import PostHogPageView from "@/components/PostHogPageView";
 
 export const metadata: Metadata = {
   title: "Flowble",
@@ -25,10 +27,13 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3191192737129047"
           crossOrigin="anonymous"
         />
-        <body className="antialiased font-dmSans">
-          <div vaul-drawer-wrapper="">{children}</div>
-          <Toaster />
-        </body>
+        <CSPostHogProvider>
+          <body className="antialiased font-dmSans">
+            <PostHogPageView />
+            <div vaul-drawer-wrapper="">{children}</div>
+            <Toaster />
+          </body>
+        </CSPostHogProvider>
       </html>
     </ClerkProvider>
   );
