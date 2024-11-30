@@ -12,6 +12,7 @@ import { execa } from "execa";
 import { LOWEST_BITRATE_THRESHOLD } from "cms";
 import { fileTypeFromStream } from "file-type";
 import { Upload } from "@aws-sdk/lib-storage";
+import { Redis } from "@upstash/redis";
 
 type VideoSource = {
   key: string;
@@ -39,6 +40,12 @@ export const transcodingTask = schemaTask({
   }),
   run: async (payload, { ctx }) => {
     const env = envSchema.parse(process.env);
+
+    const redis = new Redis({
+      token: env.REDIS_REST_TOKEN,
+      url: env.REDIS_REST_URL,
+      enableAutoPipelining: true,
+    });
 
     const s3Client = new S3Client({
       region: env.S3_REGION,
@@ -247,6 +254,8 @@ export const transcodingTask = schemaTask({
         isProcessing: false,
       } as any)
       .where(eq(videos.id, videoData.id));
+
+    await redis.del(`video:${videoData.id}`);
   },
 });
 

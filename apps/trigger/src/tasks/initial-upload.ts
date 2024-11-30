@@ -12,6 +12,7 @@ import { execa } from "execa";
 import sharp from "sharp";
 import { Upload } from "@aws-sdk/lib-storage";
 import { glob } from "glob";
+import { Redis } from "@upstash/redis";
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
@@ -30,6 +31,12 @@ export const initialUploadTask = schemaTask({
   }),
   run: async (payload, { ctx }) => {
     const env = envSchema.parse(process.env);
+
+    const redis = new Redis({
+      token: env.REDIS_REST_TOKEN,
+      url: env.REDIS_REST_URL,
+      enableAutoPipelining: true,
+    });
 
     const s3Client = new S3Client({
       region: env.S3_REGION,
@@ -172,17 +179,22 @@ export const initialUploadTask = schemaTask({
 
     logger.info("Updating database");
 
-    const [updatedVideo] = await db
-      .update(videos)
-      .set({
-        fileSizeBytes: videoFsStats.size,
-        largeThumbnailKey: `${videoData.nativeFileKey}-large.webp`,
-        smallThumbnailKey: `${videoData.nativeFileKey}-small.webp`,
-        videoLengthSeconds: videoDurationSeconds,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
-      })
-      .where(eq(videos.id, videoData.id))
-      .returning();
+    const [[updatedVideo]] = await Promise.all([
+      db
+        .update(videos)
+        .set({
+          fileSizeBytes: videoFsStats.size,
+          largeThumbnailKey: `${videoData.nativeFileKey}-large.webp`,
+          smallThumbnailKey: `${videoData.nativeFileKey}-small.webp`,
+          videoLengthSeconds: videoDurationSeconds,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(videos.id, videoData.id))
+        .returning(),
+      redis.del(`video:${videoData.id}`),
+      redis.del(`videoMetadata:${videoData.id}`),
+      redis.del(`videos:${videoData.authorId}`),
+    ]);
 
     return {
       success: true,
