@@ -50,17 +50,17 @@ export async function generateMetadata({
       description: `Watch ${videoData.title} on Flowble`,
       images: [largeThumbnailUrl],
       locale: "en-US",
+      type: "video.other",
       videos: [
         {
           url: videoData.source.url!,
-          height: videoData.source.height ?? 1920,
-          width: videoData.source.width ?? 1080,
+          height: videoData.source.height ?? 1080,
+          width: videoData.source.width ?? 1920,
           type: videoData.source.type,
         },
       ],
     },
     other: {
-      ["og:type"]: "video",
       ...(videoData.source.height && {
         ["og:video:height"]: videoData.source.height.toString(),
       }),

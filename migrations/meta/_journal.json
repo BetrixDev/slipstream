@@ -57,6 +57,20 @@
       "when": 1732667434243,
       "tag": "0007_fast_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1733199260152,
+      "tag": "0008_late_changeling",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1733199277963,
+      "tag": "0009_slippery_doomsday",
+      "breakpoints": true
     }
   ]
 }

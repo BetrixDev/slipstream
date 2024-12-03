@@ -1,11 +1,15 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { type WebhookEvent, clerkClient } from "@clerk/nextjs/server";
+import Stripe from "stripe";
+import { env } from "@/env";
 import { db, eq, sql, users, videos } from "db";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { videoDeletionTask } from "trigger";
 
 export async function POST(request: Request) {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY);
+
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
@@ -54,11 +58,19 @@ export async function POST(request: Request) {
       (e) => e.id === event.data.primary_email_address_id,
     )!;
 
+    const stripeCustomer = await stripe.customers.create({
+      email: userPrimaryEmail.email_address,
+      name: event.data.username ?? undefined,
+      phone: event.data.phone_numbers.find((p) => p.id === event.data.primary_phone_number_id)
+        ?.phone_number,
+    });
+
     await Promise.all([
       db.insert(users).values({
         id: event.data.id,
         email: userPrimaryEmail.email_address,
         createdAt: sql`to_timestamp(${event.data.created_at} / 1000.0)`,
+        stripeCustomerId: stripeCustomer.id,
       }),
       clerkClient().then((clerk) =>
         clerk.users.updateUserMetadata(event.data.id, {
@@ -78,6 +90,7 @@ export async function POST(request: Request) {
       const videoDeletionTasks = deletedVideos.map((video) => ({ payload: { videoId: video.id } }));
 
       await Promise.all([
+        deletedUser.stripeCustomerId ? stripe.customers.del(deletedUser.stripeCustomerId) : null,
         tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", videoDeletionTasks),
       ]);
     }
@@ -93,6 +106,12 @@ export async function POST(request: Request) {
       })
       .where(eq(users.id, event.data.id))
       .returning();
+
+    if (updatedUser.stripeCustomerId) {
+      await stripe.customers.update(updatedUser.stripeCustomerId, {
+        email: updatedUser.email,
+      });
+    }
   }
 
   return new Response("", { status: 200 });

@@ -174,18 +174,16 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
     runs.forEach((run) => {
       if (run.output && run.output.success) {
         useUserVideoDatastore.setState((state) => ({
-          videos: state.videos
-            .map((v) => {
-              if (v.id === props.videoId) {
-                return {
-                  ...v,
-                  smallThumbnailUrl: run.output!.smallThumbnailUrl,
-                  videoLengthSeconds: run.output?.videoLengthSeconds,
-                };
-              }
-              return v;
-            })
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+          videos: state.videos.map((v) => {
+            if (v.id === props.videoId && run.output) {
+              return {
+                ...v,
+                smallThumbnailUrl: run.output.smallThumbnailUrl,
+                videoLengthSeconds: run.output.videoLengthSeconds,
+              };
+            }
+            return v;
+          }),
         }));
       }
     });
