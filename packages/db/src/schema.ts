@@ -15,7 +15,7 @@ export const users = pgTable(
   "users",
   {
     id: text("id").primaryKey(),
-    stripeCustomerId: text("stripe_customer_id"),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
     email: text("email").notNull(),
     createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
     accountTier: text("account_tier", { enum: ["free", "pro", "premium", "ultimate"] })

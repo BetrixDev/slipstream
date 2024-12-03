@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       const videoDeletionTasks = deletedVideos.map((video) => ({ payload: { videoId: video.id } }));
 
       await Promise.all([
-        deletedUser.stripeCustomerId ? stripe.customers.del(deletedUser.stripeCustomerId) : null,
+        stripe.customers.del(deletedUser.stripeCustomerId),
         tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", videoDeletionTasks),
       ]);
     }
@@ -107,11 +107,9 @@ export async function POST(request: Request) {
       .where(eq(users.id, event.data.id))
       .returning();
 
-    if (updatedUser.stripeCustomerId) {
-      await stripe.customers.update(updatedUser.stripeCustomerId, {
-        email: updatedUser.email,
-      });
-    }
+    await stripe.customers.update(updatedUser.stripeCustomerId, {
+      email: updatedUser.email,
+    });
   }
 
   return new Response("", { status: 200 });
