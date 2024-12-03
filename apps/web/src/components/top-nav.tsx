@@ -35,7 +35,7 @@ export default function TopNav() {
             </Link>
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
-              href="https://www.google.com"
+              href="mailto:support@flowble.app"
               target="_blank"
               rel="noreferrer"
             >
@@ -77,7 +77,7 @@ export default function TopNav() {
                 <DropdownMenuItem>
                   <Link
                     className="text-sm font-medium hover:underline underline-offset-4"
-                    href="https://www.google.com"
+                    href="mailto:support@flowble.app"
                   >
                     Support
                   </Link>
