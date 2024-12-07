@@ -287,7 +287,7 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
       );
     }
 
-    if (!videoData.isProcessing) {
+    if (!videoData.isPrivate) {
       promises.push(
         tasks.trigger<typeof thumbnailTrackTask>(
           "thumbnail-track",
