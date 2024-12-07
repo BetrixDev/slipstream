@@ -53,6 +53,15 @@ export const videos = pgTable(
     fileSizeBytes: real("file_size_bytes").notNull(),
     videoLengthSeconds: integer("video_length_seconds"),
     isProcessing: boolean("is_processing").notNull().default(true),
+    storyboardJson: jsonb("storyboard_json").$type<{
+      tileWidth: number;
+      tileHeight: number;
+      tiles: {
+        startTime: number;
+        x: number;
+        y: number;
+      }[];
+    }>(),
     sources: jsonb("sources")
       .$type<
         {

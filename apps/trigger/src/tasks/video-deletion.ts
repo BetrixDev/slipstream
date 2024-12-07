@@ -1,8 +1,9 @@
-import { AbortTaskRunError, schemaTask } from "@trigger.dev/sdk/v3";
+import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
 import { z } from "zod";
 import { envSchema } from "../utils/env.js";
 import { DeleteObjectCommand, ListObjectVersionsCommand, S3Client } from "@aws-sdk/client-s3";
 import { db, eq, sql, users, videos } from "db";
+import { Redis } from "@upstash/redis";
 
 export const videoDeletionTask = schemaTask({
   id: "video-deletion",
@@ -38,6 +39,20 @@ export const videoDeletionTask = schemaTask({
     if (!videoData) {
       throw new AbortTaskRunError(`No video found with id ${payload.videoId}`);
     }
+
+    const associatedRuns = await runs.list({ tag: `video_${videoData.id}` });
+
+    const runsToDeletePromises: Promise<any>[] = [];
+
+    associatedRuns.data.forEach((run) => {
+      if (run.isExecuting || run.isQueued) {
+        runsToDeletePromises.push(runs.cancel(run.id));
+      }
+    });
+
+    try {
+      await Promise.all(runsToDeletePromises);
+    } catch {}
 
     const videoDeleteCommandPromises: Promise<any>[] = [];
 
@@ -118,6 +133,15 @@ export const videoDeletionTask = schemaTask({
       });
     }
 
+    thumbnailDeleteCommands.push(
+      s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: env.THUMBS_BUCKET_NAME,
+          Key: `${videoData.nativeFileKey}-storyboard.jpg`,
+        }),
+      ),
+    );
+
     await Promise.all([
       ...videoDeleteCommandPromises,
       ...thumbnailDeleteCommands,
@@ -129,5 +153,30 @@ export const videoDeletionTask = schemaTask({
         })
         .where(eq(users.id, videoData.authorId)),
     ]);
+
+    const redis = new Redis({
+      url: env.REDIS_REST_URL,
+      token: env.REDIS_REST_TOKEN,
+    });
+
+    try {
+      const cachedVideos = await redis.hget<(typeof videoData)[]>(
+        `videos:${videoData.authorId}`,
+        "videos",
+      );
+
+      if (cachedVideos) {
+        await redis.hset(`videos:${videoData.authorId}`, {
+          videos: cachedVideos.filter((v) => v.id !== payload.videoId),
+        });
+      }
+    } catch {
+      redis.del(`videos:${videoData.authorId}`).catch();
+    }
+
+    return {
+      success: true,
+      videoTitle: videoData.title,
+    };
   },
 });

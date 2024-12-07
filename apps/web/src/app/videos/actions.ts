@@ -19,7 +19,12 @@ import {
 } from "cms";
 import { nanoid } from "nanoid";
 import { tasks, auth as triggerAuth, runs } from "@trigger.dev/sdk/v3";
-import type { initialUploadTask, transcodingTask } from "trigger";
+import type {
+  initialUploadTask,
+  thumbnailTrackTask,
+  transcodingTask,
+  videoDeletionTask,
+} from "trigger";
 import { Redis } from "@upstash/redis";
 
 const redis = new Redis({
@@ -70,113 +75,14 @@ export async function deleteVideo(videoId: string) {
     return { success: false, message: "Not authorized" };
   }
 
-  const videoData = await db.query.videos.findFirst({
-    where: (table, { eq, and }) => and(eq(table.id, videoId), eq(table.authorId, userId)),
-  });
+  // TODO: use realtime to inform the user better
 
-  if (!videoData) {
-    return { success: false, message: "Video not found" };
-  }
+  await tasks.trigger<typeof videoDeletionTask>("video-deletion", { videoId });
 
-  const associatedRuns = await runs.list({ tag: `video_${videoData.id}` });
-
-  const runsToDeletePromises: Promise<any>[] = [];
-
-  associatedRuns.data.forEach((run) => {
-    if (run.isExecuting || run.isQueued) {
-      runsToDeletePromises.push(runs.cancel(run.id));
-    }
-  });
-
-  try {
-    await Promise.all(runsToDeletePromises);
-  } catch {}
-
-  const s3VideosClient = new S3Client({
-    endpoint: env.S3_ENDPOINT,
-    region: env.S3_REGION,
-    credentials: {
-      accessKeyId: env.S3_ROOT_ACCESS_KEY,
-      secretAccessKey: env.S3_ROOT_SECRET_KEY,
-    },
-  });
-
-  const s3ThumbsClient = new S3Client({
-    endpoint: env.S3_ENDPOINT,
-    region: env.S3_REGION,
-    credentials: {
-      accessKeyId: env.S3_ROOT_ACCESS_KEY,
-      secretAccessKey: env.S3_ROOT_SECRET_KEY,
-    },
-  });
-
-  const deleteCommandPromises: Promise<any>[] = [];
-
-  videoData.sources.forEach((source) => {
-    deleteCommandPromises.push(
-      s3VideosClient.send(
-        new DeleteObjectCommand({
-          Bucket: env.VIDEOS_BUCKET_NAME,
-          Key: source.key,
-        }),
-      ),
-    );
-  });
-
-  if (videoData.smallThumbnailKey) {
-    deleteCommandPromises.push(
-      s3ThumbsClient.send(
-        new DeleteObjectCommand({
-          Bucket: env.THUMBS_BUCKET_NAME,
-          Key: videoData.smallThumbnailKey,
-        }),
-      ),
-    );
-  }
-
-  if (videoData.largeThumbnailKey) {
-    deleteCommandPromises.push(
-      s3ThumbsClient.send(
-        new DeleteObjectCommand({
-          Bucket: env.THUMBS_BUCKET_NAME,
-          Key: videoData.largeThumbnailKey,
-        }),
-      ),
-    );
-  }
-
-  try {
-    await Promise.all([
-      ...deleteCommandPromises,
-      redis.del(`video:${videoId}`),
-      db
-        .delete(videos)
-        .where(and(eq(videos.id, videoId), eq(videos.authorId, userId)))
-        .returning(),
-      db
-        .update(users)
-        .set({
-          totalStorageUsed: sql`GREATEST(${users.totalStorageUsed} - ${videoData.fileSizeBytes}, 0)`,
-        })
-        .where(eq(users.id, userId)),
-    ]);
-
-    try {
-      const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
-
-      if (cachedVideos) {
-        await redis.hset(`videos:${userId}`, {
-          videos: cachedVideos.filter((v) => v.id !== videoId),
-        });
-      }
-    } catch {
-      redis.del(`videos:${userId}`);
-    }
-  } catch {
-    return { success: false, message: "Failed to delete video." };
-  }
-
-  return { success: true, message: videoData.title };
+  return {
+    success: true,
+    message: "Video queued for deletion",
+  };
 }
 
 type UploadPreflightResponse =
@@ -375,6 +281,16 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
       promises.push(
         tasks.trigger<typeof transcodingTask>(
           "transcoding",
+          { videoId },
+          { tags: [userId, `video_${videoId}`] },
+        ),
+      );
+    }
+
+    if (!videoData.isProcessing) {
+      promises.push(
+        tasks.trigger<typeof thumbnailTrackTask>(
+          "thumbnail-track",
           { videoId },
           { tags: [userId, `video_${videoId}`] },
         ),

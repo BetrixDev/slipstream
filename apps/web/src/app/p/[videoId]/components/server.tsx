@@ -21,7 +21,7 @@ import "@vidstack/react/player/styles/default/layouts/video.css";
 export async function Server({ params }: { params: Promise<{ videoId: string }> }) {
   const videoId = (await params).videoId;
 
-  const { videoData, videoSources, largeThumbnailUrl, videoCreatedAt } =
+  const { videoData, videoSources, largeThumbnailUrl, videoCreatedAt, storyboard } =
     await getVideoData(videoId);
 
   const { userId } = await auth();
@@ -70,7 +70,7 @@ export async function Server({ params }: { params: Promise<{ videoId: string }> 
               <Poster className="vds-poster" src={largeThumbnailUrl} />
             )}
           </MediaProvider>
-          <DefaultVideoLayout icons={defaultLayoutIcons} />
+          <DefaultVideoLayout icons={defaultLayoutIcons} thumbnails={storyboard} />
         </MediaPlayer>
         <div className="flex flex-col gap-4 min-w-96 w-96 grow">
           <Card className="border-none shadow-none">

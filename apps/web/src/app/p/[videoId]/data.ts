@@ -186,8 +186,31 @@ async function getVideoDataFromDb(videoId: string) {
       videoLengthSeconds: true,
       createdAt: true,
       sources: true,
+      storyboardJson: true,
+      nativeFileKey: true,
     },
   });
+
+  console.log(
+    db.query.videos
+      .findFirst({
+        where: (table, { eq }) => eq(table.id, videoId),
+        columns: {
+          title: true,
+          views: true,
+          isPrivate: true,
+          authorId: true,
+          isProcessing: true,
+          largeThumbnailKey: true,
+          videoLengthSeconds: true,
+          createdAt: true,
+          sources: true,
+          storyboardJson: true,
+          nativeFileKey: true,
+        },
+      })
+      .toSQL(),
+  );
 
   if (!videoData) {
     return notFound();
@@ -208,7 +231,14 @@ async function getVideoDataFromDb(videoId: string) {
       largeThumbnailKey: videoData.largeThumbnailKey,
       authorId: videoData.authorId,
       sources: videoData.sources,
+      nativeFileKey: videoData.nativeFileKey,
     },
+    storyboard: videoData.storyboardJson
+      ? {
+          ...videoData.storyboardJson,
+          url: `${env.THUMBNAIL_BASE_URL}/${videoData.nativeFileKey}-storyboard.jpg`,
+        }
+      : null,
     largeThumbnailUrl,
     videoCreatedAt,
   };

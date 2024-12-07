@@ -9,12 +9,15 @@ import { Progress } from "@/components/ui/progress";
 import { XIcon } from "lucide-react";
 import { onUploadCancelled } from "../actions";
 import { toast } from "sonner";
+import { useUserVideoDatastore } from "../stores/user-video-data";
 
 export function UploadingVideosContainer() {
   const { uploadingVideos, removeVideo } = useUploadingVideosStore();
+  const { decrementTotalStorageUsed } = useUserVideoDatastore();
 
-  function handleUploadCancel(videoId: string, videoTitle: string) {
+  function handleUploadCancel(videoId: string, videoTitle: string, videoSizeBytes: number) {
     removeVideo(videoId);
+    decrementTotalStorageUsed(videoSizeBytes);
     onUploadCancelled(videoId);
 
     toast.success("Cancelled uploading video", { description: videoTitle });
@@ -26,7 +29,7 @@ export function UploadingVideosContainer() {
         <Card
           key={video.id}
           className="group hover:cursor-pointer relative bg-card rounded-lg overflow-hidden shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg group aspect-video border-border/50 hover:border-border"
-          onClick={() => handleUploadCancel(video.id, video.title)}
+          onClick={() => handleUploadCancel(video.id, video.title, video.file.size)}
         >
           <Skeleton className="absolute inset-0">
             <div className="group-hover:flex w-full h-full hidden items-center justify-center">
