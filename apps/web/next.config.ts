@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
 };
 
 export default nextConfig;

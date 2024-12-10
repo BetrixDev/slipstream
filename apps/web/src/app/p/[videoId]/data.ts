@@ -191,27 +191,6 @@ async function getVideoDataFromDb(videoId: string) {
     },
   });
 
-  console.log(
-    db.query.videos
-      .findFirst({
-        where: (table, { eq }) => eq(table.id, videoId),
-        columns: {
-          title: true,
-          views: true,
-          isPrivate: true,
-          authorId: true,
-          isProcessing: true,
-          largeThumbnailKey: true,
-          videoLengthSeconds: true,
-          createdAt: true,
-          sources: true,
-          storyboardJson: true,
-          nativeFileKey: true,
-        },
-      })
-      .toSQL(),
-  );
-
   if (!videoData) {
     return notFound();
   }

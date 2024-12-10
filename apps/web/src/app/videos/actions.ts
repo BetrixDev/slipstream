@@ -96,7 +96,7 @@ export async function getuploadPreflightData(
   const { userId } = await auth();
 
   if (!userId) {
-    return { success: false, message: "Not authorized" };
+    return { success: false, message: "You must be signed in" };
   }
 
   const userData = await db.query.users.findFirst({
@@ -271,8 +271,8 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     const promises: Promise<any>[] = [
       tasks.trigger<typeof initialUploadTask>(
         "initial-upload",
-        { videoId },
-        { tags: [userId, `initial-upload-${videoId}`, `video_${videoId}`] },
+        { videoId: videoData.id },
+        { tags: [userId, `initial-upload-${videoId}`, `video_${videoData.id}`] },
         { publicAccessToken: { expirationTime: "1hr" } },
       ),
     ];
@@ -281,8 +281,8 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
       promises.push(
         tasks.trigger<typeof transcodingTask>(
           "transcoding",
-          { videoId },
-          { tags: [userId, `video_${videoId}`] },
+          { videoId: videoData.id },
+          { tags: [userId, `video_${videoData.id}`] },
         ),
       );
     }
