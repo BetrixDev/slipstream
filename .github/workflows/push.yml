@@ -29,9 +29,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build services
-        run: pnpm run build
-
       - name: Migrate Database
         run: pnpm run workflow:migrate-db
         
