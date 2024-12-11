@@ -19,8 +19,8 @@
   },
   "type": "module",
   "dependencies": {
-    "drizzle-orm": "^0.33.0",
-    "postgres": "^3.4.5"
+    "@neondatabase/serverless": "^0.10.4",
+    "drizzle-orm": "^0.33.0"
   },
   "devDependencies": {
     "@types/node": "^22.6.2",

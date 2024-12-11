@@ -265,9 +265,12 @@ importers:
 
   packages/db:
     dependencies:
+      '@neondatabase/serverless':
+        specifier: ^0.10.4
+        version: 0.10.4
       drizzle-orm:
         specifier: ^0.33.0
-        version: 0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.1)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@18.3.1)
+        version: 0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.4)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@18.3.1)
       postgres:
         specifier: ^3.4.5
         version: 3.4.5
@@ -1341,8 +1344,8 @@ packages:
   '@neon-rs/load@0.0.4':
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
-  '@neondatabase/serverless@0.10.1':
-    resolution: {integrity: sha512-Upn555uEYL/q8aqMdPSviggNWeeZLCl5FhCIs7A4hmshfoOAAfML+Sqbcxr+Re2WZN5+hpyM9JClImXnBuhuXw==}
+  '@neondatabase/serverless@0.10.4':
+    resolution: {integrity: sha512-2nZuh3VUO9voBauuh+IGYRhGU/MskWHt1IuZvHcJw6GLjDgtqj/KViKo7SIrLdGLdot7vFbiRRw+BgEy3wT9HA==}
 
   '@next/env@15.0.4-canary.49':
     resolution: {integrity: sha512-8fedO1xMF+LuWshoQFYnr2Sl2u1lhq+aD39Nebv1ZmMTkVF8Z93xmyh/0EvGx7PNafuUxf9pfbadkK2KsTBFXw==}
@@ -5924,10 +5927,9 @@ snapshots:
   '@neon-rs/load@0.0.4':
     optional: true
 
-  '@neondatabase/serverless@0.10.1':
+  '@neondatabase/serverless@0.10.4':
     dependencies:
       '@types/pg': 8.11.6
-    optional: true
 
   '@next/env@15.0.4-canary.49': {}
 
@@ -7490,7 +7492,6 @@ snapshots:
       '@types/node': 22.6.2
       pg-protocol: 1.7.0
       pg-types: 4.0.2
-    optional: true
 
   '@types/prop-types@15.7.13': {}
 
@@ -7788,10 +7789,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.1)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@18.3.1):
+  drizzle-orm@0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.4)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@18.3.1):
     optionalDependencies:
       '@libsql/client': 0.11.0
-      '@neondatabase/serverless': 0.10.1
+      '@neondatabase/serverless': 0.10.4
       '@opentelemetry/api': 1.9.0
       '@types/pg': 8.11.6
       '@types/react': 18.3.8
@@ -8414,8 +8415,7 @@ snapshots:
 
   obliterator@2.0.4: {}
 
-  obuf@1.1.2:
-    optional: true
+  obuf@1.1.2: {}
 
   one-time@1.0.0:
     dependencies:
@@ -8455,19 +8455,16 @@ snapshots:
   pg-connection-string@2.7.0:
     optional: true
 
-  pg-int8@1.0.1:
-    optional: true
+  pg-int8@1.0.1: {}
 
-  pg-numeric@1.0.2:
-    optional: true
+  pg-numeric@1.0.2: {}
 
   pg-pool@3.7.0(pg@8.13.1):
     dependencies:
       pg: 8.13.1
     optional: true
 
-  pg-protocol@1.7.0:
-    optional: true
+  pg-protocol@1.7.0: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -8487,7 +8484,6 @@ snapshots:
       postgres-date: 2.1.0
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
-    optional: true
 
   pg@8.13.1:
     dependencies:
@@ -8569,8 +8565,7 @@ snapshots:
   postgres-array@2.0.0:
     optional: true
 
-  postgres-array@3.0.2:
-    optional: true
+  postgres-array@3.0.2: {}
 
   postgres-bytea@1.0.0:
     optional: true
@@ -8578,24 +8573,20 @@ snapshots:
   postgres-bytea@3.0.0:
     dependencies:
       obuf: 1.1.2
-    optional: true
 
   postgres-date@1.0.7:
     optional: true
 
-  postgres-date@2.1.0:
-    optional: true
+  postgres-date@2.1.0: {}
 
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
     optional: true
 
-  postgres-interval@3.0.0:
-    optional: true
+  postgres-interval@3.0.0: {}
 
-  postgres-range@1.1.4:
-    optional: true
+  postgres-range@1.1.4: {}
 
   postgres@3.4.5: {}
 
