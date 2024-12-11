@@ -30,7 +30,7 @@ jobs:
         run: pnpm install
 
       - name: Migrate Database
-        run: pnpm run workflow:migrate-db
+        run: pnpm run migrate
         
       - name: 🚀 Deploy Trigger.dev
         env:
