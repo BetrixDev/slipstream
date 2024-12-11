@@ -271,9 +271,6 @@ importers:
       drizzle-orm:
         specifier: ^0.33.0
         version: 0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.4)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@18.3.1)
-      postgres:
-        specifier: ^3.4.5
-        version: 3.4.5
     devDependencies:
       '@types/node':
         specifier: ^22.6.2
@@ -8588,7 +8585,8 @@ snapshots:
 
   postgres-range@1.1.4: {}
 
-  postgres@3.4.5: {}
+  postgres@3.4.5:
+    optional: true
 
   prettier@3.2.5: {}
 
