@@ -11,7 +11,6 @@ import { Readable } from "node:stream";
 import { execa } from "execa";
 import sharp from "sharp";
 import { Upload } from "@aws-sdk/lib-storage";
-import { env } from "@/lib/env";
 import { videos } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
@@ -30,6 +29,8 @@ export const thumbnailTrackTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload, { ctx }) => {
+    const { env } = await import("@/lib/env");
+
     const s3Client = new S3Client({
       region: env.S3_REGION,
       endpoint: env.S3_ENDPOINT,

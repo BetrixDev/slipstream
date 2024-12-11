@@ -7,7 +7,6 @@ import { videos } from "@/lib/schema";
 import path from "path";
 import os from "node:os";
 import { mkdir, stat } from "node:fs/promises";
-import { env } from "@/lib/env";
 import { Readable } from "node:stream";
 import { createReadStream, createWriteStream } from "node:fs";
 import { execa } from "execa";
@@ -41,6 +40,8 @@ export const transcodingTask = schemaTask({
     force: z.boolean().default(false),
   }),
   run: async (payload, { ctx }) => {
+    const { env } = await import("@/lib/env");
+
     const redis = new Redis({
       token: env.REDIS_REST_TOKEN,
       url: env.REDIS_REST_URL,

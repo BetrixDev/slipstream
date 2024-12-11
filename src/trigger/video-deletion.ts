@@ -4,7 +4,6 @@ import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { users, videos } from "@/lib/schema";
 import { db } from "@/lib/db";
 import { eq, sql } from "drizzle-orm";
-import { env } from "@/lib/env";
 import { Redis } from "@upstash/redis";
 
 export const videoDeletionTask = schemaTask({
@@ -23,6 +22,8 @@ export const videoDeletionTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload) => {
+    const { env } = await import("@/lib/env");
+
     const s3Client = new S3Client({
       region: env.S3_REGION,
       endpoint: env.S3_ENDPOINT,

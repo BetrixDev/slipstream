@@ -1,6 +1,5 @@
 import { schedules } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
-import { env } from "@/lib/env";
 import { videos } from "@/lib/schema";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -9,6 +8,8 @@ export const incrementViewsScheduledTask = schedules.task({
   id: "increment-views",
   cron: "*/5 * * * *",
   run: async () => {
+    const { env } = await import("@/lib/env");
+
     const redis = new Redis({
       token: env.REDIS_REST_TOKEN,
       url: env.REDIS_REST_URL,

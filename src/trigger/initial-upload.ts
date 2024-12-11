@@ -11,7 +11,6 @@ import { execa } from "execa";
 import sharp from "sharp";
 import { Upload } from "@aws-sdk/lib-storage";
 import { glob } from "glob";
-import { env } from "@/lib/env";
 import { Redis } from "@upstash/redis";
 import { videos } from "@/lib/schema";
 import { eq, sql } from "drizzle-orm";
@@ -32,6 +31,8 @@ export const initialUploadTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload, { ctx }) => {
+    const { env } = await import("@/lib/env");
+
     const redis = new Redis({
       token: env.REDIS_REST_TOKEN,
       url: env.REDIS_REST_URL,
