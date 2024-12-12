@@ -1,11 +1,11 @@
 import TopNav from "@/components/top-nav";
+import { Suspense } from "react";
 import { DeleteVideoDialog } from "./components/dialogs/delete-video-dialog";
-import { UploadVideoDialog } from "./components/dialogs/upload-video-dialog";
 import { EditVideoDialog } from "./components/dialogs/edit-video-dialog";
 import { TrimVideoDialog } from "./components/dialogs/trim-video-dialog";
+import { UploadVideoDialog } from "./components/dialogs/upload-video-dialog";
 import { FullPageDropzone } from "./components/full-page-dropzone";
 import { Server } from "./components/server";
-import { Suspense } from "react";
 
 export const experimental_ppr = true;
 

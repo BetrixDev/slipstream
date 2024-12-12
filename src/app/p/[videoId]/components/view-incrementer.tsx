@@ -9,6 +9,7 @@ type ViewIncrementerProps = {
 };
 
 export function ViewIncrementer({ token, videoDuration }: ViewIncrementerProps) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     const timeout = setTimeout(
       () => {

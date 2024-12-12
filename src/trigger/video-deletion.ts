@@ -1,10 +1,10 @@
-import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
-import { z } from "zod";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { users, videos } from "@/lib/schema";
 import { db } from "@/lib/db";
-import { eq, sql } from "drizzle-orm";
+import { users, videos } from "@/lib/schema";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
+import { eq, sql } from "drizzle-orm";
+import { z } from "zod";
 
 export const videoDeletionTask = schemaTask({
   id: "video-deletion",
@@ -43,19 +43,19 @@ export const videoDeletionTask = schemaTask({
 
     const associatedRuns = await runs.list({ tag: `video_${videoData.id}` });
 
-    const runsToDeletePromises: Promise<any>[] = [];
+    const runsToDeletePromises: Promise<unknown>[] = [];
 
-    associatedRuns.data.forEach((run) => {
+    for (const run of associatedRuns.data) {
       if (run.isExecuting || run.isQueued) {
         runsToDeletePromises.push(runs.cancel(run.id));
       }
-    });
+    }
 
     try {
       await Promise.all(runsToDeletePromises);
     } catch {}
 
-    const videoDeleteCommandPromises: Promise<any>[] = [];
+    const videoDeleteCommandPromises: Promise<unknown>[] = [];
 
     for (const source of videoData.sources) {
       videoDeleteCommandPromises.push(
@@ -68,7 +68,7 @@ export const videoDeletionTask = schemaTask({
       );
     }
 
-    const thumbnailDeleteCommands: Promise<any>[] = [];
+    const thumbnailDeleteCommands: Promise<unknown>[] = [];
 
     if (videoData.smallThumbnailKey) {
       thumbnailDeleteCommands.push(

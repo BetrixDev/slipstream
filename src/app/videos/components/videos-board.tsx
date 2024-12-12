@@ -1,21 +1,21 @@
 "use client";
 
-import { useSetAtom } from "jotai";
-import { deleteVideoAtom, editVideoAtom } from "../atoms";
-import { Card } from "@/components/ui/card";
-import { Copy, Eye, EyeOff, HardDriveDownload, ListTodo, Loader2Icon, Trash } from "lucide-react";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui/button";
-import { formatSecondsToTimestamp, humanFileSize, handleCopyLink } from "@/lib/utils";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
-import { useEffect, useState, type ComponentProps } from "react";
-import { getVideoDownloadDetails } from "../actions";
-import { toast } from "sonner";
-import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { formatSecondsToTimestamp, handleCopyLink, humanFileSize } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
 import { TriggerAuthContext, useRealtimeRunsWithTag } from "@trigger.dev/react-hooks";
-import { useUserVideoDatastore, type Video } from "../stores/user-video-data";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+import { useSetAtom } from "jotai";
+import { Copy, Eye, EyeOff, HardDriveDownload, ListTodo, Loader2Icon, Trash } from "lucide-react";
+import Link from "next/link";
+import { type ComponentProps, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { getVideoDownloadDetails } from "../actions";
+import { deleteVideoAtom, editVideoAtom } from "../atoms";
+import { type Video, useUserVideoDatastore } from "../stores/user-video-data";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -44,7 +44,9 @@ function UploadedVideo({ video }: { video: Video }) {
 
       window.open(url);
     } catch {
-      toast.error("Unable to download video at this time", { description: video.title });
+      toast.error("Unable to download video at this time", {
+        description: video.title,
+      });
     }
   }
 
@@ -65,11 +67,11 @@ function UploadedVideo({ video }: { video: Video }) {
             <ThumbnailPlaceholder videoId={video.id} />
           </TriggerAuthContext.Provider>
         )}
-        <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40" />
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
         {!!video.deletionDate && <PendingDeletionChip deletionDate={video.deletionDate} />}
-        {!isNaN(parseFloat(`${video.videoLengthSeconds}`)) && (
+        {!Number.isNaN(Number.parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
             {formatSecondsToTimestamp(video.videoLengthSeconds ?? 0)}s
           </span>
@@ -166,10 +168,9 @@ type ThumbnailPlaceholderProps = {
 
 function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
   const { runs } = useRealtimeRunsWithTag(`initial-upload-${props.videoId}`);
-
   useEffect(() => {
-    runs.forEach((run) => {
-      if (run.output && run.output.success) {
+    for (const run of runs) {
+      if (run.output?.success) {
         useUserVideoDatastore.setState((state) => ({
           videos: state.videos.map((v) => {
             if (v.id === props.videoId && run.output) {
@@ -183,8 +184,8 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
           }),
         }));
       }
-    });
-  }, [runs]);
+    }
+  }, [runs, props.videoId]);
 
   return (
     <div className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full h-2/3 flex flex-col gap-2 items-center justify-center">
@@ -232,15 +233,16 @@ export function RelativeDate({ timestamp, ...props }: RelativeDateProps) {
 
     if (dayjs().diff(dayjsInstance, "day") < 7) {
       return dayjsInstance.fromNow();
-    } else {
-      return new Date(dayjsInstance.valueOf()).toLocaleString(undefined, {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      });
     }
+
+    return new Date(dayjsInstance.valueOf()).toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    });
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     setDateString(getUpdatedDateString());
 

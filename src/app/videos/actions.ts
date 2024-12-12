@@ -1,8 +1,18 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { users, videos } from "@/lib/schema";
+import {
+  FREE_PLAN_VIDEO_RETENION_DAYS,
+  MAX_FILE_SIZE_FREE_TIER,
+  PLAN_STORAGE_SIZES,
+  VIDEO_TITLE_MAX_LENGTH,
+} from "@/lib/constants";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import { users, videos } from "@/lib/schema";
+import type { initialUploadTask } from "@/trigger/initial-upload";
+import type { thumbnailTrackTask } from "@/trigger/thumbnail-track";
+import type { transcodingTask } from "@/trigger/transcoding";
+import type { videoDeletionTask } from "@/trigger/video-deletion";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -11,21 +21,11 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { env } from "@/lib/env";
-import {
-  FREE_PLAN_VIDEO_RETENION_DAYS,
-  MAX_FILE_SIZE_FREE_TIER,
-  PLAN_STORAGE_SIZES,
-  VIDEO_TITLE_MAX_LENGTH,
-} from "@/lib/constants";
-import { nanoid } from "nanoid";
+import { auth } from "@clerk/nextjs/server";
 import { tasks, auth as triggerAuth } from "@trigger.dev/sdk/v3";
-import type { initialUploadTask } from "@/trigger/initial-upload";
-import type { thumbnailTrackTask } from "@/trigger/thumbnail-track";
-import type { transcodingTask } from "@/trigger/transcoding";
-import type { videoDeletionTask } from "@/trigger/video-deletion";
-import { and, eq, sql } from "drizzle-orm";
 import { Redis } from "@upstash/redis";
+import { and, eq, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 const redis = new Redis({
   url: env.REDIS_REST_URL,
@@ -61,6 +61,7 @@ export async function getVideoDownloadDetails(videoId: string) {
     Key: videoData.nativeFileKey,
   });
 
+  // biome-ignore lint/suspicious/noExplicitAny: types for package aren't correct
   const url = await getSignedUrl(s3ReadOnlyClient as any, command, {
     expiresIn: 3600,
   });
@@ -110,10 +111,14 @@ export async function getuploadPreflightData(
   const canUploadVideoToday = await incrementUserUploadRateLimit(userData.accountTier, userId);
 
   if (!canUploadVideoToday) {
-    return { success: false, message: "You have reached your daily upload limit." };
+    return {
+      success: false,
+      message: "You have reached your daily upload limit.",
+    };
   }
 
-  const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
+  const maxFileSize =
+    userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Number.POSITIVE_INFINITY;
 
   if (
     userData.totalStorageUsed + contentLength > PLAN_STORAGE_SIZES[userData.accountTier] ||
@@ -196,7 +201,8 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     return { success: false, message: "Unauthorized" };
   }
 
-  const maxFileSize = userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Infinity;
+  const maxFileSize =
+    userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Number.POSITIVE_INFINITY;
 
   if (
     userData.totalStorageUsed + headResponse.ContentLength >
@@ -212,9 +218,9 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
       );
     } catch (e) {
       console.error(e);
-    } finally {
-      return { success: false, message: "Storage limit reached" };
     }
+
+    return { success: false, message: "Storage limit reached" };
   }
 
   let videoId = nanoid(8);
@@ -230,7 +236,7 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
   await db
     .update(users)
     .set({
-      totalStorageUsed: userData.totalStorageUsed + (headResponse!.ContentLength ?? 0),
+      totalStorageUsed: userData.totalStorageUsed + (headResponse?.ContentLength ?? 0),
     })
     .where(eq(users.id, userId));
 
@@ -261,18 +267,22 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
 
     if (cachedVideos) {
-      await redis.hset(`videos:${userId}`, { videos: [videoData, ...cachedVideos] });
+      await redis.hset(`videos:${userId}`, {
+        videos: [videoData, ...cachedVideos],
+      });
     }
   } catch {
     redis.del(`videos:${userId}`);
   }
 
   try {
-    const promises: Promise<any>[] = [
+    const promises: Promise<unknown>[] = [
       tasks.trigger<typeof initialUploadTask>(
         "initial-upload",
         { videoId: videoData.id },
-        { tags: [userId, `initial-upload-${videoId}`, `video_${videoData.id}`] },
+        {
+          tags: [userId, `initial-upload-${videoId}`, `video_${videoData.id}`],
+        },
         { publicAccessToken: { expirationTime: "1hr" } },
       ),
     ];
@@ -400,7 +410,7 @@ export async function onUploadCancelled(videoId: string) {
     const rateLimitKey = `uploadLimit:${userId}`;
 
     const currentLimitString = await redis.get<string>(rateLimitKey);
-    const currentLimit = parseInt(currentLimitString ?? "0");
+    const currentLimit = Number.parseInt(currentLimitString ?? "0");
 
     if (currentLimit > 0) {
       await redis.decr(rateLimitKey);
@@ -474,7 +484,11 @@ export async function updateVideoData(videoId: string, data: VideoUpdateData) {
     redis.del(`videos:${userId}`);
   }
 
-  return { success: true, message: "Video has been updated.", description: videoData.title };
+  return {
+    success: true,
+    message: "Video has been updated.",
+    description: videoData.title,
+  };
 }
 
 const USER_VIDEO_DAILY_LIMIT: Record<string, number> = {
@@ -492,7 +506,7 @@ async function incrementUserUploadRateLimit(accountTier: string, userId: string)
   const rateLimitKey = `uploadLimit:${userId}`;
 
   const currentLimitString = await redis.get<string>(rateLimitKey);
-  const currentLimit = parseInt(currentLimitString ?? "0");
+  const currentLimit = Number.parseInt(currentLimitString ?? "0");
 
   if (currentLimit >= userDailyLimit) {
     return false;

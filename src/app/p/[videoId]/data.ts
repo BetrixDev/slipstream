@@ -1,16 +1,16 @@
 import "server-only";
 
+import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { clerkClient } from "@clerk/nextjs/server";
 import { Redis } from "@upstash/redis";
-import { db } from "@/lib/db";
-import { headers } from "next/headers";
-import { notFound } from "next/navigation";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { createSigner } from "fast-jwt";
-import { clerkClient } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 dayjs.extend(utc);
 
@@ -20,11 +20,11 @@ const redis = new Redis({
 });
 
 const s3Client = new S3Client({
-  endpoint: process.env.S3_ENDPOINT!,
-  region: process.env.S3_REGION!,
+  endpoint: env.S3_ENDPOINT,
+  region: env.S3_REGION,
   credentials: {
-    accessKeyId: process.env.S3_ROOT_ACCESS_KEY!,
-    secretAccessKey: process.env.S3_ROOT_SECRET_KEY!,
+    accessKeyId: env.S3_ROOT_ACCESS_KEY,
+    secretAccessKey: env.S3_ROOT_SECRET_KEY,
   },
 });
 
@@ -82,7 +82,10 @@ export async function getVideoMetaData(videoId: string) {
   if (!videoData.isPrivate) {
     url = await getSignedUrl(
       s3Client,
-      new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: videoData.source.key }),
+      new GetObjectCommand({
+        Bucket: env.VIDEOS_BUCKET_NAME,
+        Key: videoData.source.key,
+      }),
       { expiresIn: 60 * 60 * 24 * 7 },
     );
   }
@@ -109,18 +112,18 @@ export async function getVideoData(videoId: string) {
       ...cachedVideoData,
       videoSources: await generateVideoSources(cachedVideoData.videoData),
     };
-  } else {
-    const videoData = await getVideoDataFromDb(videoId);
-
-    redis.hset(`video:${videoId}`, videoData).then(() => {
-      redis.expire(`video:${videoId}`, 60 * 60 * 24);
-    });
-
-    return {
-      ...videoData,
-      videoSources: await generateVideoSources(videoData.videoData),
-    };
   }
+
+  const videoData = await getVideoDataFromDb(videoId);
+
+  redis.hset(`video:${videoId}`, videoData).then(() => {
+    redis.expire(`video:${videoId}`, 60 * 60 * 24);
+  });
+
+  return {
+    ...videoData,
+    videoSources: await generateVideoSources(videoData.videoData),
+  };
 }
 
 export async function createVideoToken(
@@ -156,7 +159,10 @@ async function generateVideoSources(
     videoData.sources.map(async (source) => {
       const url = await getSignedUrl(
         s3Client,
-        new GetObjectCommand({ Bucket: env.VIDEOS_BUCKET_NAME, Key: source.key }),
+        new GetObjectCommand({
+          Bucket: env.VIDEOS_BUCKET_NAME,
+          Key: source.key,
+        }),
         { expiresIn: 60 * 60 * 24 * 7 },
       );
 
@@ -243,7 +249,9 @@ export async function getIp() {
 
   if (forwardedFor) {
     return forwardedFor.split(",")[0].trim();
-  } else if (realIp) {
+  }
+
+  if (realIp) {
     return realIp.trim();
   }
 

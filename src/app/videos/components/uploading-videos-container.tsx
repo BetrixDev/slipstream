@@ -1,14 +1,14 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { humanFileSize } from "@/lib/utils";
-import { useUploadingVideosStore } from "../stores/uploading-videos";
 import NumberFlow from "@number-flow/react";
-import { Progress } from "@/components/ui/progress";
 import { XIcon } from "lucide-react";
-import { onUploadCancelled } from "../actions";
 import { toast } from "sonner";
+import { onUploadCancelled } from "../actions";
+import { useUploadingVideosStore } from "../stores/uploading-videos";
 import { useUserVideoDatastore } from "../stores/user-video-data";
 
 export function UploadingVideosContainer() {
@@ -35,7 +35,7 @@ export function UploadingVideosContainer() {
             <div className="group-hover:flex w-full h-full hidden items-center justify-center">
               <XIcon className="text-destructive w-16 h-16" />
             </div>
-            <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40"></div>
+            <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40" />
           </Skeleton>
           <div className="absolute right-0 bg-black/50 p-1 m-1 rounded-md backdrop-blur-md text-xs">
             {humanFileSize(video.videoSizeBytes)}

@@ -1,9 +1,9 @@
 "use client";
 
+import { useDebounce } from "@/hooks/use-debounce";
 import { Dialog, DialogOverlay, DialogPortal } from "@radix-ui/react-dialog";
 import { Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
 import { useUploadingVideosStore } from "../stores/uploading-videos";
 import { useUserVideoDatastore } from "../stores/user-video-data";
 
@@ -37,6 +37,7 @@ export function FullPageDropzone() {
     return true;
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     let timeout: Timer;
 
@@ -57,6 +58,7 @@ export function FullPageDropzone() {
     };
   }, [errorMessage, debouncedIsDragOver]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
   useEffect(() => {
     const controller = new AbortController();
 

@@ -1,25 +1,26 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
-import { customFileToUploadAtom, isUploadDialogOpenAtom, trimVideoDataAtom } from "../../atoms";
-import { Credenza, CredenzaContent, CredenzaHeader, CredenzaTitle } from "@/components/ui/credenza";
-import { type FieldApi, useForm } from "@tanstack/react-form";
-import { useUploadingVideosStore } from "../../stores/uploading-videos";
-import { useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { useUserVideoDatastore } from "../../stores/user-video-data";
 import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
 import { Button } from "@/components/ui/button";
+import { Credenza, CredenzaContent, CredenzaHeader, CredenzaTitle } from "@/components/ui/credenza";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@radix-ui/react-tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@radix-ui/react-tooltip";
+import { type FieldApi, useForm } from "@tanstack/react-form";
+import { useAtom, useSetAtom } from "jotai";
 import { Scissors } from "lucide-react";
+import { useEffect } from "react";
+import { customFileToUploadAtom, isUploadDialogOpenAtom, trimVideoDataAtom } from "../../atoms";
+import { useUploadingVideosStore } from "../../stores/uploading-videos";
+import { useUserVideoDatastore } from "../../stores/user-video-data";
 
 type FormData = {
   title: string | null;
   file: File | null;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: we don't care about the type here
 export function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
   return (
     <span className="text-sm text-destructive">
@@ -84,6 +85,7 @@ function UploadVideoDialogChild() {
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: should only react to isUploadDialogOpen changes
   useEffect(() => {
     form.reset();
 
@@ -176,7 +178,11 @@ function UploadVideoDialogChild() {
                       id={field.name}
                       name={field.name}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.files![0])}
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          field.handleChange(e.target.files[0]);
+                        }
+                      }}
                       type="file"
                       required
                       accept="video/*"
@@ -216,7 +222,10 @@ function UploadVideoDialogChild() {
                                 return;
                               }
 
-                              setTrimVideoData({ file: file, title: form.state.values.title });
+                              setTrimVideoData({
+                                file: file,
+                                title: form.state.values.title,
+                              });
                             }}
                           >
                             <Scissors className="h-4 w-4" /> Trim Video

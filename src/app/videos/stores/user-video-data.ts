@@ -35,6 +35,8 @@ export const useUserVideoDatastore = create<UserVideoDataState & UserVideoDataAc
   incrementTotalStorageUsed: (amount) =>
     set((state) => ({ totalStorageUsed: state.totalStorageUsed + amount })),
   decrementTotalStorageUsed: (amount) =>
-    set((state) => ({ totalStorageUsed: Math.max(state.totalStorageUsed - amount, 0) })),
+    set((state) => ({
+      totalStorageUsed: Math.max(state.totalStorageUsed - amount, 0),
+    })),
   setVideos: (videos) => set({ videos }),
 }));

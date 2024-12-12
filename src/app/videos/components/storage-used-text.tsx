@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { humanFileSize } from "@/lib/utils";
 import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
-import { useUserVideoDatastore } from "../stores/user-video-data";
+import { Button } from "@/components/ui/button";
+import { humanFileSize } from "@/lib/utils";
+import Link from "next/link";
 import { useEffect } from "react";
+import { useUserVideoDatastore } from "../stores/user-video-data";
 
 type StorageUsedTextProps = {
   totalStorageUsed: number;
@@ -20,6 +20,7 @@ export function StorageUsedText({
 }: StorageUsedTextProps) {
   const { totalStorageUsed } = useUserVideoDatastore();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: values won't change from server
   useEffect(() => {
     useUserVideoDatastore.setState({
       totalStorageAvailable: serverMaxStorage,

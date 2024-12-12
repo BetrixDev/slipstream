@@ -1,13 +1,14 @@
 import "server-only";
 
-import { auth } from "@clerk/nextjs/server";
+import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { videos } from "@/lib/schema";
-import { redirect } from "next/navigation";
-import { PLAN_STORAGE_SIZES, MAX_FILE_SIZE_FREE_TIER } from "@/lib/constants";
 import { env } from "@/lib/env";
+import { videos } from "@/lib/schema";
+import { safeParseAccountTier } from "@/lib/utils";
+import { auth } from "@clerk/nextjs/server";
 import { Redis } from "@upstash/redis";
 import { desc } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 const redis = new Redis({
   url: env.REDIS_REST_URL,
@@ -65,7 +66,7 @@ export async function fetchVideosData() {
     });
   } else {
     userData = {
-      accountTier: cachedData.accountTier as any,
+      accountTier: safeParseAccountTier(cachedData.accountTier),
       totalStorageUsed: cachedData.totalStorageUsed,
       videos: cachedData.videos.map((v) => ({
         ...v,

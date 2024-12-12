@@ -1,16 +1,16 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
-import { customFileToUploadAtom, isUploadDialogOpenAtom, trimVideoDataAtom } from "../../atoms";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { QueryClient, QueryClientProvider, useMutation, useQuery } from "@tanstack/react-query";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL, fetchFile } from "@ffmpeg/util";
-import { formatSecondsToTimestamp } from "@/lib/utils";
-import { Loader2Icon, PauseIcon, PlayIcon } from "lucide-react";
-import { RangeSlider } from "@/components/ui/range-slider";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RangeSlider } from "@/components/ui/range-slider";
+import { formatSecondsToTimestamp } from "@/lib/utils";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { QueryClient, QueryClientProvider, useMutation, useQuery } from "@tanstack/react-query";
+import { useAtom, useSetAtom } from "jotai";
+import { Loader2Icon, PauseIcon, PlayIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { customFileToUploadAtom, isUploadDialogOpenAtom, trimVideoDataAtom } from "../../atoms";
 
 export function TrimVideoDialog() {
   const [trimVideoData] = useAtom(trimVideoDataAtom);
@@ -39,7 +39,11 @@ function TrimVideoDialogChild() {
   const [isViewportPlaying, setIsViewportPlaying] = useState(false);
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
-  const videoUrl = useMemo(() => URL.createObjectURL(trimVideoData!.file), [trimVideoData!.file]);
+  const videoUrl = useMemo(
+    // biome-ignore lint/style/noNonNullAssertion: will never be null
+    () => URL.createObjectURL(trimVideoData!.file),
+    [trimVideoData],
+  );
 
   const { isLoading } = useQuery({
     queryKey: ["loadFfmpeg"],
@@ -66,14 +70,15 @@ function TrimVideoDialogChild() {
     isError: isRenderError,
   } = useMutation({
     mutationFn: async () => {
-      if (!lastRangeValue.current) {
+      if (!lastRangeValue.current || !trimVideoData) {
         return false;
       }
+
       resetViewportToBeginning();
 
       const ffmpeg = ffmpegRef.current;
 
-      await ffmpeg.writeFile("input.mp4", await fetchFile(trimVideoData!.file));
+      await ffmpeg.writeFile("input.mp4", await fetchFile(trimVideoData.file));
 
       const startTimestamp = formatSecondsToTimestamp(lastRangeValue.current[0]);
       const endTimestamp = formatSecondsToTimestamp(lastRangeValue.current[1]);
@@ -92,7 +97,7 @@ function TrimVideoDialogChild() {
 
       const data = await ffmpeg.readFile("output_video.mp4");
 
-      const file = new File([new Blob([data])], trimVideoData!.file.name, {
+      const file = new File([new Blob([data])], trimVideoData.file.name, {
         type: trimVideoData?.file.type,
       });
 
@@ -129,6 +134,7 @@ function TrimVideoDialogChild() {
     };
   }, [videoUrl]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: look into
   useEffect(() => {
     if (!viewportRef.current || !lastRangeValue.current) {
       return;
@@ -207,7 +213,7 @@ function TrimVideoDialogChild() {
       onOpenChange={(o) => {
         if (!o) {
           if (viewportRef.current) {
-            viewportRef.current.src = undefined as any;
+            viewportRef.current.src = "";
           }
 
           setTrimVideoData(undefined);
@@ -240,6 +246,7 @@ function TrimVideoDialogChild() {
                   <PlayIcon className="w-10 h-10 opacity-80 " />
                 )}
               </div>
+              {/* biome-ignore lint/a11y/useMediaCaption: can't do it here */}
               <video ref={viewportRef} src={videoUrl} />
             </div>
             <div className="flex justify-between">

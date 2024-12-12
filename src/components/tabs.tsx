@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 type Tab = {
   title: string;
@@ -28,7 +28,14 @@ export const Tabs = ({
 
   const moveSelectedTabToTop = (val: string) => {
     setTab(val);
-    setActive(propTabs.find((tab) => tab.value === val)!);
+
+    const activeTab = propTabs.find((tab) => tab.value === val);
+
+    if (!activeTab) {
+      return;
+    }
+
+    setActive(activeTab);
   };
 
   return (
@@ -40,6 +47,7 @@ export const Tabs = ({
     >
       {propTabs.map((tab) => (
         <button
+          type="button"
           key={tab.title}
           onClick={() => {
             moveSelectedTabToTop(tab.value);

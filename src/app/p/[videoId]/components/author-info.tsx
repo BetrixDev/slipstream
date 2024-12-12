@@ -6,7 +6,11 @@ export async function AuthorInfo({ authorId }: { authorId: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <img className="w-8 h-8 rounded-full" src={profileImageUrl} />
+      <img
+        className="w-8 h-8 rounded-full"
+        src={profileImageUrl}
+        alt={username ?? "User profile image"}
+      />
       <AccountTierText accountTier={accountTier}>{username}</AccountTierText>
     </div>
   );

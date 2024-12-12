@@ -1,19 +1,19 @@
 "use client";
 
-import { useAtom } from "jotai";
-import { editVideoAtom } from "../../atoms";
-import { useUserVideoDatastore } from "../../stores/user-video-data";
-import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { FieldInfo } from "./upload-video-dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useForm } from "@tanstack/react-form";
+import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { updateVideoData } from "../../actions";
-import { useEffect } from "react";
+import { editVideoAtom } from "../../atoms";
+import { useUserVideoDatastore } from "../../stores/user-video-data";
+import { FieldInfo } from "./upload-video-dialog";
 
 type FormData = {
   title?: string;
@@ -38,9 +38,9 @@ export function EditVideoDialog() {
         videos.map((v) => {
           if (v.id === editVideo.id) {
             return { ...v, ...data };
-          } else {
-            return v;
           }
+
+          return v;
         }),
       );
 
@@ -78,13 +78,16 @@ export function EditVideoDialog() {
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only should react to editVideo changes
   useEffect(() => {
     form.reset();
   }, [editVideo]);
 
   if (editVideo === undefined) {
     return null;
-  } else if (videoData === undefined) {
+  }
+
+  if (videoData === undefined) {
     setEditVideo(undefined);
     return null;
   }

@@ -1,13 +1,13 @@
-import { SignedIn, UserButton, SignedOut } from "@clerk/nextjs";
-import { Button } from "./ui/button";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Video } from "lucide-react";
+import Link from "next/link";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import Link from "next/link";
 
 export default function TopNav() {
   return (

@@ -47,7 +47,8 @@
 .cl-breadcrumbsItemDivider,
 .cl-fileDropAreaHint,
 .cl-fileDropAreaFooterHint,
-.cl-form p[data-localization-key="userProfile.emailAddressPage.emailCode.formHint"],
+.cl-form
+  p[data-localization-key="userProfile.emailAddressPage.emailCode.formHint"],
 p[data-localization-key="userProfile.profilePage.successMessage"] {
   @apply text-muted-foreground;
 }

@@ -1,6 +1,6 @@
-import { schedules, tasks } from "@trigger.dev/sdk/v3";
 import { db } from "@/lib/db";
-import { videoDeletionTask } from "../video-deletion.js";
+import { schedules, tasks } from "@trigger.dev/sdk/v3";
+import type { videoDeletionTask } from "../video-deletion.js";
 
 export const deleteVideosScheduledTask = schedules.task({
   id: "delete-videos",
@@ -27,6 +27,9 @@ export const deleteVideosScheduledTask = schedules.task({
 
     await tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs);
 
-    return { success: true, message: `Queue ${jobs.length} video(s) to be deleted` };
+    return {
+      success: true,
+      message: `Queue ${jobs.length} video(s) to be deleted`,
+    };
   },
 });

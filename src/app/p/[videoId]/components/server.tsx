@@ -1,24 +1,28 @@
-import { createVideoToken } from "../data";
-import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
-import { getVideoData } from "../data";
-import Link from "next/link";
-import { EyeIcon, Loader2, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
-import { defaultLayoutIcons, DefaultVideoLayout } from "@vidstack/react/player/layouts/default";
-import { WordyDate } from "./wordy-date";
 import { Card, CardContent } from "@/components/ui/card";
+import { auth } from "@clerk/nextjs/server";
 import { Separator } from "@radix-ui/react-dropdown-menu";
-import { ViewIncrementer } from "./view-incrementer";
+import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
+import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
+import { EyeIcon, Loader2, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { createVideoToken } from "../data";
+import { getVideoData } from "../data";
 import { AuthorInfo } from "./author-info";
+import { ViewIncrementer } from "./view-incrementer";
+import { WordyDate } from "./wordy-date";
 
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/audio.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 
-export async function Server({ params }: { params: Promise<{ videoId: string }> }) {
+export async function Server({
+  params,
+}: {
+  params: Promise<{ videoId: string }>;
+}) {
   const videoId = (await params).videoId;
 
   const { videoData, videoSources, largeThumbnailUrl, videoCreatedAt, storyboard } =
@@ -41,7 +45,7 @@ export async function Server({ params }: { params: Promise<{ videoId: string }> 
       )}
       <header className="max-h-16 h-16 flex justify-between items-center px-4">
         <Link className="flex items-center" href="/" prefetch>
-          <button className="flex-shrink-0 flex items-center z-10">
+          <button className="flex-shrink-0 flex items-center z-10" type="button">
             <VideoIcon className="h-8 w-8 text-blue-500" />
             <span className="ml-2 text-2xl font-bold">Flowble</span>
           </button>
@@ -56,6 +60,7 @@ export async function Server({ params }: { params: Promise<{ videoId: string }> 
       <div className="flex gap-4 p-4 max-w-full overflow-x-hidden h-full flex-col xl:flex-row">
         <MediaPlayer
           className="w-full aspect-video rounded-lg overflow-hidden"
+          // biome-ignore lint/suspicious/noExplicitAny: types are fine
           src={videoSources as any}
           viewType="video"
           streamType="on-demand"
@@ -97,7 +102,7 @@ export async function Server({ params }: { params: Promise<{ videoId: string }> 
             </CardContent>
           </Card>
           <Separator />
-          <Card className="grow min-h-64 border-none shadow-none"></Card>
+          <Card className="grow min-h-64 border-none shadow-none" />
         </div>
       </div>
     </>

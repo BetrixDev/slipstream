@@ -14,7 +14,7 @@ export function Fallback() {
         <p className="text-lg text-gray-500 dark:text-gray-400 text-center">
           Choose the perfect plan for your video sharing needs
         </p>
-        <div className="w-full flex justify-center py-4 h-[74px]"></div>
+        <div className="w-full flex justify-center py-4 h-[74px]" />
       </div>
       <div className="flow-root z-20 bg-transparent pb-24 sm:pb-32">
         <div className="mx-auto px-6 lg:px-8">
@@ -36,7 +36,7 @@ export function Fallback() {
                     <span className="text-base font-semibold leading-7 text-primary">/month</span>
                   </div>
                   <p className="mt-2 text-base leading-7  text-primary">{tier.description}</p>
-                  <ul role="list" className="mt-6 space-y-3 text-sm leading-6  text-primary">
+                  <ul className="mt-6 space-y-3 text-sm leading-6  text-primary">
                     {tier.features.map((feature) => (
                       <li key={feature.text} className="flex gap-x-3">
                         <CheckIcon

@@ -1,8 +1,8 @@
+import { db } from "@/lib/db";
+import { videos } from "@/lib/schema";
 import { schedules } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
-import { videos } from "@/lib/schema";
 import { eq, sql } from "drizzle-orm";
-import { db } from "@/lib/db";
 
 export const incrementViewsScheduledTask = schedules.task({
   id: "increment-views",
@@ -20,7 +20,11 @@ export const incrementViewsScheduledTask = schedules.task({
 
     const oldestEntries = await Promise.all(
       oldestKeys.map(async (key) => {
-        return { key, videoId: key.split(":")[1], value: await redis.hget(key, "views") };
+        return {
+          key,
+          videoId: key.split(":")[1],
+          value: await redis.hget(key, "views"),
+        };
       }),
     );
 

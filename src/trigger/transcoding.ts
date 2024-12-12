@@ -1,19 +1,19 @@
-import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
-import { z } from "zod";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { db } from "@/lib/db";
-import { eq } from "drizzle-orm";
-import { videos } from "@/lib/schema";
-import path from "path";
-import os from "node:os";
-import { mkdir, stat } from "node:fs/promises";
-import { Readable } from "node:stream";
 import { createReadStream, createWriteStream } from "node:fs";
-import { execa } from "execa";
+import { mkdir, stat } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { Readable } from "node:stream";
 import { LOWEST_BITRATE_THRESHOLD } from "@/lib/constants";
-import { fileTypeFromStream } from "file-type";
+import { db } from "@/lib/db";
+import { videos } from "@/lib/schema";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
+import { eq } from "drizzle-orm";
+import { execa } from "execa";
+import { fileTypeFromStream } from "file-type";
+import { z } from "zod";
 
 type VideoSource = {
   key: string;
@@ -118,14 +118,19 @@ export const transcodingTask = schemaTask({
 
     logger.info("Getting native video's mime type");
 
-    const nativeFileType = await fileTypeFromStream(createReadStream(nativeFilePath) as any);
+    const nativeFileType = await fileTypeFromStream(
+      // biome-ignore lint/suspicious/noExplicitAny: types aren't correct
+      createReadStream(nativeFilePath) as any,
+    );
     let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
 
     if (nativeFileMimeType === "video/quicktime") {
       nativeFileMimeType = "video/mp4";
     }
 
-    logger.info(`Native video's mime type is ${nativeFileMimeType}`, { mime: nativeFileMimeType });
+    logger.info(`Native video's mime type is ${nativeFileMimeType}`, {
+      mime: nativeFileMimeType,
+    });
 
     logger.info("Getting videos native resolution");
 
@@ -149,9 +154,11 @@ export const transcodingTask = schemaTask({
 
     const [top, bottom] = nativeFileFrameRateFraction.split("/");
 
-    const videoFrameRateDecimal = (parseFloat(top) / parseFloat(bottom)).toFixed(2);
+    const videoFrameRateDecimal = (Number.parseFloat(top) / Number.parseFloat(bottom)).toFixed(2);
 
-    logger.info(`Video's framerate is ${videoFrameRateDecimal}`, { fps: videoFrameRateDecimal });
+    logger.info(`Video's framerate is ${videoFrameRateDecimal}`, {
+      fps: videoFrameRateDecimal,
+    });
 
     const videoSources: VideoSource[] = [
       {
@@ -173,7 +180,7 @@ export const transcodingTask = schemaTask({
       height: nativeFileHeight,
     });
 
-    const uploadPromises: Promise<any>[] = [];
+    const uploadPromises: Promise<unknown>[] = [];
 
     for (const resolution of resolutionsToGenerate) {
       const resStart = Date.now();
@@ -253,7 +260,7 @@ export const transcodingTask = schemaTask({
       .set({
         sources: videoSources,
         isProcessing: false,
-      } as any)
+      })
       .where(eq(videos.id, videoData.id));
 
     await redis.del(`video:${videoData.id}`);
@@ -288,11 +295,12 @@ async function getVideoFileBitrate(path: string) {
     const { stdout: transcodedFileBitRateString } =
       await execa`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`;
 
-    const transcodedFileBitRate = parseInt(transcodedFileBitRateString);
+    const transcodedFileBitRate = Number.parseInt(transcodedFileBitRateString);
 
-    return !isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
+    return !Number.isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
   } catch (error) {
     logger.error(`Failed to get video file bitrate for ${path}`, {
+      // biome-ignore lint/suspicious/noExplicitAny: not needed
       ...(error as any),
       videoFilePath: path,
     });

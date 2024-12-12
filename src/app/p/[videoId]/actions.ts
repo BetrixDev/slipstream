@@ -1,9 +1,9 @@
 "use server";
 
 import { Redis } from "@upstash/redis";
-import { createVerifier } from "fast-jwt";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { createVerifier } from "fast-jwt";
 
 dayjs.extend(utc);
 
@@ -81,7 +81,9 @@ export async function incrementViewCount(token: string) {
     await redis.zadd("views", { score: utcTimestamp, member: viewsKey });
   }
 
-  await redis.set(rateLimitKey, 1, { ex: Math.ceil(tokenPayload.videoDuration / 2) });
+  await redis.set(rateLimitKey, 1, {
+    ex: Math.ceil(tokenPayload.videoDuration / 2),
+  });
 
   return {
     success: true,

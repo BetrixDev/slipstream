@@ -1,19 +1,19 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
-import { z } from "zod";
-import os from "node:os";
-import { db } from "@/lib/db";
-import path from "node:path";
-import { mkdir, stat } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
+import { mkdir, stat } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { Readable } from "node:stream";
-import { execa } from "execa";
-import sharp from "sharp";
-import { Upload } from "@aws-sdk/lib-storage";
-import { glob } from "glob";
-import { Redis } from "@upstash/redis";
+import { db } from "@/lib/db";
 import { videos } from "@/lib/schema";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
+import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
+import { execa } from "execa";
+import { glob } from "glob";
+import sharp from "sharp";
+import { z } from "zod";
 
 export const initialUploadTask = schemaTask({
   id: "initial-upload",
@@ -103,7 +103,7 @@ export const initialUploadTask = schemaTask({
     });
 
     const firstFrameBrightness = calculateBrightness(data, info.width, info.height);
-    let currentBrightestFrame = firstFrameBrightness;
+    const currentBrightestFrame = firstFrameBrightness;
 
     if (firstFrameBrightness < 5) {
       logger.info("Frame was too dark, getting one in the future");
@@ -127,6 +127,7 @@ export const initialUploadTask = schemaTask({
             frameFilePath = path.join(workingDir, frame);
           }
         } catch (e) {
+          // biome-ignore lint/suspicious/noExplicitAny: not needed
           logger.warn("Error processing frame", e as any);
         }
       }
@@ -175,6 +176,7 @@ export const initialUploadTask = schemaTask({
 
       videoDurationSeconds = Math.round(Number(stdout.trim()));
     } catch (e) {
+      // biome-ignore lint/suspicious/noExplicitAny: can log error but types don't allow
       logger.warn("Error geting video length", e as any);
     }
 

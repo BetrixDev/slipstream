@@ -1,14 +1,15 @@
+import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "@/lib/constants";
+import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { users, videos } from "@/lib/schema";
+import { safeParseAccountTier } from "@/lib/utils";
+import type { videoDeletionTask } from "@/trigger/video-deletion";
 import { clerkClient } from "@clerk/nextjs/server";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
-import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "@/lib/constants";
-import { db } from "@/lib/db";
-import { users, videos } from "@/lib/schema";
+import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import type { videoDeletionTask } from "@/trigger/video-deletion";
-import { eq, sql } from "drizzle-orm";
 
 const redis = new Redis({
   url: process.env.REDIS_REST_URL,
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     const [updatedUser] = await db
       .update(users)
       .set({
-        accountTier: productName as any,
+        accountTier: safeParseAccountTier(productName),
       })
       .where(eq(users.email, customerEmail))
       .returning();
@@ -90,7 +91,9 @@ export async function POST(request: Request) {
     ]);
 
     return new Response("", { status: 200 });
-  } else if (
+  }
+
+  if (
     event.type === "customer.subscription.deleted" ||
     event.type === "customer.subscription.paused"
   ) {
@@ -136,7 +139,7 @@ export async function POST(request: Request) {
     ]);
 
     const currentAmountOfStorage = PLAN_STORAGE_SIZES[userData.accountTier];
-    const futureAmountOfStorage = PLAN_STORAGE_SIZES["free"];
+    const futureAmountOfStorage = PLAN_STORAGE_SIZES.free;
 
     const difference = Math.abs(currentAmountOfStorage - futureAmountOfStorage);
     let videoSizeDeleted = 0;

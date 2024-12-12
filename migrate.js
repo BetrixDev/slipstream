@@ -1,7 +1,7 @@
-import { migrate } from "drizzle-orm/neon-http/migrator";
-import { drizzle } from "drizzle-orm/neon-http";
+import path from "node:path";
 import { neon } from "@neondatabase/serverless";
-import path from "path";
+import { drizzle } from "drizzle-orm/neon-http";
+import { migrate } from "drizzle-orm/neon-http/migrator";
 
 const neonClient = neon(process.env.DATABASE_URL);
 export const db = drizzle(neonClient);

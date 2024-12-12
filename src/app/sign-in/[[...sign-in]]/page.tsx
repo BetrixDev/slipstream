@@ -1,6 +1,6 @@
 import { Footer } from "@/components/footer";
-import { SignIn } from "@clerk/nextjs";
 import { IMAGE_LINKS } from "@/lib/utils";
+import { SignIn } from "@clerk/nextjs";
 
 export const experimental_ppr = true;
 

@@ -1,13 +1,13 @@
-import { Webhook } from "svix";
-import { headers } from "next/headers";
-import { type WebhookEvent, clerkClient } from "@clerk/nextjs/server";
-import Stripe from "stripe";
-import { env } from "@/lib/env";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { users, videos } from "@/lib/schema";
-import { tasks } from "@trigger.dev/sdk/v3";
 import type { videoDeletionTask } from "@/trigger/video-deletion";
+import { type WebhookEvent, clerkClient } from "@clerk/nextjs/server";
+import { tasks } from "@trigger.dev/sdk/v3";
 import { eq, sql } from "drizzle-orm";
+import { headers } from "next/headers";
+import Stripe from "stripe";
+import { Webhook } from "svix";
 
 export async function POST(request: Request) {
   const stripe = new Stripe(env.STRIPE_SECRET_KEY);
@@ -58,7 +58,13 @@ export async function POST(request: Request) {
   if (event.type === "user.created") {
     const userPrimaryEmail = event.data.email_addresses.find(
       (e) => e.id === event.data.primary_email_address_id,
-    )!;
+    );
+
+    if (!userPrimaryEmail) {
+      return new Response("Error occured - no user primary email", {
+        status: 400,
+      });
+    }
 
     const stripeCustomer = await stripe.customers.create({
       email: userPrimaryEmail.email_address,
@@ -89,7 +95,9 @@ export async function POST(request: Request) {
         db.delete(users).where(eq(users.id, event.data.id)).returning(),
       ]);
 
-      const videoDeletionTasks = deletedVideos.map((video) => ({ payload: { videoId: video.id } }));
+      const videoDeletionTasks = deletedVideos.map((video) => ({
+        payload: { videoId: video.id },
+      }));
 
       await Promise.all([
         stripe.customers.del(deletedUser.stripeCustomerId),
@@ -99,7 +107,13 @@ export async function POST(request: Request) {
   } else if (event.type === "user.updated") {
     const userPrimaryEmail = event.data.email_addresses.find(
       (e) => e.id === event.data.primary_email_address_id,
-    )!;
+    );
+
+    if (!userPrimaryEmail) {
+      return new Response("Error occured - no user primary email", {
+        status: 400,
+      });
+    }
 
     const [updatedUser] = await db
       .update(users)

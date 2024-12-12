@@ -13,13 +13,15 @@ export function AccountTierText({
         {children}
       </span>
     );
-  } else if (accountTier === "premium") {
+  }
+
+  if (accountTier === "premium") {
     return (
       <span className="bg-gradient-to-r from-pink-500 to-purple-300 bg-clip-text text-transparent font-bold">
         {children}
       </span>
     );
-  } else {
-    return <span className={defaultColor}>{children}</span>;
   }
+
+  return <span className={defaultColor}>{children}</span>;
 }

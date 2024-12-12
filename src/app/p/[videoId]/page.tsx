@@ -1,10 +1,10 @@
 import { env } from "@/lib/env";
 import type { Metadata } from "next";
-import { getVideoMetaData } from "./data";
-import { Suspense } from "react";
-import { Server } from "./components/server";
-import { LoadingSkeleton } from "./components/loading-skeleton";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { LoadingSkeleton } from "./components/loading-skeleton";
+import { Server } from "./components/server";
+import { getVideoMetaData } from "./data";
 
 export const experimental_ppr = true;
 
@@ -52,6 +52,7 @@ export async function generateMetadata({
       type: "video.other",
       videos: [
         {
+          // biome-ignore lint/style/noNonNullAssertion: TODO: fix this
           url: videoData.source.url!,
           height: videoData.source.height ?? 1080,
           width: videoData.source.width ?? 1920,
@@ -61,19 +62,23 @@ export async function generateMetadata({
     },
     other: {
       ...(videoData.source.height && {
-        ["og:video:height"]: videoData.source.height.toString(),
+        "og:video:height": videoData.source.height.toString(),
       }),
       ...(videoData.source.width && {
-        ["og:video:width"]: videoData.source.width.toString(),
+        "og:video:width": videoData.source.width.toString(),
       }),
       ...(videoData.videoLengthSeconds && {
-        ["og:video:duration"]: videoData.videoLengthSeconds.toString(),
+        "og:video:duration": videoData.videoLengthSeconds.toString(),
       }),
     },
   };
 }
 
-export default async function Page({ params }: { params: Promise<{ videoId: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ videoId: string }>;
+}) {
   return (
     <div className="max-w-screen h-screen flex flex-col">
       <Suspense fallback={<LoadingSkeleton />}>

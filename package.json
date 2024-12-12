@@ -8,7 +8,7 @@
     "dev:trigger": "pnpm dlx trigger.dev@3.3.6 dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "check": "biome check --write",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "migrate:dev": "node --env-file=.env migrate.js",
@@ -75,6 +75,7 @@
     "zustand": "5.0.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@trigger.dev/build": "3.3.6",
     "@types/node": "^20",
     "@types/react": "^18",

@@ -1,11 +1,11 @@
 import { Footer } from "@/components/footer";
 import TopNav from "@/components/top-nav";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { Suspense } from "react";
-import { Server } from "./components/server";
-import { Fallback } from "./components/fallback";
-import { type Metadata } from "next";
 import { IMAGE_LINKS } from "@/lib/utils";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { Fallback } from "./components/fallback";
+import { Server } from "./components/server";
 
 export const experimental_ppr = true;
 

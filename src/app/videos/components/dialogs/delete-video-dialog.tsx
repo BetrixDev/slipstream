@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Credenza,
   CredenzaContent,
@@ -7,13 +8,12 @@ import {
   CredenzaHeader,
   CredenzaTitle,
 } from "@/components/ui/credenza";
-import { deleteVideoAtom } from "../../atoms";
-import { useAtom } from "jotai";
-import { Button } from "@/components/ui/button";
-import { deleteVideo } from "../../actions";
-import { toast } from "sonner";
-import { useUserVideoDatastore } from "../../stores/user-video-data";
 import { notNanOrDefault } from "@/lib/utils";
+import { useAtom } from "jotai";
+import { toast } from "sonner";
+import { deleteVideo } from "../../actions";
+import { deleteVideoAtom } from "../../atoms";
+import { useUserVideoDatastore } from "../../stores/user-video-data";
 
 export function DeleteVideoDialog() {
   const videos = useUserVideoDatastore((s) => s.videos);
@@ -29,7 +29,10 @@ export function DeleteVideoDialog() {
 
     function reset(message?: string) {
       console.log("resetting videos to ", oldVideos);
-      useUserVideoDatastore.setState({ videos: oldVideos, totalStorageUsed: oldTotalStorageUsed });
+      useUserVideoDatastore.setState({
+        videos: oldVideos,
+        totalStorageUsed: oldTotalStorageUsed,
+      });
       toast.error("Failed to delete video.", { description: message });
     }
 

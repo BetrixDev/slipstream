@@ -1,7 +1,7 @@
-import { defineConfig } from "@trigger.dev/sdk/v3";
-import { ffmpeg } from "@trigger.dev/build/extensions/core";
 import { AwsInstrumentation } from "@opentelemetry/instrumentation-aws-sdk";
+import { ffmpeg } from "@trigger.dev/build/extensions/core";
 import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
+import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
   project: "proj_kgjuvdnaikcqgregnfjq",

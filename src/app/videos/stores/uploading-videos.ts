@@ -1,9 +1,9 @@
 import axios, { CanceledError } from "axios";
-import { create } from "zustand";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
+import { create } from "zustand";
 import { getuploadPreflightData, onUploadCancelled, uploadComplete } from "../actions";
-import { useUserVideoDatastore, Video } from "./user-video-data";
+import { type Video, useUserVideoDatastore } from "./user-video-data";
 
 type UploadingVideo = {
   id: string;
@@ -63,18 +63,18 @@ useUploadingVideosStore.subscribe((state, oldState) => {
     (o) => state.uploadingVideos.find((n) => n.id === o.id) === undefined,
   );
 
-  newVideos.forEach((video) => {
+  for (const video of newVideos) {
     handleVideoUpload(video);
-  });
+  }
 
-  removedVideos.forEach((video) => {
+  for (const video of removedVideos) {
     const abortController = uploadingVideosAbortControllers.get(video.id);
 
     if (abortController !== undefined) {
       abortController.abort();
       uploadingVideosAbortControllers.delete(video.id);
     }
-  });
+  }
 });
 
 class UploadingError extends Error {}
@@ -115,9 +115,13 @@ async function handleVideoUpload(video: UploadingVideo) {
       throw new UploadingError(uploadCompleteData.message);
     }
 
+    if (!uploadCompleteData.video) {
+      return;
+    }
+
     useUserVideoDatastore.setState((state) => {
       const newVideo: Video = {
-        ...uploadCompleteData.video!,
+        ...uploadCompleteData.video,
         views: 0,
         isProcessing: true,
         isPrivate: false,

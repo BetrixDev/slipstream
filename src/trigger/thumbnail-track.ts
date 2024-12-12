@@ -1,18 +1,18 @@
-import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
-import { z } from "zod";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { db } from "@/lib/db";
-import { mkdir } from "fs/promises";
-import path from "path";
-import os from "node:os";
-import { stat } from "node:fs/promises";
 import { createWriteStream, readdirSync } from "node:fs";
+import { stat } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { Readable } from "node:stream";
+import { db } from "@/lib/db";
+import { videos } from "@/lib/schema";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
+import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import sharp from "sharp";
-import { Upload } from "@aws-sdk/lib-storage";
-import { videos } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const thumbnailTrackTask = schemaTask({
   id: "thumbnail-track",

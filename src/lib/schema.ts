@@ -18,7 +18,9 @@ export const users = pgTable(
     stripeCustomerId: text("stripe_customer_id").notNull(),
     email: text("email").notNull(),
     createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
-    accountTier: text("account_tier", { enum: ["free", "pro", "premium", "ultimate"] })
+    accountTier: text("account_tier", {
+      enum: ["free", "pro", "premium", "ultimate"],
+    })
       .notNull()
       .default("free"),
     totalStorageUsed: real("total_storage_used").notNull().default(0),

@@ -10,7 +10,7 @@ export function LoadingSkeleton() {
     <>
       <header className="max-h-16 h-16 flex justify-between items-center px-4">
         <Link className="flex items-center" href="/" prefetch>
-          <button className="flex-shrink-0 flex items-center z-10">
+          <button className="flex-shrink-0 flex items-center z-10" type="button">
             <VideoIcon className="h-8 w-8 text-blue-500" />
             <span className="ml-2 text-2xl font-bold">Flowble</span>
           </button>
@@ -38,7 +38,7 @@ export function LoadingSkeleton() {
             </CardContent>
           </Card>
           <Separator />
-          <Card className="grow min-h-64 border-none"></Card>
+          <Card className="grow min-h-64 border-none" />
         </div>
       </div>
     </>

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const TIER_WEIGHTS: Record<string, number> = {
   free: 1,

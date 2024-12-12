@@ -1,11 +1,11 @@
 "use client";
 
+import { AccountTierText } from "@/components/account-tier-text";
 import { Tabs } from "@/components/tabs";
 import { CheckIcon } from "lucide-react";
-import { ButtonLink } from "../components/button-link";
 import { useState } from "react";
+import { ButtonLink } from "../components/button-link";
 import { tiers } from "../tiers";
-import { AccountTierText } from "@/components/account-tier-text";
 
 type ClientProps = {
   accountTier: string | null;
@@ -13,7 +13,7 @@ type ClientProps = {
 };
 
 export function Client({ accountTier, email }: ClientProps) {
-  const [billingOption, setBillingOption] = useState<"monthly" | "annually">("monthly");
+  const [billingOption, setBillingOption] = useState<string>("monthly");
 
   return (
     <div className="relative overflow-hidden bg-transparent">
@@ -29,7 +29,7 @@ export function Client({ accountTier, email }: ClientProps) {
         <div className="w-full flex justify-center py-4">
           <Tabs
             className="bg-background w-[11.95rem] rounded-md border border-secondary shadow-md overflow-visible"
-            setTab={setBillingOption as any}
+            setTab={setBillingOption}
             tabs={[
               { title: "Monthly", value: "monthly" },
               { title: "Annually", value: "annually" },
@@ -59,7 +59,7 @@ export function Client({ accountTier, email }: ClientProps) {
                     </span>
                   </div>
                   <p className="mt-2 text-base leading-7  text-primary">{tier.description}</p>
-                  <ul role="list" className="mt-6 space-y-3 text-sm leading-6  text-primary">
+                  <ul className="mt-6 space-y-3 text-sm leading-6  text-primary">
                     {tier.features.map((feature) => (
                       <li key={feature.text} className="flex gap-x-3">
                         <CheckIcon
