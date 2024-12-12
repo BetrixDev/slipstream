@@ -283,7 +283,6 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
         {
           tags: [userId, `initial-upload-${videoId}`, `video_${videoData.id}`],
         },
-        { publicAccessToken: { expirationTime: "1hr" } },
       ),
     ];
 
