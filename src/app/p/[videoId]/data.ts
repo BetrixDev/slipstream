@@ -6,6 +6,7 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { clerkClient } from "@clerk/nextjs/server";
 import { Redis } from "@upstash/redis";
+import { waitUntil } from "@vercel/functions";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { createSigner } from "fast-jwt";
@@ -116,9 +117,11 @@ export async function getVideoData(videoId: string) {
 
   const videoData = await getVideoDataFromDb(videoId);
 
-  redis.hset(`video:${videoId}`, videoData).then(() => {
-    redis.expire(`video:${videoId}`, 60 * 60 * 24);
-  });
+  waitUntil(
+    redis.hset(`video:${videoId}`, videoData).then(() => {
+      redis.expire(`video:${videoId}`, 60 * 60 * 24);
+    }),
+  );
 
   return {
     ...videoData,

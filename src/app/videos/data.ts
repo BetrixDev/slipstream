@@ -7,6 +7,7 @@ import { videos } from "@/lib/schema";
 import { safeParseAccountTier } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { Redis } from "@upstash/redis";
+import { waitUntil } from "@vercel/functions";
 import { desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
@@ -61,9 +62,11 @@ export async function fetchVideosData() {
   if (!cachedData) {
     userData = await getFreshVideoData(userId);
 
-    redis.hset(cacheKey, userData).then(() => {
-      redis.expire(cacheKey, 86400);
-    });
+    waitUntil(
+      redis.hset(cacheKey, userData).then(() => {
+        redis.expire(cacheKey, 86400);
+      }),
+    );
   } else {
     userData = {
       accountTier: safeParseAccountTier(cachedData.accountTier),

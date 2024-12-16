@@ -9,10 +9,8 @@ import {
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { users, videos } from "@/lib/schema";
-import type { initialUploadTask } from "@/trigger/initial-upload";
-import type { thumbnailTrackTask } from "@/trigger/thumbnail-track";
-import type { transcodingTask } from "@/trigger/transcoding";
 import type { videoDeletionTask } from "@/trigger/video-deletion";
+import type { Step, videoProcessingTask } from "@/trigger/video-processing";
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -76,9 +74,16 @@ export async function deleteVideo(videoId: string) {
     return { success: false, message: "Not authorized" };
   }
 
-  // TODO: use realtime to inform the user better
-
-  await tasks.trigger<typeof videoDeletionTask>("video-deletion", { videoId });
+  try {
+    await tasks.trigger<typeof videoDeletionTask>("video-deletion", {
+      videoId,
+    });
+  } catch {
+    return {
+      success: false,
+      message: "Failed to delete video",
+    };
+  }
 
   return {
     success: true,
@@ -233,35 +238,36 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     videoId = nanoid(8);
   }
 
-  await db
-    .update(users)
-    .set({
-      totalStorageUsed: userData.totalStorageUsed + (headResponse?.ContentLength ?? 0),
-    })
-    .where(eq(users.id, userId));
-
-  const [videoData] = await db
-    .insert(videos)
-    .values({
-      id: videoId,
-      authorId: userId,
-      nativeFileKey: key,
-      fileSizeBytes: headResponse?.ContentLength ?? 0,
-      title: title.substring(0, VIDEO_TITLE_MAX_LENGTH),
-      isProcessing: userData.accountTier !== "free",
-      deletionDate:
-        userData.accountTier === "free"
-          ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
-          : null,
-      sources: [
-        {
-          isNative: true,
-          key: key,
-          type: mimeType === "video/quicktime" ? "video/mp4" : mimeType,
-        },
-      ],
-    })
-    .returning();
+  const [[videoData]] = await db.batch([
+    db
+      .insert(videos)
+      .values({
+        id: videoId,
+        authorId: userId,
+        nativeFileKey: key,
+        fileSizeBytes: headResponse?.ContentLength ?? 0,
+        title: title.substring(0, VIDEO_TITLE_MAX_LENGTH),
+        isProcessing: userData.accountTier !== "free",
+        deletionDate:
+          userData.accountTier === "free"
+            ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
+            : null,
+        sources: [
+          {
+            isNative: true,
+            key: key,
+            type: mimeType === "video/quicktime" ? "video/mp4" : mimeType,
+          },
+        ],
+      })
+      .returning(),
+    db
+      .update(users)
+      .set({
+        totalStorageUsed: userData.totalStorageUsed + (headResponse?.ContentLength ?? 0),
+      })
+      .where(eq(users.id, userId)),
+  ]);
 
   try {
     const cachedVideos = await redis.hget<(typeof videoData)[]>(`videos:${userId}`, "videos");
@@ -276,37 +282,33 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
   }
 
   try {
-    const promises: Promise<unknown>[] = [
-      tasks.trigger<typeof initialUploadTask>(
-        "initial-upload",
-        { videoId: videoData.id },
-        {
-          tags: [userId, `initial-upload-${videoId}`, `video_${videoData.id}`],
-        },
-      ),
-    ];
+    const videoProcessingSteps: Step[] = ["video-duration", "thumbnails"];
 
     if (userData.accountTier !== "free") {
-      promises.push(
-        tasks.trigger<typeof transcodingTask>(
-          "transcoding",
-          { videoId: videoData.id },
-          { tags: [userId, `video_${videoData.id}`] },
-        ),
-      );
+      videoProcessingSteps.push("transcoding");
     }
 
     if (!videoData.isPrivate) {
-      promises.push(
-        tasks.trigger<typeof thumbnailTrackTask>(
-          "thumbnail-track",
-          { videoId },
-          { tags: [userId, `video_${videoId}`] },
-        ),
-      );
+      videoProcessingSteps.push("thumbnail-track");
     }
 
-    await Promise.all(promises);
+    for (let i = 0; i < 3; i++) {
+      try {
+        await tasks.trigger<typeof videoProcessingTask>(
+          "video-processing",
+          {
+            videoId,
+            steps: videoProcessingSteps,
+          },
+          {
+            tags: [`video-processing-${videoData.id}`],
+          },
+        );
+        break;
+      } catch (err) {
+        if (i === 2) throw err;
+      }
+    }
   } catch (e) {
     console.error(e);
 
@@ -336,7 +338,7 @@ export async function uploadComplete(key: string, title: string, mimeType: strin
     success: true,
     triggerAccessToken: await triggerAuth.createPublicToken({
       scopes: {
-        read: { tags: `initial-upload-${videoId}` },
+        read: { tags: `video-processing-${videoId}` },
       },
     }),
     video: {

@@ -167,19 +167,24 @@ type ThumbnailPlaceholderProps = {
 };
 
 function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
-  const { runs } = useRealtimeRunsWithTag(`initial-upload-${props.videoId}`);
+  const { runs } = useRealtimeRunsWithTag(`video-processing-${props.videoId}`);
+
   useEffect(() => {
     for (const run of runs) {
-      if (run.output?.success) {
+      if (
+        run.metadata &&
+        run.metadata.videoId === props.videoId &&
+        run.metadata.smallThumbnailUrl
+      ) {
         useUserVideoDatastore.setState((state) => ({
           videos: state.videos.map((v) => {
-            if (v.id === props.videoId && run.output) {
+            if (v.id === props.videoId && run.metadata) {
               return {
                 ...v,
-                smallThumbnailUrl: run.output.smallThumbnailUrl,
-                videoLengthSeconds: run.output.videoLengthSeconds,
+                smallThumbnailUrl: run.metadata.smallThumbnailUrl as string,
               };
             }
+
             return v;
           }),
         }));
