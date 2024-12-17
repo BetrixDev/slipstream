@@ -127,7 +127,10 @@ export const videoProcessingTask = schemaTask({
     logger.info(`Finished video download ${mpbs}mpbs`, { mpbs });
 
     const promises: Promise<unknown>[] = [];
-    const dbUpdatePayload: Partial<typeof videos.$inferInsert> = {};
+
+    const dbUpdatePayload: Partial<typeof videos.$inferInsert> = {
+      isProcessing: false,
+    };
 
     if (steps.includes("video-size")) {
       logger.info("Getting video size");
