@@ -42,6 +42,9 @@ export const videoProcessingTask = schemaTask({
     steps: z.array(Step),
     forceTranscoding: z.boolean().default(false),
   }),
+  machine: {
+    preset: "large-1x",
+  },
   run: async ({ videoId, steps, forceTranscoding }, { ctx }) => {
     metadata.set("videoId", videoId);
     logger.info("Starting video processing", { videoId, steps });
@@ -444,6 +447,8 @@ export const videoProcessingTask = schemaTask({
               isNative: false,
               bitrate: await getVideoFileBitrate(outPath),
             });
+
+            dbUpdatePayload.sources = videoSources;
 
             transcodeSpan.end();
           });
