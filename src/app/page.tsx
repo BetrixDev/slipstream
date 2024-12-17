@@ -5,12 +5,13 @@ import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Input } from "@/components/ui/input";
 import { IMAGE_LINKS } from "@/lib/utils";
 import { Clapperboard, Share2, Upload } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Flowble - Share Videos in a Flash",
   description: "Share Videos in a Flash",
   icons: {
@@ -41,6 +42,9 @@ export const metadata = {
     url: "https://flowble.app",
     type: "website",
   },
+  verification: {
+    google: "3rc-q3njZ-HQWdByEAxvLyHVeRbzUoGp9HjMA0UYR78",
+  },
 };
 
 export default async function Home() {
@@ -61,8 +65,9 @@ export default async function Home() {
                     Share Videos in a Flash
                   </h1>
                   <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Flowble makes it incredibly easy and fast to share your favorite moments with
-                    friends. Upload, send, and enjoy videos together in seconds.
+                    Flowble makes it incredibly easy and fast to share your
+                    favorite moments with friends. Upload, send, and enjoy
+                    videos together in seconds.
                   </p>
                 </div>
                 <div className="space-x-4">
