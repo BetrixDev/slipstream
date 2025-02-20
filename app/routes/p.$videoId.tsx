@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { queryClient } from "./__root";
 import { videoQueryOptions } from "../lib/query-utils";
 import { useQuery } from "@tanstack/react-query";
-import { ViewIncrementer } from "../p/[videoId]/components/view-incrementer";
+import { ViewIncrementer } from "../components/view-incrementer";
 import {
   EyeIcon,
   Loader2Icon,
@@ -17,8 +17,8 @@ import {
   DefaultVideoLayout,
 } from "@vidstack/react/player/layouts/default";
 import { Card, CardContent } from "@/components/ui/card";
-import { WordyDate } from "../p/[videoId]/components/wordy-date";
-import { AuthorInfo } from "../p/[videoId]/components/author-info";
+import { WordyDate } from "../components/wordy-date";
+import { AuthorInfo } from "../components/author-info";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 
 import themeCss from "@vidstack/react/player/styles/default/theme.css?url";

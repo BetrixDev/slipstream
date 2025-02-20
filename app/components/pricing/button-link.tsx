@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 
@@ -50,10 +48,18 @@ export function ButtonLink({
       }
       to={
         isUserPayingCustomer
-          ? `https://billing.stripe.com/p/login/14k6qN8w0dsueFG000${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
+          ? `https://billing.stripe.com/p/login/14k6qN8w0dsueFG000${
+              email !== null
+                ? `?prefilled_email=${encodeURIComponent(email)}`
+                : ""
+            }`
           : paymentTier === "free"
-            ? "/videos"
-            : `${paymentLink}${email !== null ? `?prefilled_email=${encodeURIComponent(email)}` : ""}`
+          ? "/videos"
+          : `${paymentLink}${
+              email !== null
+                ? `?prefilled_email=${encodeURIComponent(email)}`
+                : ""
+            }`
       }
     >
       <Button
@@ -63,8 +69,8 @@ export function ButtonLink({
         {paymentTier === "free" && accountTier === "free"
           ? "You have the free tier"
           : isUserPayingCustomer
-            ? "Update subscription"
-            : "Purchase"}
+          ? "Update subscription"
+          : "Purchase"}
       </Button>
     </Link>
   );

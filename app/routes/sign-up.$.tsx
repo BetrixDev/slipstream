@@ -1,4 +1,4 @@
-import { Footer } from "@/components/footer";
+import { Footer } from "../components/footer";
 import { SignUp } from "@clerk/tanstack-start";
 import { createFileRoute } from "@tanstack/react-router";
 

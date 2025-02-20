@@ -1,17 +1,16 @@
-import TopNav from "@/components/top-nav";
+import TopNav from "../components/top-nav";
 import { createFileRoute } from "@tanstack/react-router";
 import { usageDataQueryOptions, videosQueryOptions } from "../lib/query-utils";
-import { DeleteVideoDialog } from "../videos/components/dialogs/delete-video-dialog";
-import { EditVideoDialog } from "../videos/components/dialogs/edit-video-dialog";
-import { TrimVideoDialog } from "../videos/components/dialogs/trim-video-dialog";
-import { UploadVideoDialog } from "../videos/components/dialogs/upload-video-dialog";
-import { FullPageDropzone } from "../videos/components/full-page-dropzone";
-import { Server } from "../videos/components/server";
+import { DeleteVideoDialog } from "../components/dialogs/delete-video-dialog";
+import { EditVideoDialog } from "../components/dialogs/edit-video-dialog";
+import { TrimVideoDialog } from "../components/dialogs/trim-video-dialog";
+import { UploadVideoDialog } from "../components/dialogs/upload-video-dialog";
+import { FullPageDropzone } from "../components/full-page-dropzone";
 import { queryClient } from "./__root";
-import { StorageUsedText } from "../videos/components/storage-used-text";
-import { UploadButton } from "../videos/components/upload-button";
-import { UploadingVideosContainer } from "../videos/components/uploading-videos-container";
-import { VideosBoard } from "../videos/components/videos-board";
+import { StorageUsedText } from "../components/storage-used-text";
+import { UploadButton } from "../components/upload-button";
+import { UploadingVideosContainer } from "../components/uploading-videos-container";
+import { VideosBoard } from "../components/videos-board";
 import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/videos")({

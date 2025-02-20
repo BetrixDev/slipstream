@@ -17,7 +17,7 @@ export default defineConfig({
       randomize: true,
     },
   },
-  dirs: ["./src/trigger"],
+  dirs: ["./app/trigger"],
   build: {
     extensions: [ffmpeg(), syncVercelEnvVars()],
     external: ["sharp"],

@@ -14,7 +14,7 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./app/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "trigger.config.ts"],

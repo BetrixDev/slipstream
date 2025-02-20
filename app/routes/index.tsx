@@ -1,5 +1,5 @@
-import { Footer } from "@/components/footer";
-import TopNav from "@/components/top-nav";
+import { Footer } from "../components/footer";
+import TopNav from "../components/top-nav";
 import { Button } from "@/components/ui/button";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Input } from "@/components/ui/input";

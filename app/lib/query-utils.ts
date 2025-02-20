@@ -5,7 +5,6 @@ import { authGuardMiddleware } from "../middleware/auth-guard";
 import { db } from "./db";
 import { desc } from "drizzle-orm";
 import { videos } from "./schema";
-import { getVideoDataServerFn } from "../p/[videoId]/data";
 import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "./constants";
 import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
 import { getIpFromHeaders, safeParseAccountTier } from "./utils";
@@ -13,6 +12,7 @@ import { getWebRequest } from "@tanstack/start/server";
 import dayjs from "dayjs";
 import { createSigner } from "fast-jwt";
 import { env } from "./env";
+import { getVideoDataServerFn } from "@/server-fns/video-player";
 
 export const queryKeys = {
   videos: ["videos"],

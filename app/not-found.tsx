@@ -1,4 +1,4 @@
-import TopNav from "@/components/top-nav";
+import TopNav from "./components/top-nav";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
@@ -9,7 +9,9 @@ export default function NotFound() {
       <Suspense>
         <TopNav />
       </Suspense>
-      <div className="text-xl grow flex items-center justify-center">Page not found</div>
+      <div className="text-xl grow flex items-center justify-center">
+        Page not found
+      </div>
     </main>
   );
 }

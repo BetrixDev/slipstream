@@ -17,7 +17,9 @@ export const users = pgTable(
     id: text("id").primaryKey(),
     stripeCustomerId: text("stripe_customer_id").notNull(),
     email: text("email").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: false })
+      .notNull()
+      .defaultNow(),
     accountTier: text("account_tier", {
       enum: ["free", "pro", "premium", "ultimate"],
     })
@@ -29,7 +31,7 @@ export const users = pgTable(
     userId_idx: index("userId_idx").on(table.id),
     email_idx: index("email_idx").on(table.email),
     customerId_idx: index("customerId_idx").on(table.stripeCustomerId),
-  }),
+  })
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -47,8 +49,12 @@ export const videos = pgTable(
     nativeFileKey: text("native_file_key").notNull(),
     smallThumbnailKey: text("small_thumbnail_key"),
     largeThumbnailKey: text("large_thumbnail_key"),
-    createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: false }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: false })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: false })
+      .notNull()
+      .defaultNow(),
     deletionDate: timestamp("deletion_date", { withTimezone: false }),
     isPrivate: boolean("is_private").notNull().default(false),
     views: bigint("views", { mode: "number" }).notNull().default(0),
@@ -83,7 +89,7 @@ export const videos = pgTable(
     videoId_idx: index("videoId_idx").on(table.id),
     createdAt_idx: index("createdAt_idx").on(table.createdAt),
     deletionDate_idx: index("deletionDate_idx").on(table.deletionDate),
-  }),
+  })
 );
 
 export const videosRelations = relations(videos, ({ one }) => ({

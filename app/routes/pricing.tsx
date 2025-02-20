@@ -1,11 +1,11 @@
-import TopNav from "@/components/top-nav";
+import TopNav from "../components/top-nav";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { createFileRoute } from "@tanstack/react-router";
-import { Footer } from "@/components/footer";
+import { Footer } from "../components/footer";
 import { useUser } from "@clerk/tanstack-start";
 import { useState } from "react";
-import { Tabs } from "@/components/tabs";
-import { AccountTierText } from "@/components/account-tier-text";
+import { Tabs } from "../components/tabs";
+import { AccountTierText } from "../components/account-tier-text";
 import { CheckIcon } from "lucide-react";
 import { ButtonLink } from "../components/pricing/button-link";
 
