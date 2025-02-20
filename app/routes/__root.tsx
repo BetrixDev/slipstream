@@ -6,13 +6,29 @@ import {
   Scripts,
   createRootRoute,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, lazy } from "react";
 import { Toaster } from "sonner";
 import clerkCss from "../clerk.css?url";
 import globalCss from "../globals.css?url";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const TanStackRouterDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : lazy(() =>
+        import("@tanstack/router-devtools").then((res) => ({
+          default: res.TanStackRouterDevtools,
+        }))
+      );
+
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : lazy(() =>
+        import("@tanstack/react-query-devtools").then((res) => ({
+          default: res.ReactQueryDevtools,
+        }))
+      );
 
 export const Route = createRootRoute({
   head: () => ({
