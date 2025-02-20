@@ -82,7 +82,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           </head>
           <body className="antialiased font-dmSans">
             <div vaul-drawer-wrapper="">{children}</div>
-            <Toaster />
+            <Toaster theme="dark" />
             <TanStackRouterDevtools position="bottom-right" />
             <ReactQueryDevtools buttonPosition="bottom-left" />
             <Scripts />
