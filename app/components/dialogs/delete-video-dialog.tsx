@@ -9,7 +9,6 @@ import {
 import { useAtom } from "jotai";
 import { toast } from "sonner";
 import { deleteVideoAtom } from "@/lib/atoms";
-import { useUserVideoDatastore } from "@/lib/stores/user-video-data";
 import { usageDataQueryOptions, videosQueryOptions } from "@/lib/query-utils";
 import { notNanOrDefault } from "@/lib/utils";
 import { queryClient } from "@/routes/__root";
@@ -24,15 +23,13 @@ export function DeleteVideoDialog() {
     }
 
     const oldVideos = queryClient.getQueryData(videosQueryOptions.queryKey);
-    const oldTotalStorageUsed =
-      useUserVideoDatastore.getState().totalStorageUsed;
+    const oldUsageData = queryClient.getQueryData(
+      usageDataQueryOptions.queryKey
+    );
 
     function reset(message?: string) {
       console.log("resetting videos to ", oldVideos);
-      // useUserVideoDatastore.setState({
-      //   videos: oldVideos,
-      //   totalStorageUsed: oldTotalStorageUsed,
-      // });
+      queryClient.setQueryData(usageDataQueryOptions.queryKey, oldUsageData);
 
       queryClient.setQueryData(videosQueryOptions.queryKey, (old) => {
         return {

@@ -7,11 +7,11 @@ import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { onUploadCancelledServerFn } from "@/server-fns/videos";
 import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
-import { useUserVideoDatastore } from "@/lib/stores/user-video-data";
+import { usageDataQueryOptions } from "@/lib/query-utils";
+import { queryClient } from "@/routes/__root";
 
 export function UploadingVideosContainer() {
   const { uploadingVideos, removeVideo } = useUploadingVideosStore();
-  const { decrementTotalStorageUsed } = useUserVideoDatastore();
 
   function handleUploadCancel(
     videoId: string,
@@ -19,7 +19,16 @@ export function UploadingVideosContainer() {
     videoSizeBytes: number
   ) {
     removeVideo(videoId);
-    decrementTotalStorageUsed(videoSizeBytes);
+    queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        totalStorageUsed: Math.max(
+          oldData.totalStorageUsed - videoSizeBytes,
+          0
+        ),
+      };
+    });
     onUploadCancelledServerFn({ data: { videoId } });
 
     toast.success("Cancelled uploading video", { description: videoTitle });

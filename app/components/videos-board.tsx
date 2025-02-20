@@ -32,14 +32,26 @@ import { type ComponentProps, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getVideoDownloadDetailsServerFn } from "../server-fns/videos";
 import { deleteVideoAtom, editVideoAtom } from "../lib/atoms";
-import {
-  type Video,
-  useUserVideoDatastore,
-} from "@/lib/stores/user-video-data";
 import { Link } from "@tanstack/react-router";
+import { queryClient } from "@/routes/__root";
+import { videosQueryOptions } from "@/lib/query-utils";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
+
+type Video = {
+  id: string;
+  title: string;
+  views: number;
+  fileSizeBytes: number;
+  smallThumbnailUrl?: string | null;
+  triggerAccessToken?: string;
+  videoLengthSeconds?: number | null;
+  isProcessing: boolean;
+  isPrivate: boolean;
+  createdAt: string;
+  deletionDate?: string | null;
+};
 
 export function VideosBoard({ videos }: { videos: Video[] }) {
   return videos.map((video) => <UploadedVideo video={video} key={video.id} />);
@@ -80,12 +92,11 @@ function UploadedVideo({ video }: { video: Video }) {
             className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full"
           />
         ) : (
-          <div>Fix this thumbnail placeholder stuff</div>
-          // <TriggerAuthContext.Provider
-          //   value={{ accessToken: video.triggerAccessToken }}
-          // >
-          //   <ThumbnailPlaceholder videoId={video.id} />
-          // </TriggerAuthContext.Provider>
+          <TriggerAuthContext.Provider
+            value={{ accessToken: video.triggerAccessToken }}
+          >
+            <ThumbnailPlaceholder videoId={video.id} />
+          </TriggerAuthContext.Provider>
         )}
         <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40" />
       </div>
@@ -191,7 +202,6 @@ function UploadedVideo({ video }: { video: Video }) {
 type ThumbnailPlaceholderProps = {
   videoId: string;
 };
-
 function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
   const { runs } = useRealtimeRunsWithTag(`video-processing-${props.videoId}`);
 
@@ -202,18 +212,21 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
         run.metadata.videoId === props.videoId &&
         run.metadata.smallThumbnailUrl
       ) {
-        useUserVideoDatastore.setState((state) => ({
-          videos: state.videos.map((v) => {
-            if (v.id === props.videoId && run.metadata) {
-              return {
-                ...v,
-                smallThumbnailUrl: run.metadata.smallThumbnailUrl as string,
-              };
-            }
-
-            return v;
-          }),
-        }));
+        queryClient.setQueryData(videosQueryOptions.queryKey, (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            videos: oldData.videos.map((v) => {
+              if (v.id === props.videoId && run.metadata) {
+                return {
+                  ...v,
+                  smallThumbnailUrl: run.metadata.smallThumbnailUrl as string,
+                };
+              }
+              return v;
+            }),
+          };
+        });
       }
     }
   }, [runs, props.videoId]);

@@ -13,13 +13,11 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { FieldInfo } from "./upload-video-dialog";
-import { useUserVideoDatastore } from "@/lib/stores/user-video-data";
 import { useRouter } from "@tanstack/react-router";
 import { editVideoAtom } from "@/lib/atoms";
-import { createServerFn } from "@tanstack/start";
-import { z } from "zod";
-import { authGuardMiddleware } from "@/middleware/auth-guard";
 import { updateVideoDataServerFn } from "@/server-fns/videos";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { videosQueryOptions } from "@/lib/query-utils";
 
 type FormData = {
   title?: string;
@@ -28,11 +26,11 @@ type FormData = {
 
 export function EditVideoDialog() {
   const router = useRouter();
-  const videos = useUserVideoDatastore((s) => s.videos);
-  const setVideos = useUserVideoDatastore((s) => s.setVideos);
+  const queryClient = useQueryClient();
+  const { data } = useQuery(videosQueryOptions);
   const [editVideo, setEditVideo] = useAtom(editVideoAtom);
 
-  const videoData = videos.find((v) => v.id === editVideo?.id);
+  const videoData = data?.videos.find((v) => v.id === editVideo?.id);
 
   async function handleUpdateVideo(data: FormData) {
     try {
@@ -40,15 +38,16 @@ export function EditVideoDialog() {
         return;
       }
 
-      setVideos(
-        videos.map((v) => {
+      // Optimistically update the UI
+      queryClient.setQueryData(videosQueryOptions.queryKey, (old) => ({
+        ...old,
+        videos: (old?.videos ?? []).map((v) => {
           if (v.id === editVideo.id) {
             return { ...v, ...data };
           }
-
           return v;
-        })
-      );
+        }),
+      }));
 
       setEditVideo(undefined);
 
@@ -57,6 +56,8 @@ export function EditVideoDialog() {
       });
 
       if (!result.success) {
+        queryClient.invalidateQueries(videosQueryOptions);
+
         toast.error("An error occurred while editing the video.", {
           description: result.message,
         });
@@ -64,6 +65,8 @@ export function EditVideoDialog() {
         toast.success(result.message, { description: result.description });
       }
     } catch {
+      queryClient.invalidateQueries(videosQueryOptions);
+
       toast.error("An error occurred while editing the video.", {
         description: "Please try again",
       });

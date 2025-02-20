@@ -3,7 +3,8 @@ import { Dialog, DialogOverlay, DialogPortal } from "@radix-ui/react-dialog";
 import { Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
-import { useUserVideoDatastore } from "@/lib/stores/user-video-data";
+import { usageDataQueryOptions } from "@/lib/query-utils";
+import { useQuery } from "@tanstack/react-query";
 
 export function FullPageDropzone() {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -11,11 +12,15 @@ export function FullPageDropzone() {
 
   const debouncedIsDragOver = useDebounce(isDragOver, 50);
 
+  const { data: usageData } = useQuery(usageDataQueryOptions);
+
   function validateFile(file: File) {
     const isValidMime = file.type.startsWith("video");
 
-    const { totalStorageUsed, totalStorageAvailable, maxFileUploadSize } =
-      useUserVideoDatastore.getState();
+    const maxFileUploadSize = usageData?.maxFileUpload;
+    const totalStorageUsed = usageData?.totalStorageUsed;
+    const totalStorageAvailable =
+      (usageData?.maxStorage ?? 0) - (usageData?.totalStorageUsed ?? 0);
 
     if (!isValidMime) {
       setErrorMessage("Invalid file type");
@@ -33,7 +38,10 @@ export function FullPageDropzone() {
       return false;
     }
 
-    if (totalStorageUsed + file.size > totalStorageAvailable) {
+    if (
+      totalStorageUsed === undefined ||
+      totalStorageUsed + file.size > totalStorageAvailable
+    ) {
       setErrorMessage("Uploading this video would exceed your storage limits");
       return false;
     }

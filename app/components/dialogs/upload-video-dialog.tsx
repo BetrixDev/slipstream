@@ -25,7 +25,8 @@ import {
   trimVideoDataAtom,
 } from "@/lib/atoms";
 import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
-import { useUserVideoDatastore } from "@/lib/stores/user-video-data";
+import { useQuery } from "@tanstack/react-query";
+import { usageDataQueryOptions } from "@/lib/query-utils";
 
 type FormData = {
   title: string | null;
@@ -55,11 +56,12 @@ export function UploadVideoDialog() {
 }
 
 function UploadVideoDialogChild() {
-  const maxFileUploadSize = useUserVideoDatastore((s) => s.maxFileUploadSize);
-  const totalStorageUsed = useUserVideoDatastore((s) => s.totalStorageUsed);
-  const totalStorageAvailable = useUserVideoDatastore(
-    (s) => s.totalStorageAvailable
-  );
+  const { data: usageData } = useQuery(usageDataQueryOptions);
+
+  const maxFileUploadSize = usageData?.maxFileUpload;
+  const totalStorageUsed = usageData?.totalStorageUsed;
+  const totalStorageAvailable =
+    (usageData?.maxStorage ?? 0) - (usageData?.totalStorageUsed ?? 0);
 
   const setTrimVideoData = useSetAtom(trimVideoDataAtom);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useAtom(
@@ -173,7 +175,10 @@ function UploadVideoDialogChild() {
                   return "File size exceeds maximum file upload size for your account tier";
                 }
 
-                if (fileSize + totalStorageUsed > totalStorageAvailable) {
+                if (
+                  totalStorageUsed === undefined ||
+                  fileSize + totalStorageUsed > totalStorageAvailable
+                ) {
                   return "You do not have enough storage available";
                 }
               },

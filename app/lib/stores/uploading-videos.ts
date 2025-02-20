@@ -6,7 +6,8 @@ import {
   uploadCompleteServerFn,
   getUploadPreflightDataServerFn,
 } from "@/server-fns/videos";
-import { type Video, useUserVideoDatastore } from "./user-video-data";
+import { queryClient } from "@/routes/__root";
+import { usageDataQueryOptions, videosQueryOptions } from "../query-utils";
 
 type UploadingVideo = {
   id: string;
@@ -101,7 +102,13 @@ async function handleVideoUpload(video: UploadingVideo) {
       throw new UploadingError(uploadPreflight.message);
     }
 
-    useUserVideoDatastore.getState().incrementTotalStorageUsed(video.file.size);
+    queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        totalStorageUsed: oldData.totalStorageUsed + video.file.size,
+      };
+    });
 
     await axios(uploadPreflight.url, {
       onUploadProgress: (e) => {
@@ -132,18 +139,18 @@ async function handleVideoUpload(video: UploadingVideo) {
     if (!uploadCompleteData.video) {
       return;
     }
-
-    useUserVideoDatastore.setState((state) => {
-      const newVideo: Video = {
+    queryClient.setQueryData(videosQueryOptions.queryKey, (oldData) => {
+      const newVideo = {
         ...uploadCompleteData.video,
         views: 0,
         isProcessing: true,
         isPrivate: false,
         fileSizeBytes: video.file.size,
         triggerAccessToken: uploadCompleteData.triggerAccessToken,
-      };
+        // biome-ignore lint/suspicious/noExplicitAny: temp
+      } as any;
 
-      const videos = [newVideo, ...state.videos];
+      const videos = [newVideo, ...(oldData?.videos ?? [])];
 
       videos.sort(
         (a, b) =>
@@ -151,6 +158,7 @@ async function handleVideoUpload(video: UploadingVideo) {
       );
 
       return {
+        ...oldData,
         videos,
       };
     });
@@ -165,7 +173,13 @@ async function handleVideoUpload(video: UploadingVideo) {
       toast.error("Failed to upload video", { description: video.title });
     }
 
-    useUserVideoDatastore.getState().decrementTotalStorageUsed(video.file.size);
+    queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        totalStorageUsed: oldData.totalStorageUsed - video.file.size,
+      };
+    });
   } finally {
     useUploadingVideosStore.getState().removeVideo(video.id);
   }
