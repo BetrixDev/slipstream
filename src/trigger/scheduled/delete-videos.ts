@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db } from "../../../app/lib/db.js";
 import { schedules, tasks } from "@trigger.dev/sdk/v3";
 import type { videoDeletionTask } from "../video-deletion.js";
 

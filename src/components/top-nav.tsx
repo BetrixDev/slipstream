@@ -1,6 +1,5 @@
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/tanstack-start";
 import { Video } from "lucide-react";
-import Link from "next/link";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -8,13 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { Link } from "@tanstack/react-router";
 
 export default function TopNav() {
   return (
     <div className="sticky md:top-2 flex justify-center z-[99] w-full">
       <header className="px-3 max-w-[48rem] md:w-[80%] w-full bg-background/70 md:border border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm">
-        <Link className="flex items-center" href="/" prefetch>
-          <Button variant="ghost" className="flex-shrink-0 flex items-center rounded-full z-50">
+        <Link className="flex items-center" to="/" preload="intent">
+          <Button
+            variant="ghost"
+            className="flex-shrink-0 flex items-center rounded-full z-50"
+          >
             <Video className="h-8 w-8 text-blue-500" />
             <span className="ml-2 text-lg z-10 hidden md:inline md:text-2xl font-bold pointer-events-none">
               Flowble
@@ -25,22 +28,26 @@ export default function TopNav() {
           <nav className="hidden sm:flex mx-auto justify-center gap-4 sm:gap-6">
             <Link
               className="text-sm font-medium hover:underline underline-offset-4"
-              href="/pricing"
-              prefetch
+              to="/pricing"
+              preload="intent"
             >
               Pricing
             </Link>
-            <Link className="text-sm font-medium hover:underline underline-offset-4" href="/videos">
+            <Link
+              className="text-sm font-medium hover:underline underline-offset-4"
+              to="/videos"
+              preload="intent"
+            >
               Your Videos
             </Link>
-            <Link
+            <a
               className="text-sm font-medium hover:underline underline-offset-4"
               href="mailto:support@flowble.app"
               target="_blank"
               rel="noreferrer"
             >
               Support
-            </Link>
+            </a>
           </nav>
           <div className="flex justify-center sm:hidden">
             <DropdownMenu>
@@ -53,7 +60,8 @@ export default function TopNav() {
                 <DropdownMenuItem>
                   <Link
                     className="text-sm font-medium hover:underline underline-offset-4"
-                    href={{ pathname: "/" }}
+                    to="/"
+                    preload="intent"
                   >
                     Home
                   </Link>
@@ -61,7 +69,8 @@ export default function TopNav() {
                 <DropdownMenuItem>
                   <Link
                     className="text-sm font-medium hover:underline underline-offset-4"
-                    href="/pricing"
+                    to="/pricing"
+                    preload="intent"
                   >
                     Pricing
                   </Link>
@@ -69,18 +78,19 @@ export default function TopNav() {
                 <DropdownMenuItem>
                   <Link
                     className="text-sm font-medium hover:underline underline-offset-4"
-                    href="/videos"
+                    to="/videos"
+                    preload="intent"
                   >
                     Your Videos
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link
+                  <a
                     className="text-sm font-medium hover:underline underline-offset-4"
                     href="mailto:support@flowble.app"
                   >
                     Support
-                  </Link>
+                  </a>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -89,7 +99,10 @@ export default function TopNav() {
         <SignedOut>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full md:hidden block z-50">
+              <Button
+                variant="outline"
+                className="rounded-full md:hidden block z-50"
+              >
                 Account
               </Button>
             </DropdownMenuTrigger>
@@ -97,7 +110,8 @@ export default function TopNav() {
               <DropdownMenuItem>
                 <Link
                   className="text-sm font-medium hover:underline underline-offset-4"
-                  href="/sign-in"
+                  to="/sign-in/$"
+                  preload="intent"
                 >
                   Sign in
                 </Link>
@@ -105,9 +119,10 @@ export default function TopNav() {
               <DropdownMenuItem>
                 <Link
                   className="text-sm font-medium hover:underline underline-offset-4"
-                  href="/waitlist"
+                  to="/sign-up/$"
+                  preload="intent"
                 >
-                  Join Waitlist
+                  Sign Up
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -123,14 +138,14 @@ export default function TopNav() {
         </SignedIn>
         <SignedOut>
           <div className="hidden md:flex gap-2 w-40 justify-end z-10">
-            <Link href="/sign-in">
+            <Link to="/sign-in/$" preload="intent">
               <Button className="rounded-full" variant="ghost">
                 Sign in
               </Button>
             </Link>
-            <Link href="/waitlist">
+            <Link to="/sign-up/$" preload="intent">
               <Button className="rounded-full" variant="secondary">
-                Join Waitlist
+                Sign Up
               </Button>
             </Link>
           </div>

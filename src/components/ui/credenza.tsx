@@ -23,7 +23,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../app/lib/utils";
 
 interface BaseProps {
   children: React.ReactNode;
@@ -75,13 +75,20 @@ const CredenzaContent = ({ className, children, ...props }: CredenzaProps) => {
   const CredenzaContent = isDesktop ? DialogContent : DrawerContent;
 
   return (
-    <CredenzaContent className={cn(className, !isDesktop ? "mb-4 px-4" : undefined)} {...props}>
+    <CredenzaContent
+      className={cn(className, !isDesktop ? "mb-4 px-4" : undefined)}
+      {...props}
+    >
       {children}
     </CredenzaContent>
   );
 };
 
-const CredenzaDescription = ({ className, children, ...props }: CredenzaProps) => {
+const CredenzaDescription = ({
+  className,
+  children,
+  ...props
+}: CredenzaProps) => {
   const isDesktop = useMediaQuery(desktop);
   const CredenzaDescription = isDesktop ? DialogDescription : DrawerDescription;
 

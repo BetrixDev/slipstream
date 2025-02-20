@@ -3,12 +3,17 @@ import { mkdir, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { LOWEST_BITRATE_THRESHOLD } from "@/lib/constants";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/schema";
+import { LOWEST_BITRATE_THRESHOLD } from "../../app/lib/constants";
+import { db } from "../../app/lib/db";
+import { videos } from "../../app/lib/schema";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { AbortTaskRunError, logger, metadata, schemaTask } from "@trigger.dev/sdk/v3";
+import {
+  AbortTaskRunError,
+  logger,
+  metadata,
+  schemaTask,
+} from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
@@ -51,7 +56,7 @@ export const videoProcessingTask = schemaTask({
 
     const failedSteps: Step[] = [];
 
-    const { env } = await import("@/lib/env");
+    const { env } = await import("../../app/lib/env");
 
     const redis = new Redis({
       token: env.REDIS_REST_TOKEN,
@@ -90,7 +95,10 @@ export const videoProcessingTask = schemaTask({
       throw new AbortTaskRunError(`No video found with id ${videoId}`);
     }
 
-    const workingDir = path.join(os.tmpdir(), `${ctx.task.id}-${ctx.attempt.id}`);
+    const workingDir = path.join(
+      os.tmpdir(),
+      `${ctx.task.id}-${ctx.attempt.id}`
+    );
     await mkdir(workingDir, { recursive: true });
 
     const nativeFilePath = path.join(workingDir, videoData.nativeFileKey);
@@ -183,7 +191,7 @@ export const videoProcessingTask = schemaTask({
                     Key: `${videoData.nativeFileKey}-large.webp`,
                     Body: buffer,
                   },
-                }).done(),
+                }).done()
               );
             }),
           logger
@@ -210,7 +218,7 @@ export const videoProcessingTask = schemaTask({
                     Key: `${videoData.nativeFileKey}-small.webp`,
                     Body: buffer,
                   },
-                }).done(),
+                }).done()
               );
             }),
         ]);
@@ -222,12 +230,12 @@ export const videoProcessingTask = schemaTask({
 
         metadata.set(
           "smallThumbnailUrl",
-          `${env.THUMBNAIL_BASE_URL}/${dbUpdatePayload.smallThumbnailKey}`,
+          `${env.THUMBNAIL_BASE_URL}/${dbUpdatePayload.smallThumbnailKey}`
         );
 
         metadata.set(
           "largeThumbnailUrl",
-          `${env.THUMBNAIL_BASE_URL}/${dbUpdatePayload.largeThumbnailKey}`,
+          `${env.THUMBNAIL_BASE_URL}/${dbUpdatePayload.largeThumbnailKey}`
         );
 
         span.end();
@@ -240,7 +248,7 @@ export const videoProcessingTask = schemaTask({
           const { stdout } = await logger.trace(
             "FFMPEG video duration",
             () =>
-              execa`ffprobe -i ${nativeFilePath} -show_entries format=duration -v quiet -of csv=p=0`,
+              execa`ffprobe -i ${nativeFilePath} -show_entries format=duration -v quiet -of csv=p=0`
           );
 
           const videoDurationSeconds = Math.round(Number(stdout.trim()));
@@ -259,7 +267,9 @@ export const videoProcessingTask = schemaTask({
 
     if (steps.includes("thumbnail-track")) {
       await logger.trace("Step thumbnail-track", async (span) => {
-        const nativeVideoSource = videoData.sources.find((source) => source.isNative);
+        const nativeVideoSource = videoData.sources.find(
+          (source) => source.isNative
+        );
 
         if (!nativeVideoSource) {
           failedSteps.push("thumbnail-track");
@@ -274,7 +284,9 @@ export const videoProcessingTask = schemaTask({
         const thumbnailWidth = nativeVideoSource.width ?? 1920;
         const thumbnailHeight = nativeVideoSource.height ?? 1080;
 
-        const scaledWidth = Math.round((thumbnailWidth / thumbnailHeight) * 100);
+        const scaledWidth = Math.round(
+          (thumbnailWidth / thumbnailHeight) * 100
+        );
 
         await logger.trace("FFMPEG thumbnail extraction", async (span) => {
           await execa`ffmpeg -i ${nativeFilePath} -vf fps=1,scale=${scaledWidth}:100 -q:v 2 ${thumbnailsDir}/thumbnail_%03d.jpg`;
@@ -284,27 +296,30 @@ export const videoProcessingTask = schemaTask({
 
         const files = readdirSync(thumbnailsDir);
 
-        const storyboardBuffer = await logger.trace("Sharp storyboard", async () => {
-          return await sharp({
-            create: {
-              width: scaledWidth,
-              height: 100 * files.length,
-              channels: 3,
-              background: { r: 0, g: 0, b: 0 },
-            },
-          })
-            .composite(
-              await Promise.all(
-                files.map(async (file, idx) => ({
-                  input: path.join(thumbnailsDir, file),
-                  top: 100 * idx,
-                  left: 0,
-                })),
-              ),
-            )
-            .jpeg({ quality: 75 })
-            .toBuffer();
-        });
+        const storyboardBuffer = await logger.trace(
+          "Sharp storyboard",
+          async () => {
+            return await sharp({
+              create: {
+                width: scaledWidth,
+                height: 100 * files.length,
+                channels: 3,
+                background: { r: 0, g: 0, b: 0 },
+              },
+            })
+              .composite(
+                await Promise.all(
+                  files.map(async (file, idx) => ({
+                    input: path.join(thumbnailsDir, file),
+                    top: 100 * idx,
+                    left: 0,
+                  }))
+                )
+              )
+              .jpeg({ quality: 75 })
+              .toBuffer();
+          }
+        );
 
         const storyboardKey = `${videoData.nativeFileKey}-storyboard.jpg`;
 
@@ -319,7 +334,11 @@ export const videoProcessingTask = schemaTask({
 
         promises.push(storyboardUpload.done());
 
-        const storyboardJson = generateStoryboard(files.length, scaledWidth, 100);
+        const storyboardJson = generateStoryboard(
+          files.length,
+          scaledWidth,
+          100
+        );
 
         dbUpdatePayload.storyboardJson = storyboardJson;
 
@@ -331,23 +350,26 @@ export const videoProcessingTask = schemaTask({
       await logger.trace("Step transcoding", async (stepSpan) => {
         if (videoData.author.accountTier === "free" && !forceTranscoding) {
           logger.error(
-            `Aborting transcoding video for free tier user (${videoData.authorId}). Set forceTranscoding to true to transcod this video`,
+            `Aborting transcoding video for free tier user (${videoData.authorId}). Set forceTranscoding to true to transcod this video`
           );
 
           stepSpan.end();
           return;
         }
 
-        const nativeFileType = await logger.trace("File type from stream", async (fileTypeSpan) => {
-          const nativeFileType = await fileTypeFromStream(
-            // biome-ignore lint/suspicious/noExplicitAny: types aren't correct
-            createReadStream(nativeFilePath) as any,
-          );
+        const nativeFileType = await logger.trace(
+          "File type from stream",
+          async (fileTypeSpan) => {
+            const nativeFileType = await fileTypeFromStream(
+              // biome-ignore lint/suspicious/noExplicitAny: types aren't correct
+              createReadStream(nativeFilePath) as any
+            );
 
-          fileTypeSpan.end();
+            fileTypeSpan.end();
 
-          return nativeFileType;
-        });
+            return nativeFileType;
+          }
+        );
 
         let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
 
@@ -365,7 +387,8 @@ export const videoProcessingTask = schemaTask({
             const { stdout: nativeFileResolution } =
               await execa`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${nativeFilePath}`;
 
-            const [nativeFileWidthString, nativeFileHeightString] = nativeFileResolution.split("x");
+            const [nativeFileWidthString, nativeFileHeightString] =
+              nativeFileResolution.split("x");
 
             const nativeFileWidth = Number(nativeFileWidthString);
             const nativeFileHeight = Number(nativeFileHeightString);
@@ -375,7 +398,7 @@ export const videoProcessingTask = schemaTask({
               nativeFileWidth,
               nativeFileHeight,
             };
-          },
+          }
         );
 
         const videoSources: VideoSource[] = [
@@ -399,66 +422,75 @@ export const videoProcessingTask = schemaTask({
         });
 
         for (const resolution of resolutionsToGenerate) {
-          await logger.trace(`Transcode ${resolution.height}p`, async (transcodeSpan) => {
-            const isVideoAuthorPremium = videoData.author.accountTier === "premium";
-            const ffmpegPresetOption = isVideoAuthorPremium ? "slow" : "medium";
-            let crf = resolution.height > 720 ? 25 : 30;
+          await logger.trace(
+            `Transcode ${resolution.height}p`,
+            async (transcodeSpan) => {
+              const isVideoAuthorPremium =
+                videoData.author.accountTier === "premium";
+              const ffmpegPresetOption = isVideoAuthorPremium
+                ? "slow"
+                : "medium";
+              let crf = resolution.height > 720 ? 25 : 30;
 
-            if (isVideoAuthorPremium) {
-              crf -= 5;
-            }
+              if (isVideoAuthorPremium) {
+                crf -= 5;
+              }
 
-            // Reducing the quality of 480p and under resolution to save space and most people will never watch in this res
-            if (resolution.height <= 480) {
-              crf += 5;
-            }
+              // Reducing the quality of 480p and under resolution to save space and most people will never watch in this res
+              if (resolution.height <= 480) {
+                crf += 5;
+              }
 
-            const outPath = path.join(workingDir, `${resolution.height}p.mp4`);
+              const outPath = path.join(
+                workingDir,
+                `${resolution.height}p.mp4`
+              );
 
-            await logger.trace("FFMPEG transcode", async (ffmpegSpan) => {
-              ffmpegSpan.setAttributes({
-                resolution: `${resolution.width}x${resolution.height}`,
-                crf,
-                preset: ffmpegPresetOption,
-                outPath,
+              await logger.trace("FFMPEG transcode", async (ffmpegSpan) => {
+                ffmpegSpan.setAttributes({
+                  resolution: `${resolution.width}x${resolution.height}`,
+                  crf,
+                  preset: ffmpegPresetOption,
+                  outPath,
+                });
+
+                await execa`ffmpeg -i ${nativeFilePath} -c:v libx264 -pix_fmt yuv420p -crf ${crf} -preset ${ffmpegPresetOption} -tune zerolatency -c:a aac -vf scale=${resolution.width}:${resolution.height} ${outPath}`;
+
+                ffmpegSpan.end();
               });
 
-              await execa`ffmpeg -i ${nativeFilePath} -c:v libx264 -pix_fmt yuv420p -crf ${crf} -preset ${ffmpegPresetOption} -tune zerolatency -c:a aac -vf scale=${resolution.width}:${resolution.height} ${outPath}`;
+              const key = `${videoData.nativeFileKey}-${resolution.height}p.mp4`;
 
-              ffmpegSpan.end();
-            });
+              const upload = new Upload({
+                client: s3Client,
+                params: {
+                  Bucket: env.VIDEOS_BUCKET_NAME,
+                  Key: key,
+                  Body: createReadStream(outPath),
+                  ContentType: "video/mp4",
+                },
+              });
 
-            const key = `${videoData.nativeFileKey}-${resolution.height}p.mp4`;
+              promises.push(upload.done());
 
-            const upload = new Upload({
-              client: s3Client,
-              params: {
-                Bucket: env.VIDEOS_BUCKET_NAME,
-                Key: key,
-                Body: createReadStream(outPath),
-                ContentType: "video/mp4",
-              },
-            });
+              videoSources.push({
+                key,
+                type: "video/mp4",
+                width: resolution.width,
+                height: resolution.height,
+                isNative: false,
+                bitrate: await getVideoFileBitrate(outPath),
+              });
 
-            promises.push(upload.done());
+              dbUpdatePayload.sources = videoSources;
 
-            videoSources.push({
-              key,
-              type: "video/mp4",
-              width: resolution.width,
-              height: resolution.height,
-              isNative: false,
-              bitrate: await getVideoFileBitrate(outPath),
-            });
-
-            dbUpdatePayload.sources = videoSources;
-
-            transcodeSpan.end();
-          });
+              transcodeSpan.end();
+            }
+          );
 
           if (!shouldTranscode()) {
             logger.info(
-              "Hit lower threshold for video bitrate, no more video qualities will be generated",
+              "Hit lower threshold for video bitrate, no more video qualities will be generated"
             );
 
             break;
@@ -470,14 +502,14 @@ export const videoProcessingTask = schemaTask({
     }
 
     logger.info(
-      `Finished video processing with steps ${steps.join(", ")}. Letting promises finish`,
+      `Finished video processing with steps ${steps.join(", ")}. Letting promises finish`
     );
 
     promises.push(
       redis.del(`video:${videoData.id}`),
       redis.del(`videoMetadata:${videoData.id}`),
       redis.del(`videos:${videoData.authorId}`),
-      db.update(videos).set(dbUpdatePayload).where(eq(videos.id, videoId)),
+      db.update(videos).set(dbUpdatePayload).where(eq(videos.id, videoId))
     );
 
     await Promise.all(promises);
@@ -496,7 +528,9 @@ type Resolution = {
   height: number;
 };
 
-function generateSmallerResolutions(nativeResolution: Resolution): Resolution[] {
+function generateSmallerResolutions(
+  nativeResolution: Resolution
+): Resolution[] {
   const aspectRatio = nativeResolution.width / nativeResolution.height;
 
   // Define common height values to scale down to
@@ -524,11 +558,15 @@ async function getVideoFileBitrate(path: string) {
       const { stdout: transcodedFileBitRateString } =
         await execa`ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 ${path}`;
 
-      const transcodedFileBitRate = Number.parseInt(transcodedFileBitRateString);
+      const transcodedFileBitRate = Number.parseInt(
+        transcodedFileBitRateString
+      );
 
       span.end();
 
-      return !Number.isNaN(transcodedFileBitRate) ? transcodedFileBitRate : undefined;
+      return !Number.isNaN(transcodedFileBitRate)
+        ? transcodedFileBitRate
+        : undefined;
     } catch (error) {
       logger.error(`Failed to get video file bitrate for ${path}`, {
         // biome-ignore lint/suspicious/noExplicitAny: not needed
@@ -560,7 +598,7 @@ type Storyboard = {
 function generateStoryboard(
   thumbnailCount: number,
   thumbnailWidth: number,
-  thumbnailHeight: number,
+  thumbnailHeight: number
 ): Storyboard {
   const storyboard: Storyboard = {
     tileWidth: thumbnailWidth,

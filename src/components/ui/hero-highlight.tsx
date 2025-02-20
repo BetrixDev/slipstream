@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../../app/lib/utils";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type React from "react";
 
@@ -16,7 +16,11 @@ export const HeroHighlight = ({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
+  function handleMouseMove({
+    currentTarget,
+    clientX,
+    clientY,
+  }: React.MouseEvent<HTMLDivElement>) {
     if (!currentTarget) return;
     const { left, top } = currentTarget.getBoundingClientRect();
 
@@ -27,7 +31,7 @@ export const HeroHighlight = ({
     <div
       className={cn(
         "relative items-center bg-white dark:bg-black w-full group",
-        containerClassName,
+        containerClassName
       )}
       onMouseMove={handleMouseMove}
     >
@@ -84,7 +88,7 @@ export const Highlight = ({
       }}
       className={cn(
         "relative inline-block pb-1   px-1 rounded-lg bg-gradient-to-r from-indigo-300 to-purple-300 dark:from-indigo-500 dark:to-purple-500",
-        className,
+        className
       )}
     >
       {children}

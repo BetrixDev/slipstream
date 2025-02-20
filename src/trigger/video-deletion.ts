@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { users, videos } from "@/lib/schema";
+import { db } from "../../app/lib/db";
+import { users, videos } from "../../app/lib/schema";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
@@ -22,7 +22,7 @@ export const videoDeletionTask = schemaTask({
     videoId: z.string(),
   }),
   run: async (payload) => {
-    const { env } = await import("@/lib/env");
+    const { env } = await import("../../app/lib/env");
 
     const s3Client = new S3Client({
       region: env.S3_REGION,
@@ -63,8 +63,8 @@ export const videoDeletionTask = schemaTask({
           new DeleteObjectCommand({
             Bucket: env.VIDEOS_BUCKET_NAME,
             Key: source.key,
-          }),
-        ),
+          })
+        )
       );
     }
 
@@ -76,8 +76,8 @@ export const videoDeletionTask = schemaTask({
           new DeleteObjectCommand({
             Bucket: env.THUMBS_BUCKET_NAME,
             Key: videoData.smallThumbnailKey,
-          }),
-        ),
+          })
+        )
       );
     }
 
@@ -87,8 +87,8 @@ export const videoDeletionTask = schemaTask({
           new DeleteObjectCommand({
             Bucket: env.THUMBS_BUCKET_NAME,
             Key: videoData.largeThumbnailKey,
-          }),
-        ),
+          })
+        )
       );
     }
 
@@ -97,8 +97,8 @@ export const videoDeletionTask = schemaTask({
         new DeleteObjectCommand({
           Bucket: env.THUMBS_BUCKET_NAME,
           Key: `${videoData.nativeFileKey}-storyboard.jpg`,
-        }),
-      ),
+        })
+      )
     );
 
     await Promise.all([
@@ -121,7 +121,7 @@ export const videoDeletionTask = schemaTask({
     try {
       const cachedVideos = await redis.hget<(typeof videoData)[]>(
         `videos:${videoData.authorId}`,
-        "videos",
+        "videos"
       );
 
       if (cachedVideos) {

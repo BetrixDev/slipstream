@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { videos } from "@/lib/schema";
+import { db } from "../../../app/lib/db";
+import { videos } from "../../../app/lib/schema";
 import { schedules } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
@@ -8,7 +8,7 @@ export const incrementViewsScheduledTask = schedules.task({
   id: "increment-views",
   cron: "*/5 * * * *",
   run: async () => {
-    const { env } = await import("@/lib/env");
+    const { env } = await import("../../../app/lib/env");
 
     const redis = new Redis({
       token: env.REDIS_REST_TOKEN,
@@ -25,7 +25,7 @@ export const incrementViewsScheduledTask = schedules.task({
           videoId: key.split(":")[1],
           value: await redis.hget(key, "views"),
         };
-      }),
+      })
     );
 
     for (const entry of oldestEntries) {
