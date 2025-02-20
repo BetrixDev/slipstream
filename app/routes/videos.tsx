@@ -28,8 +28,7 @@ function RouteComponent() {
   return (
     <div className="min-h-screen flex flex-col">
       <TopNav />
-      {/* Fix this dialog stuff */}
-      {/* <EditVideoDialog /> */}
+      <EditVideoDialog />
       <DeleteVideoDialog />
       <UploadVideoDialog />
       <TrimVideoDialog />
