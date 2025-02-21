@@ -1,39 +1,60 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { queryClient } from "./__root";
-import { videoQueryOptions } from "../lib/query-utils";
-import { useQuery } from "@tanstack/react-query";
-import { ViewIncrementer } from "../components/view-incrementer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useUser } from "@clerk/tanstack-start";
+import { getAuth } from "@clerk/tanstack-start/server";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import {
+  Link,
+  createFileRoute,
+  notFound,
+  redirect,
+} from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/start";
+import { getWebRequest } from "@tanstack/start/server";
+import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
+import {
+  DefaultVideoLayout,
+  defaultLayoutIcons,
+} from "@vidstack/react/player/layouts/default";
+import audioCss from "@vidstack/react/player/styles/default/layouts/audio.css?url";
+import videoCss from "@vidstack/react/player/styles/default/layouts/video.css?url";
+import themeCss from "@vidstack/react/player/styles/default/theme.css?url";
 import {
   EyeIcon,
   Loader2Icon,
   SquareArrowOutUpRightIcon,
   VideoIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useUser } from "@clerk/tanstack-start";
-import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
-import {
-  defaultLayoutIcons,
-  DefaultVideoLayout,
-} from "@vidstack/react/player/layouts/default";
-import { Card, CardContent } from "@/components/ui/card";
-import { WordyDate } from "../components/wordy-date";
+import { z } from "zod";
 import { AuthorInfo } from "../components/author-info";
-import { Separator } from "@radix-ui/react-dropdown-menu";
+import { ViewIncrementer } from "../components/view-incrementer";
+import { WordyDate } from "../components/wordy-date";
+import { getVideoDataServerFn } from "../server-fns/video-player";
 
-import themeCss from "@vidstack/react/player/styles/default/theme.css?url";
-import audioCss from "@vidstack/react/player/styles/default/layouts/audio.css?url";
-import videoCss from "@vidstack/react/player/styles/default/layouts/video.css?url";
+const fetchVideoData = createServerFn({ method: "POST" })
+  .validator(z.object({ videoId: z.string() }))
+  .handler(async ({ data }) => {
+    const video = await getVideoDataServerFn({
+      data: { videoId: data.videoId },
+    });
+
+    if (video.videoData.isPrivate) {
+      const { userId } = await getAuth(getWebRequest()!);
+
+      if (userId !== video.videoData.authorId) {
+        throw notFound();
+      }
+    }
+
+    return video;
+  });
 
 export const Route = createFileRoute("/p/$videoId")({
   component: RouteComponent,
   loader: ({ params }) => {
-    if (!params.videoId) {
-      throw redirect({ to: "/" });
-    }
-
-    queryClient.prefetchQuery(videoQueryOptions(params.videoId));
+    return fetchVideoData({ data: { videoId: params.videoId } });
   },
+  ssr: true,
   head: () => ({
     links: [
       { rel: "stylesheet", href: themeCss },
@@ -45,16 +66,11 @@ export const Route = createFileRoute("/p/$videoId")({
 
 function RouteComponent() {
   const { videoId } = Route.useParams();
-
-  const { data } = useQuery(videoQueryOptions(videoId));
+  const video = Route.useLoaderData();
 
   const { user } = useUser();
 
-  if (!data) {
-    return null;
-  }
-
-  const { videoData, videoSources } = data;
+  const { videoData, videoSources } = video;
 
   const isViewerAuthor = user?.id === videoData.authorId;
 
@@ -100,18 +116,18 @@ function RouteComponent() {
             streamType="on-demand"
             playsInline
             title={videoData.title}
-            poster={data.largeThumbnailUrl ?? undefined}
+            poster={video.largeThumbnailUrl ?? undefined}
             duration={videoData.videoLengthSeconds ?? undefined}
             storage="player"
           >
             <MediaProvider>
-              {data.largeThumbnailUrl !== null && (
-                <Poster className="vds-poster" src={data.largeThumbnailUrl} />
+              {video.largeThumbnailUrl !== null && (
+                <Poster className="vds-poster" src={video.largeThumbnailUrl} />
               )}
             </MediaProvider>
             <DefaultVideoLayout
               icons={defaultLayoutIcons}
-              thumbnails={data.storyboard}
+              thumbnails={video.storyboard}
             />
           </MediaPlayer>
           <div className="flex flex-col gap-4 min-w-96 w-96 grow">
@@ -120,7 +136,7 @@ function RouteComponent() {
                 <h1 className="text-2xl font-bold">{videoData.title}</h1>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
                   <span>
-                    Uploaded on <WordyDate timestamp={data.videoCreatedAt} />
+                    Uploaded on <WordyDate timestamp={video.videoCreatedAt} />
                   </span>
                   <span className="flex items-center gap-1">
                     <EyeIcon className="w-4 h-4" />

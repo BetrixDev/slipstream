@@ -1,5 +1,5 @@
 import TopNav from "../components/top-nav";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { usageDataQueryOptions, videosQueryOptions } from "../lib/query-utils";
 import { DeleteVideoDialog } from "../components/dialogs/delete-video-dialog";
 import { EditVideoDialog } from "../components/dialogs/edit-video-dialog";
@@ -12,17 +12,29 @@ import { UploadButton } from "../components/upload-button";
 import { UploadingVideosContainer } from "../components/uploading-videos-container";
 import { VideosBoard } from "../components/videos-board";
 import { useQuery } from "@tanstack/react-query";
+import { fetchClerkAuth } from "@/server-fns/clerk";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
+  beforeLoad: async () => {
+    const { userId } = await fetchClerkAuth();
+
+    if (!userId) {
+      throw redirect({ to: "/sign-in/$" });
+    }
+
+    return {
+      userId,
+    };
+  },
   loader: () => {
-    queryClient.ensureQueryData(videosQueryOptions);
-    queryClient.ensureQueryData(usageDataQueryOptions);
+    queryClient.prefetchQuery(videosQueryOptions);
+    queryClient.prefetchQuery(usageDataQueryOptions);
   },
 });
 
 function RouteComponent() {
-  const { data: videoData, isLoading } = useQuery(videosQueryOptions);
+  const { data: videoData } = useQuery(videosQueryOptions);
   const { data: usageData } = useQuery(usageDataQueryOptions);
 
   return (
