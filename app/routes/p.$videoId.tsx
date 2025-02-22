@@ -30,6 +30,7 @@ import { AuthorInfo } from "../components/author-info";
 import { ViewIncrementer } from "../components/view-incrementer";
 import { WordyDate } from "../components/wordy-date";
 import { getVideoDataServerFn } from "../server-fns/video-player";
+import { seo } from "@/lib/seo";
 
 const fetchVideoData = createServerFn({ method: "POST" })
   .validator(z.object({ videoId: z.string() }))
@@ -55,12 +56,23 @@ export const Route = createFileRoute("/p/$videoId")({
     return fetchVideoData({ data: { videoId: params.videoId } });
   },
   ssr: true,
-  head: () => ({
+  head: ({ loaderData }) => ({
     links: [
       { rel: "stylesheet", href: themeCss },
       { rel: "stylesheet", href: audioCss },
       { rel: "stylesheet", href: videoCss },
     ],
+    meta: seo({
+      title: loaderData.videoData.title,
+      description: `Watch ${loaderData.videoData.title} on Flowble`,
+      image: loaderData.largeThumbnailUrl ?? undefined,
+      video: {
+        url: loaderData.videoSources.at(0)?.src ?? undefined,
+        type: loaderData.videoSources.at(0)?.type ?? undefined,
+        width: loaderData.videoSources.at(0)?.width ?? undefined,
+        height: loaderData.videoSources.at(0)?.height ?? undefined,
+      },
+    }),
   }),
 });
 

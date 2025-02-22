@@ -8,9 +8,16 @@ import { Tabs } from "../components/tabs";
 import { AccountTierText } from "../components/account-tier-text";
 import { CheckIcon } from "lucide-react";
 import { ButtonLink } from "../components/pricing/button-link";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/pricing")({
   component: RouteComponent,
+  head: () => ({
+    meta: seo({
+      title: "Pricing",
+      description: "Choose the perfect plan for your video sharing needs",
+    }),
+  }),
 });
 
 function RouteComponent() {
