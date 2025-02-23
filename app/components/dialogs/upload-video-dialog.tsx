@@ -18,7 +18,7 @@ import {
 import { type FieldApi, useForm } from "@tanstack/react-form";
 import { useAtom, useSetAtom } from "jotai";
 import { Scissors } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import {
   customFileToUploadAtom,
   isUploadDialogOpenAtom,
@@ -73,7 +73,7 @@ function UploadVideoDialogChild() {
 
   const { addVideo } = useUploadingVideosStore();
 
-  function getVideoTitleFromFileName(name: string) {
+  const getVideoTitleFromFileName = useCallback((name: string) => {
     const title = name.split(".");
 
     if (title.length > 1) {
@@ -81,7 +81,7 @@ function UploadVideoDialogChild() {
     }
 
     return title.join(".");
-  }
+  }, []);
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -105,7 +105,6 @@ function UploadVideoDialogChild() {
     },
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: should only react to isUploadDialogOpen changes
   useEffect(() => {
     form.reset();
 
@@ -119,7 +118,13 @@ function UploadVideoDialogChild() {
         },
       });
     }
-  }, [isUploadDialogOpen]);
+  }, [
+    isUploadDialogOpen,
+    customFileToUpload,
+    getVideoTitleFromFileName,
+    form.reset,
+    form.update,
+  ]);
 
   return (
     <Credenza

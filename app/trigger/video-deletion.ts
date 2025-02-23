@@ -23,6 +23,16 @@ export const videoDeletionTask = schemaTask({
     videoId: z.string(),
   }),
   description: "Deletes everything about a video from every possible source",
+  onFailure: async ({ videoId }) => {
+    await import("../../app/lib/env");
+
+    await db
+      .update(videos)
+      .set({
+        isQueuedForDeletion: false,
+      })
+      .where(eq(videos.id, videoId));
+  },
   run: async (payload) => {
     const { env } = await import("../../app/lib/env");
 

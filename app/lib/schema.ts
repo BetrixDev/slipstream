@@ -94,6 +94,9 @@ export const videos = pgTable(
     isPrivate: boolean("is_private").notNull().default(false),
     storyboardJson: jsonb("storyboard_json").$type<VideoStoryboard>(),
     pendingDeletionDate: timestamp("pending_deletion_date"),
+    isQueuedForDeletion: boolean("is_queued_for_deletion")
+      .notNull()
+      .default(false),
   },
   (table) => ({
     authorId_idx: index("authorId_idx").on(table.authorId),

@@ -72,9 +72,22 @@ export const deleteVideoServerFn = createServerFn({ method: "POST" })
   .middleware([authGuardMiddleware])
   .handler(async ({ context, data }) => {
     try {
-      await tasks.trigger<typeof videoDeletionTask>("video-deletion", {
-        videoId: data.videoId,
-      });
+      await Promise.all([
+        db
+          .update(videos)
+          .set({
+            isQueuedForDeletion: true,
+          })
+          .where(
+            and(
+              eq(videos.id, data.videoId),
+              eq(videos.authorId, context.userId)
+            )
+          ),
+        tasks.trigger<typeof videoDeletionTask>("video-deletion", {
+          videoId: data.videoId,
+        }),
+      ]);
     } catch {
       return {
         success: false,
@@ -145,11 +158,6 @@ export const onUploadCancelledServerFn = createServerFn({ method: "POST" })
 
     return { success: true };
   });
-
-type VideoUpdateData = {
-  title?: string;
-  isPrivate?: boolean;
-};
 
 export const updateVideoDataServerFn = createServerFn({ method: "POST" })
   .validator(

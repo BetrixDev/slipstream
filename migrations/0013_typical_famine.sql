@@ -1,0 +1,1 @@
+ALTER TABLE "videos" ADD COLUMN "is_queued_for_deletion" boolean DEFAULT false NOT NULL;

@@ -122,47 +122,53 @@ export const videoProcessingTask = schemaTask({
 
     const downloadStart = Date.now();
 
-    if (nativeVideoSource.source === "ut") {
-      const response = got.stream(
-        `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${nativeVideoSource.key}`,
-        {
-          signal,
+    await logger.trace("Downloading native video", async (span) => {
+      if (nativeVideoSource.source === "ut") {
+        span.setAttribute("source", "ut");
+
+        const response = got.stream(
+          `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${nativeVideoSource.key}`,
+          {
+            signal,
+          }
+        );
+
+        const writeStream = createWriteStream(nativeFilePath, { signal });
+
+        try {
+          await pipeline(response, writeStream);
+        } catch (error) {
+          logger.error("Error downloading file from UT");
+          throw error;
         }
-      );
+      } else {
+        span.setAttribute("source", "s3");
 
-      const writeStream = createWriteStream(nativeFilePath, { signal });
+        const getObjectCommand = new GetObjectCommand({
+          Bucket: env.VIDEOS_BUCKET_NAME,
+          Key: nativeVideoSource.key,
+        });
 
-      try {
-        await pipeline(response, writeStream);
-      } catch (error) {
-        logger.error("Error downloading file from UT");
-        throw error;
+        const response = await s3Client.send(getObjectCommand, {
+          abortSignal: signal,
+        });
+
+        const responseBody = response.Body;
+
+        await new Promise((resolve, reject) => {
+          if (responseBody instanceof Readable) {
+            const writeStream = createWriteStream(nativeFilePath, { signal });
+
+            responseBody
+              .pipe(writeStream)
+              .on("error", (err) => reject(err))
+              .on("close", () => resolve(null));
+          } else {
+            reject(new Error("Body is not instanceof Readable"));
+          }
+        });
       }
-    } else {
-      const getObjectCommand = new GetObjectCommand({
-        Bucket: env.VIDEOS_BUCKET_NAME,
-        Key: nativeVideoSource.key,
-      });
-
-      const response = await s3Client.send(getObjectCommand, {
-        abortSignal: signal,
-      });
-
-      const responseBody = response.Body;
-
-      await new Promise((resolve, reject) => {
-        if (responseBody instanceof Readable) {
-          const writeStream = createWriteStream(nativeFilePath, { signal });
-
-          responseBody
-            .pipe(writeStream)
-            .on("error", (err) => reject(err))
-            .on("close", () => resolve(null));
-        } else {
-          reject(new Error("Body is not instanceof Readable"));
-        }
-      });
-    }
+    });
 
     const videoFsStats = await stat(nativeFilePath);
 

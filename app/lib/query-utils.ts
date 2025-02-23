@@ -26,7 +26,11 @@ const fetchVideos = createServerFn({ method: "GET" })
   .middleware([authGuardMiddleware])
   .handler(async ({ context }) => {
     const videoData = await db.query.videos.findMany({
-      where: (table, { eq }) => eq(table.authorId, context.userId),
+      where: (table, { eq, and }) =>
+        and(
+          eq(table.authorId, context.userId),
+          eq(table.isQueuedForDeletion, false)
+        ),
       orderBy: desc(videos.createdAt),
       columns: {
         fileSizeBytes: true,
