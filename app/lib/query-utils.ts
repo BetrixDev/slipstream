@@ -35,10 +35,10 @@ const fetchVideos = createServerFn({ method: "GET" })
         id: true,
         isPrivate: true,
         videoLengthSeconds: true,
-        isProcessing: true,
+        status: true,
         createdAt: true,
         smallThumbnailKey: true,
-        deletionDate: true,
+        pendingDeletionDate: true,
       },
     });
 
@@ -46,7 +46,7 @@ const fetchVideos = createServerFn({ method: "GET" })
       const data = {
         ...video,
         createdAt: video.createdAt.toISOString(),
-        deletionDate: video.deletionDate?.toISOString(),
+        pendingDeletionDate: video.pendingDeletionDate?.toISOString(),
         smallThumbnailUrl: video.smallThumbnailKey
           ? `${env.THUMBNAIL_BASE_URL}/${video.smallThumbnailKey}`
           : undefined,

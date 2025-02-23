@@ -171,6 +171,7 @@ const tiers = [
       { text: "Infinite video retention" },
       { text: "Multiple qualities for each video" },
       { text: "Ad-free experience" },
+      { text: "4GB max size per video" },
       { text: "Upload 12 videos each day" },
     ],
   },

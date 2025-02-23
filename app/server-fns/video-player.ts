@@ -29,82 +29,6 @@ const s3Client = new S3Client({
   },
 });
 
-type VideoMetadata = {
-  title: string;
-  largeThumbnailKey: string | null;
-  isPrivate: boolean;
-  videoLengthSeconds?: number | null;
-  source: {
-    key: string;
-    width?: number | null;
-    height?: number | null;
-    type: string;
-  };
-};
-
-export async function getVideoMetaData(videoId: string) {
-  let videoData = await redis.hgetall<VideoMetadata>(
-    `videoMetadata:${videoId}`
-  );
-
-  if (!videoData) {
-    const videoDbData = await db.query.videos.findFirst({
-      where: (table, { eq }) => eq(table.id, videoId),
-      columns: {
-        title: true,
-        largeThumbnailKey: true,
-        sources: true,
-        isPrivate: true,
-        videoLengthSeconds: true,
-      },
-    });
-
-    if (!videoDbData) {
-      throw notFound();
-    }
-
-    videoData = {
-      title: videoDbData.title,
-      largeThumbnailKey: videoDbData.largeThumbnailKey,
-      isPrivate: videoDbData.isPrivate,
-      videoLengthSeconds: videoDbData.videoLengthSeconds,
-      source: {
-        key: videoDbData.sources[0].key,
-        width: videoDbData.sources[0].width,
-        height: videoDbData.sources[0].height,
-        type: videoDbData.sources[0].type,
-      },
-    };
-
-    await redis.hset(`videoMetadata:${videoId}`, videoData);
-    await redis.expire(`videoMetadata:${videoId}`, 60 * 60 * 24 * 7);
-  }
-
-  let url: string | undefined;
-
-  if (!videoData.isPrivate) {
-    url = await getSignedUrl(
-      s3Client,
-      new GetObjectCommand({
-        Bucket: env.VIDEOS_BUCKET_NAME,
-        Key: videoData.source.key,
-      }),
-      { expiresIn: 60 * 60 * 24 * 7 }
-    );
-  }
-
-  return {
-    title: videoData.title,
-    largeThumbnailKey: videoData.largeThumbnailKey,
-    isPrivate: videoData.isPrivate,
-    videoLengthSeconds: videoData.videoLengthSeconds,
-    source: {
-      ...videoData.source,
-      url,
-    },
-  };
-}
-
 export const getVideoDataServerFn = createServerFn({ method: "POST" })
   .validator(z.object({ videoId: z.string() }))
   .handler(async ({ data }) => {
@@ -168,6 +92,13 @@ async function generateVideoSources(
 ) {
   const sources = await Promise.all(
     videoData.sources.map(async (source) => {
+      if (source.source === "ut") {
+        return {
+          src: source.url,
+          isNative: source.isNative,
+        };
+      }
+
       const url = await getSignedUrl(
         s3Client,
         new GetObjectCommand({
@@ -194,18 +125,18 @@ async function getVideoDataFromDb(videoId: string) {
   const videoData = await db.query.videos.findFirst({
     where: (table, { eq }) => eq(table.id, videoId),
     columns: {
+      id: true,
       title: true,
       views: true,
       isPrivate: true,
       authorId: true,
-      isProcessing: true,
+      status: true,
       largeThumbnailKey: true,
       smallThumbnailKey: true,
       videoLengthSeconds: true,
       createdAt: true,
       sources: true,
       storyboardJson: true,
-      nativeFileKey: true,
     },
   });
 
@@ -218,7 +149,7 @@ async function getVideoDataFromDb(videoId: string) {
     `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
   const smallThumbnailUrl =
-    videoData.nativeFileKey &&
+    videoData.smallThumbnailKey &&
     `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`;
 
   const videoCreatedAt = videoData.createdAt.toString();
@@ -228,18 +159,17 @@ async function getVideoDataFromDb(videoId: string) {
       title: videoData.title,
       isPrivate: videoData.isPrivate,
       videoLengthSeconds: videoData.videoLengthSeconds,
-      isProcessing: videoData.isProcessing,
+      isProcessing: videoData.status === "processing",
       views: videoData.views,
       largeThumbnailKey: videoData.largeThumbnailKey,
       smallThumbnailKey: videoData.smallThumbnailKey,
       authorId: videoData.authorId,
       sources: videoData.sources,
-      nativeFileKey: videoData.nativeFileKey,
     },
     storyboard: videoData.storyboardJson
       ? {
           ...videoData.storyboardJson,
-          url: `${env.THUMBNAIL_BASE_URL}/${videoData.nativeFileKey}-storyboard.jpg`,
+          url: `${env.THUMBNAIL_BASE_URL}/${videoData.id}-storyboard.jpg`,
         }
       : null,
     largeThumbnailUrl,

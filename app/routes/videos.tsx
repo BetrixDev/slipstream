@@ -13,6 +13,7 @@ import { UploadingVideosContainer } from "../components/uploading-videos-contain
 import { VideosBoard } from "../components/videos-board";
 import { useQuery } from "@tanstack/react-query";
 import { fetchClerkAuth } from "@/server-fns/clerk";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
@@ -31,6 +32,9 @@ export const Route = createFileRoute("/videos")({
     queryClient.prefetchQuery(videosQueryOptions);
     queryClient.prefetchQuery(usageDataQueryOptions);
   },
+  head: () => ({
+    meta: [...seo({ title: "Your Videos" })],
+  }),
 });
 
 function RouteComponent() {

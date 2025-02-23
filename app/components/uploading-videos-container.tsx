@@ -29,9 +29,13 @@ export function UploadingVideosContainer() {
         ),
       };
     });
-    onUploadCancelledServerFn({ data: { videoId } });
 
-    toast.success("Cancelled uploading video", { description: videoTitle });
+    toast.promise(onUploadCancelledServerFn({ data: { videoId } }), {
+      loading: "Cancelling upload...",
+      success: "Upload cancelled",
+      error: "Failed to cancel upload",
+      description: videoTitle,
+    });
   }
 
   return (

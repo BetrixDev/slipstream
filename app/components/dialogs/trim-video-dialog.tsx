@@ -52,7 +52,6 @@ function TrimVideoDialogChild() {
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
   const videoUrl = useMemo(
-    // biome-ignore lint/style/noNonNullAssertion: will never be null
     () => URL.createObjectURL(trimVideoData!.file),
     [trimVideoData]
   );

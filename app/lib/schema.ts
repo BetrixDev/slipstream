@@ -38,6 +38,38 @@ export const usersRelations = relations(users, ({ many }) => ({
   videos: many(videos),
 }));
 
+export type UtVideoSource = {
+  source: "ut";
+  url: string;
+  key: string;
+  isNative: boolean;
+  type?: string;
+};
+
+export type S3VideoSource = {
+  source: "s3";
+  key: string;
+  isNative: boolean;
+  type?: string;
+  width?: number;
+  height?: number;
+  bitrate?: number;
+};
+
+export type VideoSource = UtVideoSource | S3VideoSource;
+
+export type VideoStatus = "uploading" | "processing" | "ready" | "deleting";
+
+export type VideoStoryboard = {
+  tileWidth: number;
+  tileHeight: number;
+  tiles: {
+    startTime: number;
+    x: number;
+    y: number;
+  }[];
+};
+
 export const videos = pgTable(
   "videos",
   {
@@ -46,7 +78,8 @@ export const videos = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     title: text("title").notNull(),
-    nativeFileKey: text("native_file_key").notNull(),
+    status: text("status").$type<VideoStatus>().notNull().default("uploading"),
+    sources: jsonb("sources").$type<VideoSource[]>().notNull().default([]),
     smallThumbnailKey: text("small_thumbnail_key"),
     largeThumbnailKey: text("large_thumbnail_key"),
     createdAt: timestamp("created_at", { withTimezone: false })
@@ -55,40 +88,20 @@ export const videos = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: false })
       .notNull()
       .defaultNow(),
-    deletionDate: timestamp("deletion_date", { withTimezone: false }),
-    isPrivate: boolean("is_private").notNull().default(false),
     views: bigint("views", { mode: "number" }).notNull().default(0),
     fileSizeBytes: real("file_size_bytes").notNull(),
     videoLengthSeconds: integer("video_length_seconds"),
-    isProcessing: boolean("is_processing").notNull().default(true),
-    storyboardJson: jsonb("storyboard_json").$type<{
-      tileWidth: number;
-      tileHeight: number;
-      tiles: {
-        startTime: number;
-        x: number;
-        y: number;
-      }[];
-    }>(),
-    sources: jsonb("sources")
-      .$type<
-        {
-          key: string;
-          type: string;
-          width?: number;
-          height?: number;
-          bitrate?: number;
-          isNative: boolean;
-        }[]
-      >()
-      .notNull()
-      .default([]),
+    isPrivate: boolean("is_private").notNull().default(false),
+    storyboardJson: jsonb("storyboard_json").$type<VideoStoryboard>(),
+    pendingDeletionDate: timestamp("pending_deletion_date"),
   },
   (table) => ({
     authorId_idx: index("authorId_idx").on(table.authorId),
     videoId_idx: index("videoId_idx").on(table.id),
     createdAt_idx: index("createdAt_idx").on(table.createdAt),
-    deletionDate_idx: index("deletionDate_idx").on(table.deletionDate),
+    pendingDeletionDate_idx: index("pendingDeletionDate_idx").on(
+      table.pendingDeletionDate
+    ),
   })
 );
 
