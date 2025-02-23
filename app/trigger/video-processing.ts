@@ -19,7 +19,7 @@ import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { fileTypeFromStream } from "file-type";
 import sharp from "sharp";
-import { promise, z } from "zod";
+import { z } from "zod";
 import { UTApi } from "uploadthing/server";
 import { pipeline } from "node:stream/promises";
 import got from "got";
@@ -121,7 +121,12 @@ export const videoProcessingTask = schemaTask({
 
       const writeStream = createWriteStream(nativeFilePath);
 
-      await pipeline(response, writeStream);
+      try {
+        await pipeline(response, writeStream);
+      } catch (error) {
+        logger.error("Error downloading file from UT");
+        throw error;
+      }
     } else {
       const getObjectCommand = new GetObjectCommand({
         Bucket: env.VIDEOS_BUCKET_NAME,

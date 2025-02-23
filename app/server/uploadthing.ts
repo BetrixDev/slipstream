@@ -27,7 +27,10 @@ export const uploadRouter = {
     },
   })
     .input(
-      z.object({ title: z.string(), isPrivate: z.boolean().default(false) })
+      z.object({
+        title: z.string().min(1).max(128),
+        isPrivate: z.boolean().default(false),
+      })
     )
     .middleware(async ({ req, files, input }) => {
       const videoToUpload = files[0];

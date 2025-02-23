@@ -94,7 +94,7 @@ export const onUploadCancelledServerFn = createServerFn({ method: "POST" })
     });
 
     if (!userData) {
-      return new Error("User not found");
+      throw new Error("User not found");
     }
 
     const [[videoData]] = await db.batch([
