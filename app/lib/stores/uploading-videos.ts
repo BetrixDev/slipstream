@@ -1,13 +1,12 @@
-import axios, { CanceledError } from "axios";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { create } from "zustand";
-import {
-  uploadCompleteServerFn,
-  getUploadPreflightDataServerFn,
-} from "@/server-fns/videos";
 import { queryClient } from "@/routes/__root";
 import { usageDataQueryOptions, videosQueryOptions } from "../query-utils";
+import { uploadFiles } from "../uploadthing";
+import { UploadAbortedError } from "uploadthing/client";
+import { UploadThingError } from "uploadthing/server";
+import { onUploadCancelledServerFn } from "@/server-fns/videos";
 
 type UploadingVideo = {
   id: string;
@@ -85,68 +84,72 @@ useUploadingVideosStore.subscribe((state, oldState) => {
 
 class UploadingError extends Error {}
 
+async function handleUploadCancelled(video: UploadingVideo) {
+  const abortController = uploadingVideosAbortControllers.get(video.id);
+
+  if (abortController !== undefined) {
+    abortController.abort();
+    uploadingVideosAbortControllers.delete(video.id);
+  }
+
+  queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
+    if (!oldData) return oldData;
+    return {
+      ...oldData,
+      totalStorageUsed: oldData.totalStorageUsed - video.file.size,
+    };
+  });
+
+  toast.promise(onUploadCancelledServerFn({ data: { videoId: video.id } }), {
+    loading: "Cancelling upload...",
+    success: "Upload cancelled",
+    error: "Failed to cancel upload",
+  });
+}
+
 async function handleVideoUpload(video: UploadingVideo) {
   const abortController = new AbortController();
 
   uploadingVideosAbortControllers.set(video.id, abortController);
 
   try {
-    const uploadPreflight = await getUploadPreflightDataServerFn({
-      data: {
-        contentLength: video.file.size,
-        contentType: video.file.type,
-      },
-    });
-
-    if (!uploadPreflight.success) {
-      throw new UploadingError(uploadPreflight.message);
-    }
-
-    queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
-      if (!oldData) return oldData;
-      return {
-        ...oldData,
-        totalStorageUsed: oldData.totalStorageUsed + video.file.size,
-      };
-    });
-
-    await axios(uploadPreflight.url, {
-      onUploadProgress: (e) => {
-        useUploadingVideosStore
-          .getState()
-          .setUploadProgress(video.id, (e.progress ?? 0) * 100);
-      },
-      data: video.file,
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/octect-stream",
-      },
+    const [response] = await uploadFiles("videoUploader", {
       signal: abortController.signal,
-    });
-
-    const uploadCompleteData = await uploadCompleteServerFn({
-      data: {
-        key: uploadPreflight.key,
+      files: [video.file],
+      input: {
         title: video.title,
-        mimeType: video.file.type,
+      },
+      onUploadProgress: (data) => {
+        const progress = Math.floor(data.progress);
+        const currentVideo = useUploadingVideosStore
+          .getState()
+          .uploadingVideos.find((v) => v.id === video.id);
+
+        if (currentVideo && progress > currentVideo.uploadProgress) {
+          useUploadingVideosStore
+            .getState()
+            .setUploadProgress(video.id, progress);
+        }
+      },
+      onUploadBegin: () => {
+        toast.success(video.title, {
+          description: "Uploading video...",
+        });
       },
     });
 
-    if (!uploadCompleteData.success) {
-      throw new UploadingError(uploadCompleteData.message);
-    }
+    toast.success(video.title, {
+      description: "Video uploaded successfully",
+    });
 
-    if (!uploadCompleteData.video) {
-      return;
-    }
     queryClient.setQueryData(videosQueryOptions.queryKey, (oldData) => {
       const newVideo = {
-        ...uploadCompleteData.video,
+        ...response.serverData.video,
         views: 0,
         isProcessing: true,
         isPrivate: false,
         fileSizeBytes: video.file.size,
-        triggerAccessToken: uploadCompleteData.triggerAccessToken,
+        triggerAccessToken: response.serverData.triggerAccessToken,
         // biome-ignore lint/suspicious/noExplicitAny: temp
       } as any;
 
@@ -163,11 +166,11 @@ async function handleVideoUpload(video: UploadingVideo) {
       };
     });
   } catch (error) {
-    if (error instanceof CanceledError) {
+    if (error instanceof UploadAbortedError) {
       return;
     }
 
-    if (error instanceof UploadingError) {
+    if (error instanceof UploadingError || error instanceof UploadThingError) {
       toast.error("Failed to upload video", { description: error.message });
     } else {
       toast.error("Failed to upload video", { description: video.title });

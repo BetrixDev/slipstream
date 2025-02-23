@@ -5,7 +5,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { LOWEST_BITRATE_THRESHOLD } from "../../app/lib/constants";
 import { db } from "../../app/lib/db";
-import { videos } from "../../app/lib/schema";
+import { type S3VideoSource, videos } from "../../app/lib/schema";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import {
@@ -20,15 +20,10 @@ import { execa } from "execa";
 import { fileTypeFromStream } from "file-type";
 import sharp from "sharp";
 import { z } from "zod";
-
-type VideoSource = {
-  key: string;
-  type: string;
-  width?: number;
-  height?: number;
-  bitrate?: number;
-  isNative: boolean;
-};
+import { UTApi } from "uploadthing/server";
+import { pipeline } from "node:stream/promises";
+import got from "got";
+import { deleteFromUploadthingTask } from "./delete-from-uploadthing";
 
 const Step = z.enum([
   "thumbnails",
@@ -50,6 +45,8 @@ export const videoProcessingTask = schemaTask({
   machine: {
     preset: "large-1x",
   },
+  description:
+    "Performs all video processing related functions. All in one task so we only spend time downloading the native file once and then we can stream in the processing data live.",
   run: async ({ videoId, steps, forceTranscoding }, { ctx }) => {
     metadata.set("videoId", videoId);
     logger.info("Starting video processing", { videoId, steps });
@@ -72,6 +69,8 @@ export const videoProcessingTask = schemaTask({
         secretAccessKey: env.S3_ROOT_SECRET_KEY,
       },
     });
+
+    const utApi = new UTApi();
 
     const videoData = await logger.trace("Postgres videos", async (span) => {
       span.setAttributes({
@@ -101,31 +100,56 @@ export const videoProcessingTask = schemaTask({
     );
     await mkdir(workingDir, { recursive: true });
 
-    const nativeFilePath = path.join(workingDir, videoData.nativeFileKey);
+    const nativeVideoSource = videoData.sources.find(
+      (source) => source.isNative
+    );
 
-    const getObjectCommand = new GetObjectCommand({
-      Bucket: env.VIDEOS_BUCKET_NAME,
-      Key: videoData.nativeFileKey,
-    });
+    if (!nativeVideoSource) {
+      throw new AbortTaskRunError(
+        `No native video source found for video ${videoId}`
+      );
+    }
 
-    const response = await s3Client.send(getObjectCommand);
-
-    const responseBody = response.Body;
+    const nativeFilePath = path.join(workingDir, nativeVideoSource.key);
 
     const downloadStart = Date.now();
 
-    await new Promise((resolve, reject) => {
-      if (responseBody instanceof Readable) {
-        const writeStream = createWriteStream(nativeFilePath);
+    if (nativeVideoSource.source === "ut") {
+      const response = got.stream(
+        `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${nativeVideoSource.key}`
+      );
 
-        responseBody
-          .pipe(writeStream)
-          .on("error", (err) => reject(err))
-          .on("close", () => resolve(null));
-      } else {
-        reject(new Error("Body is not instanceof Readable"));
+      const writeStream = createWriteStream(nativeFilePath);
+
+      try {
+        await pipeline(response, writeStream);
+      } catch (error) {
+        logger.error("Error downloading file from UT");
+        throw error;
       }
-    });
+    } else {
+      const getObjectCommand = new GetObjectCommand({
+        Bucket: env.VIDEOS_BUCKET_NAME,
+        Key: nativeVideoSource.key,
+      });
+
+      const response = await s3Client.send(getObjectCommand);
+
+      const responseBody = response.Body;
+
+      await new Promise((resolve, reject) => {
+        if (responseBody instanceof Readable) {
+          const writeStream = createWriteStream(nativeFilePath);
+
+          responseBody
+            .pipe(writeStream)
+            .on("error", (err) => reject(err))
+            .on("close", () => resolve(null));
+        } else {
+          reject(new Error("Body is not instanceof Readable"));
+        }
+      });
+    }
 
     const videoFsStats = await stat(nativeFilePath);
 
@@ -137,7 +161,7 @@ export const videoProcessingTask = schemaTask({
     const promises: Promise<unknown>[] = [];
 
     const dbUpdatePayload: Partial<typeof videos.$inferInsert> = {
-      isProcessing: false,
+      status: "ready",
     };
 
     if (steps.includes("video-size")) {
@@ -188,7 +212,7 @@ export const videoProcessingTask = schemaTask({
                   client: s3Client,
                   params: {
                     Bucket: env.THUMBS_BUCKET_NAME,
-                    Key: `${videoData.nativeFileKey}-large.webp`,
+                    Key: `${videoData.id}-large.webp`,
                     Body: buffer,
                   },
                 }).done()
@@ -215,7 +239,7 @@ export const videoProcessingTask = schemaTask({
                   client: s3Client,
                   params: {
                     Bucket: env.THUMBS_BUCKET_NAME,
-                    Key: `${videoData.nativeFileKey}-small.webp`,
+                    Key: `${videoData.id}-small.webp`,
                     Body: buffer,
                   },
                 }).done()
@@ -225,8 +249,8 @@ export const videoProcessingTask = schemaTask({
 
         await Promise.all(uploadPromises);
 
-        dbUpdatePayload.largeThumbnailKey = `${videoData.nativeFileKey}-large.webp`;
-        dbUpdatePayload.smallThumbnailKey = `${videoData.nativeFileKey}-small.webp`;
+        dbUpdatePayload.largeThumbnailKey = `${videoData.id}-large.webp`;
+        dbUpdatePayload.smallThumbnailKey = `${videoData.id}-small.webp`;
 
         metadata.set(
           "smallThumbnailUrl",
@@ -281,8 +305,15 @@ export const videoProcessingTask = schemaTask({
         const thumbnailsDir = path.join(workingDir, "thumbnails");
         await mkdir(thumbnailsDir, { recursive: true });
 
-        const thumbnailWidth = nativeVideoSource.width ?? 1920;
-        const thumbnailHeight = nativeVideoSource.height ?? 1080;
+        const thumbnailWidth =
+          "width" in nativeVideoSource && nativeVideoSource.width
+            ? nativeVideoSource.width
+            : 1920;
+
+        const thumbnailHeight =
+          "height" in nativeVideoSource && nativeVideoSource.height
+            ? nativeVideoSource.height
+            : 1080;
 
         const scaledWidth = Math.round(
           (thumbnailWidth / thumbnailHeight) * 100
@@ -321,7 +352,7 @@ export const videoProcessingTask = schemaTask({
           }
         );
 
-        const storyboardKey = `${videoData.nativeFileKey}-storyboard.jpg`;
+        const storyboardKey = `${videoData.id}-storyboard.jpg`;
 
         const storyboardUpload = new Upload({
           client: s3Client,
@@ -346,6 +377,81 @@ export const videoProcessingTask = schemaTask({
       });
     }
 
+    const nativeFileType = await logger.trace(
+      "File type from stream",
+      async (fileTypeSpan) => {
+        const nativeFileType = await fileTypeFromStream(
+          // biome-ignore lint/suspicious/noExplicitAny: types aren't correct
+          createReadStream(nativeFilePath) as any
+        );
+
+        fileTypeSpan.end();
+
+        return nativeFileType;
+      }
+    );
+
+    let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
+
+    if (nativeFileMimeType === "video/quicktime") {
+      nativeFileMimeType = "video/mp4";
+    }
+
+    logger.info(`Native video's mime type is ${nativeFileMimeType}`, {
+      mime: nativeFileMimeType,
+    });
+
+    const { nativeFileWidth, nativeFileHeight } = await logger.trace(
+      "Video native resolution",
+      async (resSpan) => {
+        const { stdout: nativeFileResolution } =
+          await execa`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${nativeFilePath}`;
+
+        const [nativeFileWidthString, nativeFileHeightString] =
+          nativeFileResolution.split("x");
+
+        const nativeFileWidth = Number(nativeFileWidthString);
+        const nativeFileHeight = Number(nativeFileHeightString);
+        resSpan.end();
+
+        return {
+          nativeFileWidth,
+          nativeFileHeight,
+        };
+      }
+    );
+
+    const videoSources: S3VideoSource[] = [
+      {
+        key: nativeVideoSource.key,
+        type: nativeFileMimeType,
+        width: nativeFileWidth,
+        height: nativeFileHeight,
+        isNative: true,
+        bitrate: await getVideoFileBitrate(nativeFilePath),
+        source: "s3",
+      },
+    ];
+
+    dbUpdatePayload.sources = videoSources;
+
+    const nativeFileUpload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: env.VIDEOS_BUCKET_NAME,
+        Key: nativeVideoSource.key,
+        Body: createReadStream(nativeFilePath),
+        ContentType: nativeFileMimeType,
+      },
+    });
+
+    promises.push(nativeFileUpload.done());
+
+    promises.push(
+      // Read the description for deleteFromUploadthingTask to understand why we are delaying this
+      deleteFromUploadthingTask.trigger({ videoId }, { delay: "1d" })
+    );
+
     if (steps.includes("transcoding")) {
       await logger.trace("Step transcoding", async (stepSpan) => {
         if (videoData.author.accountTier === "free" && !forceTranscoding) {
@@ -356,61 +462,6 @@ export const videoProcessingTask = schemaTask({
           stepSpan.end();
           return;
         }
-
-        const nativeFileType = await logger.trace(
-          "File type from stream",
-          async (fileTypeSpan) => {
-            const nativeFileType = await fileTypeFromStream(
-              // biome-ignore lint/suspicious/noExplicitAny: types aren't correct
-              createReadStream(nativeFilePath) as any
-            );
-
-            fileTypeSpan.end();
-
-            return nativeFileType;
-          }
-        );
-
-        let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
-
-        if (nativeFileMimeType === "video/quicktime") {
-          nativeFileMimeType = "video/mp4";
-        }
-
-        logger.info(`Native video's mime type is ${nativeFileMimeType}`, {
-          mime: nativeFileMimeType,
-        });
-
-        const { nativeFileWidth, nativeFileHeight } = await logger.trace(
-          "Video native resolution",
-          async (resSpan) => {
-            const { stdout: nativeFileResolution } =
-              await execa`ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 ${nativeFilePath}`;
-
-            const [nativeFileWidthString, nativeFileHeightString] =
-              nativeFileResolution.split("x");
-
-            const nativeFileWidth = Number(nativeFileWidthString);
-            const nativeFileHeight = Number(nativeFileHeightString);
-            resSpan.end();
-
-            return {
-              nativeFileWidth,
-              nativeFileHeight,
-            };
-          }
-        );
-
-        const videoSources: VideoSource[] = [
-          {
-            key: videoData.nativeFileKey,
-            type: nativeFileMimeType,
-            width: nativeFileWidth,
-            height: nativeFileHeight,
-            isNative: true,
-            bitrate: await getVideoFileBitrate(nativeFilePath),
-          },
-        ];
 
         function shouldTranscode() {
           return shouldKeepTranscoding(videoSources.at(-1)?.bitrate ?? 0);
@@ -459,7 +510,7 @@ export const videoProcessingTask = schemaTask({
                 ffmpegSpan.end();
               });
 
-              const key = `${videoData.nativeFileKey}-${resolution.height}p.mp4`;
+              const key = `${nativeVideoSource.key}-${resolution.height}p.mp4`;
 
               const upload = new Upload({
                 client: s3Client,
@@ -480,9 +531,8 @@ export const videoProcessingTask = schemaTask({
                 height: resolution.height,
                 isNative: false,
                 bitrate: await getVideoFileBitrate(outPath),
+                source: "s3",
               });
-
-              dbUpdatePayload.sources = videoSources;
 
               transcodeSpan.end();
             }

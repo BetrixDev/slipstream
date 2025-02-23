@@ -47,10 +47,10 @@ type Video = {
   smallThumbnailUrl?: string | null;
   triggerAccessToken?: string;
   videoLengthSeconds?: number | null;
-  isProcessing: boolean;
+  status: "uploading" | "processing" | "ready" | "deleting";
   isPrivate: boolean;
   createdAt: string;
-  deletionDate?: string | null;
+  pendingDeletionDate?: string | null;
 };
 
 export function VideosBoard({ videos }: { videos: Video[] }) {
@@ -85,24 +85,17 @@ function UploadedVideo({ video }: { video: Video }) {
       className="dark relative bg-card rounded-lg overflow-hidden shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg group aspect-video border-border/50 hover:border-border flex flex-col justify-between"
     >
       <div className="absolute inset-0">
-        {video.smallThumbnailUrl ? (
-          <img
-            src={video.smallThumbnailUrl}
-            alt={`${video.title} thumbnail`}
-            className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full"
-          />
-        ) : (
-          <TriggerAuthContext.Provider
-            value={{ accessToken: video.triggerAccessToken }}
-          >
-            <ThumbnailPlaceholder videoId={video.id} />
-          </TriggerAuthContext.Provider>
-        )}
-        <div className="absolute inset-0 bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-40" />
+        <VideoThumbnail
+          smallThumbnailUrl={video.smallThumbnailUrl}
+          title={video.title}
+          videoId={video.id}
+          triggerAccessToken={video.triggerAccessToken}
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ease-in-out group-hover:bg-opacity-20" />
       </div>
       <div className="absolute right-0 text-xs flex gap-1 m-1">
-        {!!video.deletionDate && (
-          <PendingDeletionChip deletionDate={video.deletionDate} />
+        {!!video.pendingDeletionDate && (
+          <PendingDeletionChip deletionDate={video.pendingDeletionDate} />
         )}
         {!Number.isNaN(Number.parseFloat(`${video.videoLengthSeconds}`)) && (
           <span className="p-1 bg-black/50 rounded-md backdrop-blur-md">
@@ -199,11 +192,49 @@ function UploadedVideo({ video }: { video: Video }) {
   );
 }
 
+type VideoThumbnailProps = {
+  smallThumbnailUrl?: string | null;
+  title: string;
+  videoId: string;
+  triggerAccessToken?: string;
+};
+
+function VideoThumbnail({
+  smallThumbnailUrl,
+  title,
+  triggerAccessToken,
+  videoId,
+}: VideoThumbnailProps) {
+  if (smallThumbnailUrl) {
+    return (
+      <img
+        src={smallThumbnailUrl}
+        alt={`Thumbnail for ${title}`}
+        className="transition-transform duration-200 ease-in-out group-hover:scale-105 w-full"
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+      />
+    );
+  }
+
+  if (triggerAccessToken) {
+    return (
+      <TriggerAuthContext.Provider value={{ accessToken: triggerAccessToken }}>
+        <ThumbnailPlaceholder videoId={videoId} />
+      </TriggerAuthContext.Provider>
+    );
+  }
+
+  return null;
+}
+
 type ThumbnailPlaceholderProps = {
   videoId: string;
 };
+
 function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
-  const { runs } = useRealtimeRunsWithTag(`video-processing-${props.videoId}`);
+  const { runs } = useRealtimeRunsWithTag(`videoProcessing_${props.videoId}`);
 
   useEffect(() => {
     for (const run of runs) {

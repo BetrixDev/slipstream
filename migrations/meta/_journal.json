@@ -71,6 +71,27 @@
       "when": 1733451099239,
       "tag": "0009_violet_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1740186122270,
+      "tag": "0010_petite_lilandra",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1740191929035,
+      "tag": "0011_robust_madrox",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1740280162661,
+      "tag": "0012_set_video_status_for_existing_rows_to_ready",
+      "breakpoints": true
     }
   ]
 }

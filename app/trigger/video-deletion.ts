@@ -5,6 +5,7 @@ import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { UTApi } from "uploadthing/server";
 
 export const videoDeletionTask = schemaTask({
   id: "video-deletion",
@@ -21,6 +22,7 @@ export const videoDeletionTask = schemaTask({
   schema: z.object({
     videoId: z.string(),
   }),
+  description: "Deletes everything about a video from every possible source",
   run: async (payload) => {
     const { env } = await import("../../app/lib/env");
 
@@ -32,6 +34,8 @@ export const videoDeletionTask = schemaTask({
         secretAccessKey: env.S3_ROOT_SECRET_KEY,
       },
     });
+
+    const utApi = new UTApi();
 
     const videoData = await db.query.videos.findFirst({
       where: (table, { eq }) => eq(table.id, payload.videoId),
@@ -58,14 +62,18 @@ export const videoDeletionTask = schemaTask({
     const videoDeleteCommandPromises: Promise<unknown>[] = [];
 
     for (const source of videoData.sources) {
-      videoDeleteCommandPromises.push(
-        s3Client.send(
-          new DeleteObjectCommand({
-            Bucket: env.VIDEOS_BUCKET_NAME,
-            Key: source.key,
-          })
-        )
-      );
+      if (source.source === "s3") {
+        videoDeleteCommandPromises.push(
+          s3Client.send(
+            new DeleteObjectCommand({
+              Bucket: env.VIDEOS_BUCKET_NAME,
+              Key: source.key,
+            })
+          )
+        );
+      } else {
+        videoDeleteCommandPromises.push(utApi.deleteFiles([source.key]));
+      }
     }
 
     const thumbnailDeleteCommands: Promise<unknown>[] = [];
@@ -96,7 +104,7 @@ export const videoDeletionTask = schemaTask({
       s3Client.send(
         new DeleteObjectCommand({
           Bucket: env.THUMBS_BUCKET_NAME,
-          Key: `${videoData.nativeFileKey}-storyboard.jpg`,
+          Key: `${videoData.id}-storyboard.jpg`,
         })
       )
     );

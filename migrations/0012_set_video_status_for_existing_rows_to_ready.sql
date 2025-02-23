@@ -1,0 +1,1 @@
+UPDATE videos SET status = 'ready';
