@@ -130,6 +130,7 @@ export const uploadRouter = {
       const [videoData] = await db
         .update(videos)
         .set({
+          status: "processing",
           sources: [
             {
               isNative: true,

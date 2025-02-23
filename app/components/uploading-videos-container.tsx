@@ -64,7 +64,7 @@ export function UploadingVideosContainer() {
             <span className="text-sm text-muted-foreground flex items-center">
               <NumberFlow
                 value={video.uploadProgress}
-                format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
+                format={{ minimumFractionDigits: 0, maximumFractionDigits: 0 }}
               />
               %
             </span>

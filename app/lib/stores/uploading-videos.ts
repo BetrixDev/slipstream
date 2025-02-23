@@ -113,6 +113,10 @@ async function handleVideoUpload(video: UploadingVideo) {
   uploadingVideosAbortControllers.set(video.id, abortController);
 
   try {
+    toast.success(video.title, {
+      description: "Getting upload details...",
+    });
+
     const [response] = await uploadFiles("videoUploader", {
       signal: abortController.signal,
       files: [video.file],

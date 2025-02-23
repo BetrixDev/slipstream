@@ -65,47 +65,45 @@ export const incrementViewsScheduledTask = schedules.task({
         continue;
       }
 
-      await db.transaction(async (tx) => {
-        await logger.trace(
-          "Batch update video views in postgres",
-          async (span) => {
-            const updates = oldestEntries
-              .filter((entry) => entry.value !== null)
-              .map((entry) => ({
-                videoId: entry.videoId,
-                views: entry.value as number,
-              }));
+      await logger.trace(
+        "Batch update video views in postgres",
+        async (span) => {
+          const updates = oldestEntries
+            .filter((entry) => entry.value !== null)
+            .map((entry) => ({
+              videoId: entry.videoId,
+              views: entry.value as number,
+            }));
 
-            span.setAttributes({
-              updateCount: updates.length,
-            });
+          span.setAttributes({
+            updateCount: updates.length,
+          });
 
-            if (updates.length > 0) {
-              await tx.execute(sql`
-                UPDATE ${videos}
-                SET views = CASE id
-                  ${sql.join(
-                    updates.map(
-                      (update) =>
-                        sql`WHEN ${update.videoId} THEN views + ${update.views}`
-                    ),
-                    " "
-                  )}
-                END
-                WHERE id IN (${sql.join(
-                  updates.map((update) => update.videoId),
-                  ", "
-                )})
-              `);
-            }
-            span.end();
+          if (updates.length > 0) {
+            await db.execute(sql`
+              UPDATE ${videos}
+              SET views = CASE id
+                ${sql.join(
+                  updates.map(
+                    (update) =>
+                      sql`WHEN ${update.videoId} THEN views + ${update.views}`
+                  ),
+                  " "
+                )}
+              END
+              WHERE id IN (${sql.join(
+                updates.map((update) => update.videoId),
+                ", "
+              )})
+            `);
           }
-        );
+          span.end();
+        }
+      );
 
-        await redis.del(entry.key);
-        await redis.zrem("views", entry.key);
-        await redis.del(`video:${entry.videoId}`);
-      });
+      await redis.del(entry.key);
+      await redis.zrem("views", entry.key);
+      await redis.del(`video:${entry.videoId}`);
     }
 
     return { success: true };

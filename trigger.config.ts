@@ -6,6 +6,7 @@ import { defineConfig } from "@trigger.dev/sdk/v3";
 export default defineConfig({
   project: "proj_kgjuvdnaikcqgregnfjq",
   runtime: "node",
+  maxDuration: 60 * 10,
   logLevel: "log",
   retries: {
     enabledInDev: true,

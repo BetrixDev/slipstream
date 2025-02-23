@@ -44,11 +44,16 @@ export const videoProcessingTask = schemaTask({
   machine: {
     preset: "large-1x",
   },
+  retry: {
+    outOfMemory: {
+      machine: "large-2x",
+    },
+  },
   description:
     "Performs all video processing related functions. All in one task so we only spend time downloading the native file once and then we can stream in the processing data live.",
   run: async ({ videoId, steps, forceTranscoding }, { ctx, signal }) => {
     const abortController = signal && {
-      // Weird that this class needs the entier AbortController
+      // The Upload class needs the entire AbortController for some reason
       abort: () => {},
       signal,
     };

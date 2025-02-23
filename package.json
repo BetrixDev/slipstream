@@ -6,14 +6,14 @@
   "scripts": {
     "dev": "concurrently \"pnpm run dev:tanstack\" \"pnpm run dev:trigger\"",
     "dev:tanstack": "vinxi dev",
-    "dev:trigger": "pnpm dlx trigger.dev@3.3.6 dev",
+    "dev:trigger": "pnpm dlx trigger.dev@3.3.16 dev",
     "build": "vinxi build",
     "start": "vinxi start",
     "check": "biome check --write",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "migrate:dev": "node --env-file=.env migrate.js",
-    "deploy:trigger": "pnpm dlx trigger.dev@3.3.6 deploy"
+    "deploy:trigger": "pnpm dlx trigger.dev@3.3.16 deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.657.0",
@@ -45,8 +45,8 @@
     "@tanstack/react-router": "^1.106.0",
     "@tanstack/router-devtools": "^1.106.0",
     "@tanstack/start": "^1.106.0",
-    "@trigger.dev/react-hooks": "3.3.6",
-    "@trigger.dev/sdk": "3.3.6",
+    "@trigger.dev/react-hooks": "3.3.16",
+    "@trigger.dev/sdk": "3.3.16",
     "@upstash/redis": "^1.34.3",
     "@vercel/functions": "^1.5.2",
     "@vidstack/react": "^1.12.11",
@@ -81,7 +81,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@trigger.dev/build": "3.3.6",
+    "@trigger.dev/build": "3.3.16",
     "@types/got": "^9.6.12",
     "@types/node": "^20",
     "@types/react": "^18",
