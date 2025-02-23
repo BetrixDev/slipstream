@@ -20,7 +20,6 @@ import { execa } from "execa";
 import { fileTypeFromStream } from "file-type";
 import sharp from "sharp";
 import { z } from "zod";
-import { UTApi } from "uploadthing/server";
 import { pipeline } from "node:stream/promises";
 import got from "got";
 import { deleteFromUploadthingTask } from "./delete-from-uploadthing";
@@ -47,7 +46,13 @@ export const videoProcessingTask = schemaTask({
   },
   description:
     "Performs all video processing related functions. All in one task so we only spend time downloading the native file once and then we can stream in the processing data live.",
-  run: async ({ videoId, steps, forceTranscoding }, { ctx }) => {
+  run: async ({ videoId, steps, forceTranscoding }, { ctx, signal }) => {
+    const abortController = signal && {
+      // Weird that this class needs the entier AbortController
+      abort: () => {},
+      signal,
+    };
+
     metadata.set("videoId", videoId);
     logger.info("Starting video processing", { videoId, steps });
 
@@ -69,8 +74,6 @@ export const videoProcessingTask = schemaTask({
         secretAccessKey: env.S3_ROOT_SECRET_KEY,
       },
     });
-
-    const utApi = new UTApi();
 
     const videoData = await logger.trace("Postgres videos", async (span) => {
       span.setAttributes({
@@ -116,10 +119,13 @@ export const videoProcessingTask = schemaTask({
 
     if (nativeVideoSource.source === "ut") {
       const response = got.stream(
-        `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${nativeVideoSource.key}`
+        `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${nativeVideoSource.key}`,
+        {
+          signal,
+        }
       );
 
-      const writeStream = createWriteStream(nativeFilePath);
+      const writeStream = createWriteStream(nativeFilePath, { signal });
 
       try {
         await pipeline(response, writeStream);
@@ -133,13 +139,15 @@ export const videoProcessingTask = schemaTask({
         Key: nativeVideoSource.key,
       });
 
-      const response = await s3Client.send(getObjectCommand);
+      const response = await s3Client.send(getObjectCommand, {
+        abortSignal: signal,
+      });
 
       const responseBody = response.Body;
 
       await new Promise((resolve, reject) => {
         if (responseBody instanceof Readable) {
-          const writeStream = createWriteStream(nativeFilePath);
+          const writeStream = createWriteStream(nativeFilePath, { signal });
 
           responseBody
             .pipe(writeStream)
@@ -215,6 +223,7 @@ export const videoProcessingTask = schemaTask({
                     Key: `${videoData.id}-large.webp`,
                     Body: buffer,
                   },
+                  abortController,
                 }).done()
               );
             }),
@@ -242,6 +251,7 @@ export const videoProcessingTask = schemaTask({
                     Key: `${videoData.id}-small.webp`,
                     Body: buffer,
                   },
+                  abortController,
                 }).done()
               );
             }),
@@ -361,6 +371,7 @@ export const videoProcessingTask = schemaTask({
             Key: storyboardKey,
             Body: storyboardBuffer,
           },
+          abortController,
         });
 
         promises.push(storyboardUpload.done());
@@ -443,13 +454,14 @@ export const videoProcessingTask = schemaTask({
         Body: createReadStream(nativeFilePath),
         ContentType: nativeFileMimeType,
       },
+      abortController,
     });
 
     promises.push(nativeFileUpload.done());
 
     promises.push(
       // Read the description for deleteFromUploadthingTask to understand why we are delaying this
-      deleteFromUploadthingTask.trigger({ videoId }, { delay: "1d" })
+      deleteFromUploadthingTask.trigger({ videoId }, { delay: "6h" })
     );
 
     if (steps.includes("transcoding")) {
@@ -520,6 +532,7 @@ export const videoProcessingTask = schemaTask({
                   Body: createReadStream(outPath),
                   ContentType: "video/mp4",
                 },
+                abortController,
               });
 
               promises.push(upload.done());
