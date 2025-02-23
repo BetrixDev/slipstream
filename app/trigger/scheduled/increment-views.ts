@@ -4,6 +4,8 @@ import { logger, schedules } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
 
+const BATCH_SIZE = 15;
+
 export const incrementViewsScheduledTask = schedules.task({
   id: "increment-views",
   cron: "*/5 * * * *",
@@ -20,11 +22,15 @@ export const incrementViewsScheduledTask = schedules.task({
       "Get oldest view keys",
       async (span) => {
         span.setAttributes({
-          count: 15,
+          count: BATCH_SIZE,
           source: "redis",
         });
 
-        const keys = (await redis.zrange("views", 0, 14)) as string[];
+        const keys = (await redis.zrange(
+          "views",
+          0,
+          BATCH_SIZE - 1
+        )) as string[];
 
         span.end();
         return keys;
