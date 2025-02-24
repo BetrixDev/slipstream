@@ -80,7 +80,7 @@ function UploadVideoDialogChild() {
       title.length--;
     }
 
-    return title.join(".");
+    return title.join(".").substring(0, 99);
   }, []);
 
   const form = useForm<FormData>({
@@ -150,6 +150,13 @@ function UploadVideoDialogChild() {
         >
           <form.Field
             name="title"
+            validators={{
+              onSubmit: ({ value }) => {
+                if (value && value.length > 100)
+                  return "Title must be 100 characters or less";
+                return undefined;
+              },
+            }}
             children={(field) => {
               return (
                 <div>
@@ -163,6 +170,7 @@ function UploadVideoDialogChild() {
                     placeholder="Enter video title (leave blank to use file name)"
                     className="dark:bg-gray-800 border-gray-700 mt-1"
                   />
+                  <FieldInfo field={field} />
                 </div>
               );
             }}

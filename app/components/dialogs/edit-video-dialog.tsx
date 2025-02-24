@@ -127,8 +127,12 @@ export function EditVideoDialog() {
           <form.Field
             name="title"
             validators={{
-              onChange: ({ value }) =>
-                !value ? "A video title is required" : undefined,
+              onChange: ({ value }) => {
+                if (!value) return "A video title is required";
+                if (value.length > 100)
+                  return "Title must be 100 characters or less";
+                return undefined;
+              },
             }}
             children={(field) => {
               return (
@@ -178,10 +182,7 @@ export function EditVideoDialog() {
             </Button>
             <Button
               className="grow basis-1/2 bg-blue-600 text-white"
-              type="button"
-              onMouseDown={() => {
-                form.handleSubmit();
-              }}
+              type="submit"
             >
               Save Changes
             </Button>
