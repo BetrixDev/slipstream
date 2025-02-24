@@ -16,6 +16,7 @@ import type { FileRouter } from "uploadthing/server";
 import { z } from "zod";
 import type { Step, videoProcessingTask } from "@/trigger/video-processing";
 import { tasks, auth as triggerAuth } from "@trigger.dev/sdk/v3";
+import { getPlayableMimeType } from "./utils";
 
 const f = createUploadthing();
 
@@ -137,7 +138,7 @@ export const uploadRouter = {
               source: "ut",
               key: file.key,
               url: file.ufsUrl,
-              type: file.type,
+              type: getPlayableMimeType(file.type),
             },
           ],
         })

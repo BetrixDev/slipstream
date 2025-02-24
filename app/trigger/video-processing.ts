@@ -23,6 +23,7 @@ import { z } from "zod";
 import { pipeline } from "node:stream/promises";
 import got from "got";
 import { deleteFromUploadthingTask } from "./delete-from-uploadthing";
+import { getPlayableMimeType } from "@/server/utils";
 
 const Step = z.enum([
   "thumbnails",
@@ -413,11 +414,9 @@ export const videoProcessingTask = schemaTask({
       }
     );
 
-    let nativeFileMimeType = nativeFileType?.mime ?? "video/mp4";
-
-    if (nativeFileMimeType === "video/quicktime") {
-      nativeFileMimeType = "video/mp4";
-    }
+    const nativeFileMimeType = getPlayableMimeType(
+      nativeFileType?.mime ?? "video/mp4"
+    );
 
     logger.info(`Native video's mime type is ${nativeFileMimeType}`, {
       mime: nativeFileMimeType,
