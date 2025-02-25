@@ -105,7 +105,7 @@ function RouteComponent() {
                     "rounded-3xl transition-all duration-300",
                     "flex flex-col",
                     tier.highlight
-                      ? "bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-400/[0.15]"
+                      ? "bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-500/[0.15]"
                       : "bg-white dark:bg-zinc-800/50",
                     "border",
                     tier.highlight

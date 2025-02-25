@@ -2,13 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@clerk/tanstack-start";
 import { getAuth } from "@clerk/tanstack-start/server";
-import { Separator } from "@radix-ui/react-dropdown-menu";
-import {
-  Link,
-  createFileRoute,
-  notFound,
-  redirect,
-} from "@tanstack/react-router";
+import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/start";
 import { getWebRequest } from "@tanstack/start/server";
 import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
@@ -31,6 +25,7 @@ import { ViewIncrementer } from "../components/view-incrementer";
 import { WordyDate } from "../components/wordy-date";
 import { getVideoDataServerFn } from "../server-fns/video-player";
 import { seo } from "@/lib/seo";
+import { Footer } from "@/components/footer";
 
 const fetchVideoData = createServerFn({ method: "POST" })
   .validator(z.object({ videoId: z.string() }))
@@ -95,7 +90,7 @@ function RouteComponent() {
             videoDuration={videoData.videoLengthSeconds}
           />
         )}
-        <header className="max-h-16 h-16 flex justify-between items-center px-4">
+        <header className="max-h-16 h-16 flex justify-between items-center px-4 p-2">
           <Link className="flex items-center" to="/" preload="render">
             <button
               className="flex-shrink-0 flex items-center z-10"
@@ -121,7 +116,7 @@ function RouteComponent() {
         </header>
         <div className="flex gap-4 p-4 max-w-full overflow-x-hidden h-full flex-col xl:flex-row">
           <MediaPlayer
-            className="w-full aspect-video rounded-lg overflow-hidden"
+            className="w-full rounded-lg overflow-hidden"
             // biome-ignore lint/suspicious/noExplicitAny: types are fine
             src={videoSources as any}
             viewType="video"
@@ -131,19 +126,17 @@ function RouteComponent() {
             poster={video.largeThumbnailUrl ?? undefined}
             duration={videoData.videoLengthSeconds ?? undefined}
             storage="player"
+            controlsDelay={500}
+            posterLoad="eager"
           >
-            <MediaProvider>
-              {video.largeThumbnailUrl !== null && (
-                <Poster className="vds-poster" src={video.largeThumbnailUrl} />
-              )}
-            </MediaProvider>
+            <MediaProvider />
             <DefaultVideoLayout
               icons={defaultLayoutIcons}
               thumbnails={video.storyboard}
             />
           </MediaPlayer>
           <div className="flex flex-col gap-4 min-w-96 w-96 grow">
-            <Card className="border-none shadow-none">
+            <Card className="border-none shadow-none bg-transparent">
               <CardContent className="p-0 space-y-4">
                 <h1 className="text-2xl font-bold">{videoData.title}</h1>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
@@ -164,11 +157,11 @@ function RouteComponent() {
                 <AuthorInfo authorId={videoData.authorId} />
               </CardContent>
             </Card>
-            <Separator />
-            <Card className="grow min-h-64 border-none shadow-none" />
+            <Card className="grow min-h-64 border-none shadow-none bg-transparent" />
           </div>
         </div>
       </>
+      <Footer />
     </div>
   );
 }

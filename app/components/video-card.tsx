@@ -22,7 +22,7 @@ import {
   Trash2Icon,
   UnlockIcon,
 } from "lucide-react";
-import { type ComponentProps, useEffect, useState } from "react";
+import { type ComponentProps, memo, useEffect, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -51,9 +51,25 @@ type VideoCardProps = {
   onDeleteClick: () => void;
 };
 
-export function VideoCard(props: VideoCardProps) {
+export const VideoCard = memo(VideoCardComponent, (prev, next) => {
   return (
-    <div className="relative group/video aspect-video max-w-2xl rounded-lg overflow-hidden">
+    prev.videoId === next.videoId &&
+    prev.title === next.title &&
+    prev.views === next.views &&
+    prev.createdAt === next.createdAt &&
+    prev.videoLengthSeconds === next.videoLengthSeconds &&
+    prev.fileSizeBytes === next.fileSizeBytes &&
+    prev.isPrivate === next.isPrivate &&
+    prev.thumbnailUrl === next.thumbnailUrl &&
+    prev.triggerAccessToken === next.triggerAccessToken &&
+    prev.status === next.status &&
+    prev.pendingDeletionDate === next.pendingDeletionDate
+  );
+});
+
+function VideoCardComponent(props: VideoCardProps) {
+  return (
+    <div className="relative group/video aspect-video max-w-2xl rounded-lg overflow-hidden border">
       <VideoThumbnail
         smallThumbnailUrl={props.thumbnailUrl}
         title={props.title}
