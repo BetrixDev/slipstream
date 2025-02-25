@@ -64,7 +64,7 @@ export const Route = createFileRoute("/p/$videoId")({
     ],
     meta: seo({
       title: loaderData.videoData.title,
-      description: `Watch ${loaderData.videoData.title} on Flowble`,
+      description: `Watch ${loaderData.videoData.title} on Slipstream`,
       image: loaderData.largeThumbnailUrl ?? undefined,
       video: {
         url: loaderData.videoSources.at(0)?.src ?? undefined,
@@ -102,7 +102,7 @@ function RouteComponent() {
               type="button"
             >
               <VideoIcon className="h-8 w-8 text-red-500" />
-              <span className="ml-2 text-2xl font-bold">Flowble</span>
+              <span className="ml-2 text-2xl font-bold">Slipstream</span>
             </button>
           </Link>
           <Link
@@ -115,7 +115,7 @@ function RouteComponent() {
               className="text-md flex gap-2 items-center rounded-lg h-10"
             >
               <SquareArrowOutUpRightIcon className="w-5 h-5" />
-              {isViewerAuthor ? "Back to your videos" : "Go to Flowble"}
+              {isViewerAuthor ? "Back to your videos" : "Go to Slipstream"}
             </Button>
           </Link>
         </header>

@@ -42,7 +42,7 @@ export default function TopNav() {
             </Link>
             <a
               className="text-sm font-medium hover:underline underline-offset-4"
-              href="mailto:support@flowble.app"
+              href="mailto:support@slipstream.video"
               target="_blank"
               rel="noreferrer"
             >
@@ -87,7 +87,7 @@ export default function TopNav() {
                 <DropdownMenuItem>
                   <a
                     className="text-sm font-medium hover:underline underline-offset-4"
-                    href="mailto:support@flowble.app"
+                    href="mailto:support@slipstream.video"
                   >
                     Support
                   </a>

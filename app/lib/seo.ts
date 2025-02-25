@@ -16,7 +16,7 @@ export const seo = ({
     height?: number;
   };
 }) => {
-  const siteName = "Flowble";
+  const siteName = "Slipstream";
 
   const tags = [
     { title: `${title} - ${siteName}` },

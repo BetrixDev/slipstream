@@ -41,10 +41,10 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       ...seo({
-        title: "Flowble",
+        title: "Slipstream",
         description: "Share videos in a flash",
         keywords:
-          "video sharing, free video hosting, upload videos, streaming platform, video streaming, video platform, online video sharing, video content, digital video, video hosting service, flowble, share videos online, video storage, video streaming service, video content platform",
+          "video sharing, free video hosting, upload videos, streaming platform, video streaming, video platform, online video sharing, video content, digital video, video hosting service, slipstream, slipstream.video, share videos online, video storage, video streaming service, video content platform",
       }),
     ],
     links: [

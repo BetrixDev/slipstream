@@ -24,7 +24,7 @@ function RouteComponent() {
                     Share Videos in a Flash
                   </h1>
                   <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Flowble makes it incredibly easy and fast to share your
+                    Slipstream makes it incredibly easy and fast to share your
                     favorite moments with friends. Upload, send, and enjoy
                     videos together in seconds.
                   </p>
@@ -40,7 +40,7 @@ function RouteComponent() {
           <section className="w-full min-h-96 py-4 flex items-center justify-center bg-background/5 backdrop-blur-sm">
             <div>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-12">
-                Why Users Love Flowble
+                Why Users Love Slipstream
               </h2>
               <div className="grid gap-10 sm:grid-cols-1 lg:grid-cols-3">
                 <div className="flex flex-col items-center space-y-3 text-center">
@@ -75,7 +75,8 @@ function RouteComponent() {
                     Ready to Share Your Moments?
                   </h2>
                   <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                    Join Flowble today and start sharing your videos in no time.
+                    Join Slipstream today and start sharing your videos in no
+                    time.
                   </p>
                 </div>
                 <div className="w-full max-w-sm space-y-2">
