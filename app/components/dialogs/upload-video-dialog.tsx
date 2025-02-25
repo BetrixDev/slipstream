@@ -105,6 +105,7 @@ function UploadVideoDialogChild() {
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only check for trimmed video when dialog is opened
   useEffect(() => {
     form.reset();
 
@@ -118,13 +119,7 @@ function UploadVideoDialogChild() {
         },
       });
     }
-  }, [
-    isUploadDialogOpen,
-    customFileToUpload,
-    getVideoTitleFromFileName,
-    form.reset,
-    form.update,
-  ]);
+  }, [isUploadDialogOpen]);
 
   return (
     <Credenza
