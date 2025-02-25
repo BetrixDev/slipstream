@@ -16,6 +16,7 @@ import { fetchClerkAuth } from "@/server-fns/clerk";
 import { seo } from "@/lib/seo";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Separator } from "@/components/ui/seperator";
+import { Footer } from "@/components/footer";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
@@ -72,6 +73,7 @@ function RouteComponent() {
           </div>
         </div>
       </main>
+      <Footer />
     </HeroHighlight>
   );
 }

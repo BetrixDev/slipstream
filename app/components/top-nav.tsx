@@ -12,7 +12,7 @@ import { Link } from "@tanstack/react-router";
 export default function TopNav() {
   return (
     <div className="sticky md:top-2 flex justify-center z-[99] w-full">
-      <header className="px-3 max-w-[64rem] md:w-[90%] w-full bg-white/95 dark:bg-zinc-950/30 md:border border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm sticky">
+      <header className="px-3 max-w-[64rem] md:w-[90%] w-full bg-white/95 md:dark:bg-zinc-950/30 dark:bg-zinc-950/50 md:border border-border/50 border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm sticky">
         <Link className="flex items-center" to="/" preload="intent">
           <Button
             variant="ghost"
