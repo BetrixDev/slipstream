@@ -181,7 +181,7 @@ export function EditVideoDialog() {
               Cancel
             </Button>
             <Button
-              className="grow basis-1/2 bg-blue-600 text-white"
+              className="grow basis-1/2 bg-red-600 text-white"
               type="submit"
             >
               Save Changes

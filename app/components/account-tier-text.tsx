@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export function AccountTierText({
   accountTier,
   children,
@@ -7,7 +9,7 @@ export function AccountTierText({
   children: React.ReactNode;
   defaultColor?: string;
 }) {
-  if (accountTier === "pro") {
+  if (accountTier.toLowerCase() === "pro") {
     return (
       <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-bold">
         {children}
@@ -15,7 +17,7 @@ export function AccountTierText({
     );
   }
 
-  if (accountTier === "premium") {
+  if (accountTier.toLowerCase() === "premium") {
     return (
       <span className="bg-gradient-to-r from-pink-500 to-purple-300 bg-clip-text text-transparent font-bold">
         {children}
@@ -23,5 +25,5 @@ export function AccountTierText({
     );
   }
 
-  return <span className={defaultColor}>{children}</span>;
+  return <span className={cn(defaultColor, "font-bold")}>{children}</span>;
 }

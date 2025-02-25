@@ -286,7 +286,7 @@ function UploadVideoDialogChild() {
               return (
                 <Button
                   disabled={!state.isValid}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-primary mt-2"
+                  className="w-full bg-red-500 hover:bg-red-600 text-primary mt-2"
                   type="button"
                   onMouseDown={() => {
                     setCustomFileToUpload(undefined);

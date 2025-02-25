@@ -6,9 +6,47 @@ import { useUser } from "@clerk/tanstack-start";
 import { useState } from "react";
 import { Tabs } from "../components/tabs";
 import { AccountTierText } from "../components/account-tier-text";
-import { CheckIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  Crown,
+  PiggyBank,
+  Star,
+  Zap,
+} from "lucide-react";
 import { ButtonLink } from "../components/pricing/button-link";
 import { seo } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Description } from "@radix-ui/react-dialog";
+
+const buttonStyles = {
+  default: cn(
+    "h-12 bg-white dark:bg-zinc-900",
+    "hover:bg-zinc-50 dark:hover:bg-zinc-800",
+    "text-zinc-900 dark:text-zinc-100",
+    "border border-zinc-200 dark:border-zinc-800",
+    "hover:border-zinc-300 dark:hover:border-zinc-700",
+    "shadow-sm hover:shadow-md",
+    "text-sm font-medium"
+  ),
+  highlight: cn(
+    "h-12 bg-zinc-900 dark:bg-zinc-100",
+    "hover:bg-zinc-800 dark:hover:bg-zinc-300",
+    "text-white dark:text-zinc-900",
+    "shadow-[0_1px_15px_rgba(0,0,0,0.1)]",
+    "hover:shadow-[0_1px_20px_rgba(0,0,0,0.15)]",
+    "font-semibold text-base"
+  ),
+};
+
+const badgeStyles = cn(
+  "px-4 py-1.5 text-sm font-medium",
+  "bg-zinc-900 dark:bg-zinc-100",
+  "text-white dark:text-zinc-900",
+  "border-none shadow-md"
+);
 
 export const Route = createFileRoute("/pricing")({
   component: RouteComponent,
@@ -30,6 +68,8 @@ function RouteComponent() {
 
   const [billingOption, setBillingOption] = useState<string>("monthly");
 
+  const isYearly = billingOption === "yearly";
+
   return (
     <HeroHighlight className="min-h-screen flex flex-col">
       <TopNav />
@@ -37,76 +77,142 @@ function RouteComponent() {
         <div className="mx-auto max-w-7xl px-6 pt-16 text-center lg:px-8">
           <div className="mx-auto max-w-4xl">
             <h1 className="text-4xl font-extrabold text-primary sm:text-5xl sm:tracking-tight lg:text-6xl">
-              Flowble Pricing
+              Slipstream Pricing
             </h1>
           </div>
-          <p className="text-lg text-gray-500 dark:text-gray-400 text-center">
+          <p className="text-lg text-gray-600 dark:text-gray-400 text-center">
             Choose the perfect plan for your video sharing needs
           </p>
           <div className="w-full flex justify-center py-4">
             <Tabs
-              className="bg-background w-[11.95rem] rounded-md border border-secondary shadow-md overflow-visible"
+              className="bg-background w-[10.8rem] rounded-md border border-secondary shadow-md overflow-visible"
               setTab={setBillingOption}
               tabs={[
                 { title: "Monthly", value: "monthly" },
-                { title: "Annually", value: "annually" },
+                { title: "Yearly", value: "yearly" },
               ]}
             />
           </div>
         </div>
-        <div className="flow-root z-20 bg-transparent pb-24 sm:pb-32">
-          <div className="mx-auto px-6 lg:px-8">
-            <div className="flex justify-center gap-4 flex-wrap">
+        <div className="flow-root z-20 bg-transparent pb-24 sm:pb-32 mt-4">
+          <div className="px-4 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-4">
               {tiers.map((tier) => (
                 <div
-                  key={tier.id}
-                  className="flex z-10 flex-col justify-between rounded-3xl bg-background p-6 shadow-xl ring-1 ring-gray-900/10 sm:p-8 dark:[border:1px_solid_rgba(100,100,255,.1)]"
+                  key={tier.name}
+                  className={cn(
+                    "relative group backdrop-blur-sm basis-1/3",
+                    "rounded-3xl transition-all duration-300",
+                    "flex flex-col",
+                    tier.highlight
+                      ? "bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-400/[0.15]"
+                      : "bg-white dark:bg-zinc-800/50",
+                    "border",
+                    tier.highlight
+                      ? "border-zinc-400/50 dark:border-zinc-400/20 shadow-xl"
+                      : "border-zinc-200 dark:border-zinc-700 shadow-md",
+                    "hover:translate-y-0 hover:shadow-lg"
+                  )}
                 >
-                  <div>
-                    <AccountTierText
-                      accountTier={tier.id}
-                      defaultColor="text-blue-500"
-                    >
-                      <span className="text-lg font-bold leading-7">
-                        {tier.name}
-                      </span>
-                    </AccountTierText>
-                    <div className="mt-4 flex items-baseline">
-                      <span className="text-4xl font-bold">$</span>
-                      <span className="text-5xl font-bold tracking-tight text-primary font-sans">
-                        {billingOption === "monthly"
-                          ? tier.priceMonthly
-                          : tier.priceAnually}
-                      </span>
-                      <span className="text-base font-semibold leading-7 text-primary">
-                        /{billingOption === "monthly" ? "month" : "year"}
-                      </span>
+                  {tier.badge && tier.highlight && (
+                    <div className="absolute -top-4 left-6">
+                      <Badge className={badgeStyles}>
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-r from-gray-500/30 to-gray-500/30 blur-2xl rounded-full" />
+                          {tier.badge}
+                        </div>
+                      </Badge>
                     </div>
-                    <p className="mt-2 text-base leading-7  text-primary">
-                      {tier.description}
-                    </p>
-                    <ul className="mt-6 space-y-3 text-sm leading-6  text-primary">
+                  )}
+
+                  <div className="p-8 flex-1">
+                    <div className="flex items-center justify-between mb-4">
+                      <div
+                        className={cn(
+                          "p-3 rounded-xl",
+                          tier.highlight
+                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                        )}
+                      >
+                        {tier.icon}
+                      </div>
+                      <Badge
+                        className={cn(
+                          badgeStyles,
+                          "dark:bg-background bg-background"
+                        )}
+                      >
+                        <AccountTierText
+                          accountTier={tier.name}
+                          defaultColor="text-primary"
+                        >
+                          {tier.name}
+                        </AccountTierText>
+                      </Badge>
+                    </div>
+
+                    <div className="mb-6">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
+                          ${isYearly ? tier.price.yearly : tier.price.monthly}
+                        </span>
+                        <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                          /{isYearly ? "year" : "month"}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        {tier.description}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
                       {tier.features.map((feature) => (
-                        <li key={feature.text} className="flex gap-x-3">
-                          <CheckIcon
-                            className="h-6 w-5 flex-none text-blue-600/90"
-                            aria-hidden="true"
-                          />
-                          {feature.text}
-                        </li>
+                        <div key={feature.name} className="flex gap-4">
+                          <div
+                            className={cn(
+                              "mt-1 p-0.5 rounded-full transition-colors duration-200 text-red-600 dark:text-red-400"
+                            )}
+                          >
+                            <CheckIcon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {feature.name}
+                            </div>
+                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                              {feature.description}
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                  <ButtonLink
-                    accountTier={userAccountTier}
-                    email={userEmail}
-                    paymentLink={
-                      (billingOption === "monthly"
-                        ? tier.monthlyPaymentLink
-                        : tier.annualPaymentLink) ?? ""
-                    }
-                    paymentTier={tier.id}
-                  />
+
+                  <div className="p-8 pt-0 mt-auto">
+                    <Button
+                      className={cn(
+                        "w-full relative transition-all duration-300",
+                        tier.highlight
+                          ? buttonStyles.highlight
+                          : buttonStyles.default
+                      )}
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {tier.price.monthly > 0 ? (
+                          <>
+                            Buy now
+                            <ArrowRightIcon className="w-4 h-4" />
+                          </>
+                        ) : (
+                          <>
+                            Get started
+                            <ArrowRightIcon className="w-4 h-4" />
+                          </>
+                        )}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -118,80 +224,126 @@ function RouteComponent() {
   );
 }
 
-const tiers = [
+type Feature = {
+  name: string;
+  description?: string;
+};
+
+type PricingTier = {
+  name: string;
+  price: {
+    monthly: number;
+    yearly: number;
+  };
+  description: string;
+  features: Feature[];
+  highlight?: boolean;
+  badge?: string;
+  icon: React.ReactNode;
+};
+
+const tiers: PricingTier[] = [
   {
     name: "Free",
-    id: "free",
-    priceMonthly: "0",
-    priceAnually: "0",
+    price: {
+      monthly: 0,
+      yearly: 0,
+    },
     description: "Perfect for sharing videos between friends",
+    icon: (
+      <PiggyBank className="w-7 h-7 relative z-10 text-gray-500 dark:text-gray-400 animate-[float_3s_ease-in-out_infinite]" />
+    ),
     features: [
       {
-        text: "3GB of storage space",
-        infoTip:
-          "Storage space is determined by the size of the uploaded video file. We will automatically create a seperate transcoded version of the video to ensure it is viewable on all devices with no extra space used on your account.",
+        name: "3GB of storage space",
+        description: "Determined by the file sizes you upload",
       },
       {
-        text: "512mb max size per video",
+        name: "512mb max size per video",
+        description:
+          "Videos larger than 512mb will be automatically downscaled",
       },
       {
-        text: "Upload 3 videos each day",
+        name: "Upload 3 videos each day",
+        description:
+          "This is a limit on the number of videos you can upload each day",
       },
       {
-        text: "Native video quality",
-        infoTip:
-          "We retain and give you the ability to view the native video file you uploaded at any time. Upgrade to a paid tier to have mutliple video qualities available",
+        name: "Native video quality",
+        description: "You can always view the exact file you uploaded",
       },
       {
-        text: "Basic analytics",
-        infoTip: "Basic analytics includes total views on a video",
+        name: "Basic analytics",
+        description: "Basic analytics includes total views on a video",
       },
       {
-        text: "100 day video retention",
-        infoTip: "Videos will be automatically deleted after 100 days",
-      },
-      {
-        text: "Private and unlisted videos",
-        infoTip:
-          'Unlisted videos are not searchable and can only be viewed by those with the link. Private videos are only viewable by the owner. "Public" video with the typical definition are not apart of Flowble.',
+        name: "100 day video retention",
+        description: "Videos will be deleted after 100 days",
       },
     ],
   },
   {
     name: "Pro",
-    id: "pro",
-    monthlyPaymentLink: "https://pay.flowble.app/b/aEU16U4CQdRP80w8wE",
-    annualPaymentLink: "https://pay.flowble.app/b/14k02Qedq00Z0y44gp",
-    priceMonthly: "4",
-    priceAnually: "40",
-    description: "Great for anyone who needs more storage",
+    price: {
+      monthly: 4,
+      yearly: 40,
+    },
+    highlight: true,
+    badge: "Great Value!",
+    icon: (
+      <Zap className="w-7 h-7 relative z-10 text-gray-500 dark:text-gray-400 animate-[float_3s_ease-in-out_infinite]" />
+    ),
+    description: "For when you don't want to lose your videos",
     features: [
-      { text: "Everything in Free Tier" },
-      { text: "100GB of storage space" },
-      { text: "Infinite video retention" },
-      { text: "Multiple qualities for each video" },
-      { text: "Ad-free experience" },
-      { text: "4GB max size per video" },
-      { text: "Upload 12 videos each day" },
+      {
+        name: "Everything in Free Tier",
+        description: "You get all the features of the free tier",
+      },
+      {
+        name: "100GB of storage space",
+        description: "You can upload up to 100GB of videos",
+      },
+      {
+        name: "Infinite video retention",
+        description: "Videos will never be deleted",
+      },
+      {
+        name: "Ad-free experience",
+        description: "No banner ads when watching videos",
+      },
+      {
+        name: "4GB max size per video",
+        description: "You can upload videos up to 4GB in size",
+      },
+      {
+        name: "Upload 12 videos each day",
+        description: "You can upload up to 12 videos each day",
+      },
     ],
   },
   {
     name: "Premium",
-    id: "premium",
-    monthlyPaymentLink: "https://pay.flowble.app/b/14k7vib1e00Za8E14a",
-    annualPaymentLink: "https://pay.flowble.app/b/4gw8zm0mA5lja8E6oy",
-    priceMonthly: "12",
-    priceAnually: "120",
-    description: "For professionals looking to reach everyone",
+    price: {
+      monthly: 12,
+      yearly: 120,
+    },
+    description: "For that person who has too many videos",
+    icon: (
+      <Crown className="w-7 h-7 relative z-10 text-gray-500 dark:text-gray-400 animate-[float_3s_ease-in-out_infinite]" />
+    ),
     features: [
-      { text: "Everything in Pro Tier" },
-      { text: "800GB of storage space" },
       {
-        text: "Higher quality processed videos",
-        infoTip:
-          "The additional quality levels of your video we process will be a higher quality.",
+        name: "Everything in Pro Tier",
+        description: "You get all the features of the pro tier",
       },
-      { text: "No daily video upload limit" },
+      {
+        name: "800GB of storage space",
+        description: "You can upload up to 800GB of videos",
+      },
+      {
+        name: "No daily video upload limit",
+        description: "You can upload as many videos as you want each day",
+      },
     ],
   },
 ];

@@ -101,7 +101,7 @@ function RouteComponent() {
               className="flex-shrink-0 flex items-center z-10"
               type="button"
             >
-              <VideoIcon className="h-8 w-8 text-blue-500" />
+              <VideoIcon className="h-8 w-8 text-red-500" />
               <span className="ml-2 text-2xl font-bold">Flowble</span>
             </button>
           </Link>

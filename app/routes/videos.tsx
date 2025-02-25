@@ -14,6 +14,8 @@ import { VideosBoard } from "../components/videos-board";
 import { useQuery } from "@tanstack/react-query";
 import { fetchClerkAuth } from "@/server-fns/clerk";
 import { seo } from "@/lib/seo";
+import { HeroHighlight } from "@/components/ui/hero-highlight";
+import { Separator } from "@/components/ui/seperator";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
@@ -42,7 +44,7 @@ function RouteComponent() {
   const { data: usageData } = useQuery(usageDataQueryOptions);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <HeroHighlight className="min-h-screen flex flex-col">
       <TopNav />
       <EditVideoDialog />
       <DeleteVideoDialog />
@@ -51,7 +53,7 @@ function RouteComponent() {
       <FullPageDropzone />
       <main className="grow container space-y-8 mx-auto px-4 py-8">
         <div className="flex gap-2 items-center justify-between">
-          <h1 className="text-2xl w-64 font-bold">Your Videos</h1>
+          <h1 className="text-2xl w-64 font-bold">Your Catalog</h1>
           <div className="flex flex-col-reverse md:flex-row items-center md:gap-8">
             {usageData && (
               <StorageUsedText
@@ -62,6 +64,7 @@ function RouteComponent() {
             <UploadButton />
           </div>
         </div>
+        <Separator />
         <div className="container flex flex-col gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <UploadingVideosContainer />
@@ -69,6 +72,6 @@ function RouteComponent() {
           </div>
         </div>
       </main>
-    </div>
+    </HeroHighlight>
   );
 }

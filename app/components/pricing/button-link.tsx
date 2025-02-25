@@ -26,7 +26,7 @@ export function ButtonLink({
       <Link to="/sign-up/$">
         <Button
           disabled={paymentTier === "free" && accountTier === "free"}
-          className="w-full h-10 mt-6 block rounded-md bg-blue-600/90 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600/90"
+          className="w-full h-10 mt-6 block rounded-md bg-red-600/90 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-500/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600/90"
         >
           Sign Up
         </Button>
@@ -54,23 +54,23 @@ export function ButtonLink({
                 : ""
             }`
           : paymentTier === "free"
-          ? "/videos"
-          : `${paymentLink}${
-              email !== null
-                ? `?prefilled_email=${encodeURIComponent(email)}`
-                : ""
-            }`
+            ? "/videos"
+            : `${paymentLink}${
+                email !== null
+                  ? `?prefilled_email=${encodeURIComponent(email)}`
+                  : ""
+              }`
       }
     >
       <Button
         disabled={paymentTier === "free" && accountTier === "free"}
-        className="w-full h-10 mt-6 block rounded-md bg-blue-600/90 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600/90"
+        className="w-full h-10 mt-6 block rounded-md bg-red-600/90 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-500/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600/90"
       >
         {paymentTier === "free" && accountTier === "free"
           ? "You have the free tier"
           : isUserPayingCustomer
-          ? "Update subscription"
-          : "Purchase"}
+            ? "Update subscription"
+            : "Purchase"}
       </Button>
     </Link>
   );

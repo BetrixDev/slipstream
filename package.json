@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:tanstack\" \"pnpm run dev:trigger\"",
-    "dev:tanstack": "vinxi dev",
+    "dev:tanstack": "vinxi dev --port 3001",
     "dev:trigger": "pnpm dlx trigger.dev@3.3.16 dev",
     "build": "vinxi build",
     "start": "vinxi start",
@@ -33,6 +33,7 @@
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slider": "^1.2.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.0",

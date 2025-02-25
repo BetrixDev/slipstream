@@ -12,15 +12,15 @@ import { Link } from "@tanstack/react-router";
 export default function TopNav() {
   return (
     <div className="sticky md:top-2 flex justify-center z-[99] w-full">
-      <header className="px-3 max-w-[48rem] md:w-[80%] w-full bg-background/70 md:border border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm">
+      <header className="px-3 max-w-[64rem] md:w-[90%] w-full bg-white/95 dark:bg-zinc-950/30 md:border border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm sticky">
         <Link className="flex items-center" to="/" preload="intent">
           <Button
             variant="ghost"
             className="flex-shrink-0 flex items-center rounded-full z-50"
           >
-            <Video className="h-8 w-8 text-blue-500" />
+            <Video className="h-8 w-8 text-red-500" />
             <span className="ml-2 text-lg z-10 hidden md:inline md:text-2xl font-bold pointer-events-none">
-              Flowble
+              Slipstream
             </span>
           </Button>
         </Link>

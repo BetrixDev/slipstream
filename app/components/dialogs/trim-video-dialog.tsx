@@ -281,7 +281,7 @@ function TrimVideoDialogChild() {
               onValueChange={handleRangeValueChange}
             />
             <Button
-              className="bg-blue-500 text-white flex gap-4"
+              className="bg-red-500 text-white flex gap-4"
               onClick={() => handleRenderVideo()}
               disabled={isRendering}
             >

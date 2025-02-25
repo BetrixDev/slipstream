@@ -287,9 +287,7 @@ function PendingDeletionChip({ deletionDate }: { deletionDate: string }) {
         <TooltipContent>
           This video will be deleted in {daysAway} day(s).{" "}
           <Link to="/pricing" preload="intent">
-            <span className="text-blue-600 underline">
-              Upgrade your account
-            </span>
+            <span className="text-red-600 underline">Upgrade your account</span>
           </Link>{" "}
           to keep it forever.
         </TooltipContent>
