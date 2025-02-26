@@ -95,7 +95,7 @@ export const deleteVideoServerFn = createServerFn({ method: "POST" })
       };
     }
 
-    return { success: true, message: "Video queue for deletion" };
+    return { success: true, message: "Video queued for deletion" };
   });
 
 export const onUploadCancelledServerFn = createServerFn({ method: "POST" })
@@ -125,7 +125,7 @@ export const onUploadCancelledServerFn = createServerFn({ method: "POST" })
               (
                 SELECT SUM(${videos.fileSizeBytes})
                 FROM ${videos}
-                WHERE ${videos.authorId} = ${context.userId}
+                WHERE ${videos.authorId} = ${context.userId} AND ${videos.status} != 'deleting'
               ),
               0
             )

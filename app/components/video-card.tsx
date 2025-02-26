@@ -278,7 +278,7 @@ function ThumbnailPlaceholder(props: ThumbnailPlaceholderProps) {
   }, [runs, props.videoId, queryClient]);
 
   return (
-    <div className="transition-transform duration-200 ease-in-out group-hover/video:scale-105 w-full h-2/3 flex flex-col gap-2 items-center justify-center">
+    <div className="transition-transform duration-200 ease-in-out group-hover/video:scale-105 w-full h-2/3 flex flex-col gap-2 items-center justify-center bg-zinc-950">
       <Loader2Icon className="w-12 h-12 aspect-square animate-spin text-muted" />
     </div>
   );
