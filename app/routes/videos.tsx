@@ -1,6 +1,10 @@
 import TopNav from "../components/top-nav";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { usageDataQueryOptions, videosQueryOptions } from "../lib/query-utils";
+import {
+  usageDataQueryOptions,
+  videoQueryOptions,
+  videosQueryOptions,
+} from "../lib/query-utils";
 import { DeleteVideoDialog } from "../components/dialogs/delete-video-dialog";
 import { EditVideoDialog } from "../components/dialogs/edit-video-dialog";
 import { TrimVideoDialog } from "../components/dialogs/trim-video-dialog";
@@ -17,6 +21,7 @@ import { seo } from "@/lib/seo";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Separator } from "@/components/ui/seperator";
 import { Footer } from "@/components/footer";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
@@ -31,18 +36,45 @@ export const Route = createFileRoute("/videos")({
       userId,
     };
   },
-  loader: () => {
-    queryClient.prefetchQuery(videosQueryOptions);
-    queryClient.prefetchQuery(usageDataQueryOptions);
+  pendingMs: 0,
+  loader: ({ context }) => {
+    return {
+      userId: context.userId,
+    };
   },
   head: () => ({
-    meta: [...seo({ title: "Your Videos" })],
+    meta: seo({
+      title: "Your Videos",
+      description: "View your video catablog on Slipstream Video",
+      keywords: "videos, upload, upload video, upload videos",
+    }),
   }),
 });
 
 function RouteComponent() {
+  const { userId } = Route.useLoaderData();
   const { data: videoData } = useQuery(videosQueryOptions);
   const { data: usageData } = useQuery(usageDataQueryOptions);
+
+  useEffect(() => {
+    if (!videoData) {
+      return;
+    }
+
+    videoData.videos.forEach((video) => {
+      queryClient.setQueryData(videoQueryOptions(video.id).queryKey, {
+        videoData: {
+          title: video.title,
+          isPrivate: video.isPrivate,
+          videoLengthSeconds: video.videoLengthSeconds,
+          views: video.views,
+          authorId: userId,
+          isProcessing: video.status === "processing",
+          videoCreatedAt: video.createdAt.toString(),
+        },
+      });
+    });
+  }, [videoData, userId]);
 
   return (
     <HeroHighlight className="min-h-screen flex flex-col">

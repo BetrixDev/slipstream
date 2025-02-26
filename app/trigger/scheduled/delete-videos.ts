@@ -15,7 +15,14 @@ export const deleteVideosScheduledTask = schedules.task({
         });
 
         const videos = await db.query.videos.findMany({
-          where: (table, { sql }) => sql`${table.pendingDeletionDate} < NOW()`,
+          where: (table, { sql, or, and, eq }) =>
+            or(
+              sql`${table.pendingDeletionDate} < NOW()`,
+              and(
+                eq(table.status, "uploading"),
+                sql`${table.createdAt} <= NOW() - INTERVAL '1 day'`
+              )
+            ),
           limit: 25,
         });
 

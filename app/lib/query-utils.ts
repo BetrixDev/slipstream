@@ -3,8 +3,8 @@ import { createServerFn } from "@tanstack/start";
 import { z } from "zod";
 import { authGuardMiddleware } from "../middleware/auth-guard";
 import { db } from "./db";
-import { desc } from "drizzle-orm";
-import { videos } from "./schema";
+import { desc, inArray, not } from "drizzle-orm";
+import { videos, type VideoStoryboard } from "./schema";
 import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "./constants";
 import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
 import { getIpFromHeaders, safeParseAccountTier } from "./utils";
@@ -12,24 +12,28 @@ import { getWebRequest } from "@tanstack/start/server";
 import dayjs from "dayjs";
 import { createSigner } from "fast-jwt";
 import { env } from "./env";
-import { getVideoDataServerFn } from "@/server-fns/video-player";
+import { generateVideoSources } from "@/server-fns/video-player";
+import { notFound } from "@tanstack/react-router";
+import { Redis } from "@upstash/redis";
 
 export const queryKeys = {
   videos: ["videos"],
   video: (videoId: string) => ["video", videoId],
+  videoPlayback: (videoId: string) => ["videoPlayback", videoId],
   usageData: ["usageData"],
   authorData: (authorId: string) => ["authorData", authorId],
   viewToken: (videoId: string) => ["viewToken", videoId],
 };
 
-const fetchVideos = createServerFn({ method: "GET" })
+const fetchVideosData = createServerFn({ method: "GET" })
   .middleware([authGuardMiddleware])
   .handler(async ({ context }) => {
     const videoData = await db.query.videos.findMany({
       where: (table, { eq, and }) =>
         and(
           eq(table.authorId, context.userId),
-          eq(table.isQueuedForDeletion, false)
+          eq(table.isQueuedForDeletion, false),
+          not(inArray(table.status, ["deleting", "uploading"]))
         ),
       orderBy: desc(videos.createdAt),
       columns: {
@@ -67,24 +71,136 @@ const fetchVideos = createServerFn({ method: "GET" })
 
 export const videosQueryOptions = queryOptions({
   queryKey: queryKeys.videos,
-  queryFn: () => fetchVideos(),
+  queryFn: () => fetchVideosData(),
   staleTime: 1000 * 60 * 5,
 });
 
-const fetchVideo = createServerFn({ method: "POST" })
+export type VideoData = {
+  videoData: {
+    title: string;
+    isPrivate: boolean;
+    videoLengthSeconds?: number | null;
+    views: number;
+    authorId: string;
+    isProcessing: boolean;
+    videoCreatedAt: string;
+  };
+  playbackData?: {
+    smallThumbnailUrl?: string | null;
+    largeThumbnailUrl?: string | null;
+    videoSources: {
+      src: string;
+      type?: string;
+      height?: number;
+      width?: number;
+    }[];
+    storyboard?: VideoStoryboard & { url: string };
+  };
+};
+
+const fetchVideoData = createServerFn({ method: "POST" })
   .validator(z.object({ videoId: z.string() }))
   .handler(async ({ data }) => {
-    const videoData = await getVideoDataServerFn({
-      data: { videoId: data.videoId },
+    const redis = new Redis({
+      url: env.REDIS_REST_URL,
+      token: env.REDIS_REST_TOKEN,
     });
-    return videoData;
+
+    const cachedVideoData = await redis.hgetall<VideoData>(
+      `video:${data.videoId}`
+    );
+
+    if (cachedVideoData) {
+      cachedVideoData;
+    }
+
+    const videoData = await db.query.videos.findFirst({
+      where: (table, { eq }) => eq(table.id, data.videoId),
+      columns: {
+        id: true,
+        title: true,
+        views: true,
+        isPrivate: true,
+        authorId: true,
+        status: true,
+        largeThumbnailKey: true,
+        smallThumbnailKey: true,
+        videoLengthSeconds: true,
+        createdAt: true,
+        sources: true,
+        storyboardJson: true,
+      },
+    });
+
+    if (
+      !videoData ||
+      videoData.status === "deleting" ||
+      videoData.status === "uploading"
+    ) {
+      throw notFound();
+    }
+
+    if (videoData.isPrivate) {
+      const { userId } = await getAuth(getWebRequest()!);
+
+      if (userId !== videoData.authorId) {
+        throw notFound();
+      }
+    }
+
+    const largeThumbnailUrl =
+      videoData.largeThumbnailKey &&
+      `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+
+    const smallThumbnailUrl =
+      videoData.smallThumbnailKey &&
+      `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`;
+
+    const storyboardUrl =
+      videoData.storyboardJson &&
+      `${env.THUMBNAIL_BASE_URL}/${videoData.id}-storyboard.jpg`;
+
+    const fullVideoData = {
+      videoData: {
+        ...videoData,
+        videoCreatedAt: videoData.createdAt.toISOString(),
+        isProcessing: videoData.status === "processing",
+      },
+      playbackData: {
+        videoSources: await generateVideoSources(videoData.sources),
+        largeThumbnailUrl,
+        smallThumbnailUrl,
+        storyboard: videoData.storyboardJson
+          ? {
+              ...videoData.storyboardJson,
+              url: storyboardUrl,
+            }
+          : undefined,
+      },
+    } as VideoData;
+
+    if (videoData.status === "ready" && !videoData.isPrivate) {
+      await redis.hset(`video:${data.videoId}`, fullVideoData);
+      await redis.expire(`video:${data.videoId}`, 60 * 60 * 24);
+    }
+
+    return fullVideoData;
   });
 
 export const videoQueryOptions = (videoId: string) =>
   queryOptions({
     queryKey: queryKeys.video(videoId),
-    queryFn: () => fetchVideo({ data: { videoId: videoId } }),
-    staleTime: 1000 * 60 * 5,
+    queryFn: () => fetchVideoData({ data: { videoId: videoId } }),
+    staleTime: ({ state }) => {
+      if (
+        state.data?.playbackData === undefined ||
+        state.data?.videoData.isProcessing
+      ) {
+        return 0;
+      }
+
+      return Number.POSITIVE_INFINITY;
+    },
   });
 
 const fetchUsageDataServerFn = createServerFn({ method: "GET" })
@@ -132,7 +248,7 @@ export const authorDataQueryOptions = (authorId: string) =>
   queryOptions({
     queryKey: queryKeys.authorData(authorId),
     queryFn: () => fetchAuthorDataServerFn({ data: { authorId } }),
-    staleTime: 1000 * 60 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
 const fetchViewTokenServerFn = createServerFn({ method: "POST" })

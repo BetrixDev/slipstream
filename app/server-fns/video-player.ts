@@ -4,7 +4,6 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { clerkClient } from "@clerk/tanstack-start/server";
 import { Redis } from "@upstash/redis";
-import { waitUntil } from "@vercel/functions";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { createSigner } from "fast-jwt";
@@ -12,6 +11,7 @@ import { createServerFn } from "@tanstack/start";
 import { z } from "zod";
 import { notFound } from "@tanstack/react-router";
 import { getHeaders } from "@tanstack/start/server";
+import type { VideoSource } from "@/lib/schema";
 
 dayjs.extend(utc);
 
@@ -28,34 +28,6 @@ const s3Client = new S3Client({
     secretAccessKey: env.S3_ROOT_SECRET_KEY,
   },
 });
-
-export const getVideoDataServerFn = createServerFn({ method: "POST" })
-  .validator(z.object({ videoId: z.string() }))
-  .handler(async ({ data }) => {
-    const cachedVideoData = await redis.hgetall<
-      Omit<Awaited<ReturnType<typeof getVideoDataFromDb>>, "videoSources">
-    >(`video:${data.videoId}`);
-
-    if (cachedVideoData) {
-      return {
-        ...cachedVideoData,
-        videoSources: await generateVideoSources(cachedVideoData.videoData),
-      };
-    }
-
-    const videoData = await getVideoDataFromDb(data.videoId);
-
-    waitUntil(
-      redis.hset(`video:${data.videoId}`, videoData).then(() => {
-        redis.expire(`video:${data.videoId}`, 60 * 60 * 24);
-      })
-    );
-
-    return {
-      ...videoData,
-      videoSources: await generateVideoSources(videoData.videoData),
-    };
-  });
 
 export const createVideoTokenServerFn = createServerFn({ method: "POST" })
   .validator(
@@ -87,11 +59,9 @@ export const createVideoTokenServerFn = createServerFn({ method: "POST" })
     return { token };
   });
 
-async function generateVideoSources(
-  videoData: Awaited<ReturnType<typeof getVideoDataFromDb>>["videoData"]
-) {
+export async function generateVideoSources(videoSources: VideoSource[]) {
   const sources = await Promise.all(
-    videoData.sources.map(async (source) => {
+    videoSources.map(async (source) => {
       if (source.source === "ut") {
         return {
           src: source.url,
@@ -119,63 +89,6 @@ async function generateVideoSources(
   );
 
   return sources;
-}
-
-async function getVideoDataFromDb(videoId: string) {
-  const videoData = await db.query.videos.findFirst({
-    where: (table, { eq }) => eq(table.id, videoId),
-    columns: {
-      id: true,
-      title: true,
-      views: true,
-      isPrivate: true,
-      authorId: true,
-      status: true,
-      largeThumbnailKey: true,
-      smallThumbnailKey: true,
-      videoLengthSeconds: true,
-      createdAt: true,
-      sources: true,
-      storyboardJson: true,
-    },
-  });
-
-  if (!videoData) {
-    throw notFound();
-  }
-
-  const largeThumbnailUrl =
-    videoData.largeThumbnailKey &&
-    `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
-
-  const smallThumbnailUrl =
-    videoData.smallThumbnailKey &&
-    `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`;
-
-  const videoCreatedAt = videoData.createdAt.toString();
-
-  return {
-    videoData: {
-      title: videoData.title,
-      isPrivate: videoData.isPrivate,
-      videoLengthSeconds: videoData.videoLengthSeconds,
-      isProcessing: videoData.status === "processing",
-      views: videoData.views,
-      largeThumbnailKey: videoData.largeThumbnailKey,
-      smallThumbnailKey: videoData.smallThumbnailKey,
-      authorId: videoData.authorId,
-      sources: videoData.sources,
-    },
-    storyboard: videoData.storyboardJson
-      ? {
-          ...videoData.storyboardJson,
-          url: `${env.THUMBNAIL_BASE_URL}/${videoData.id}-storyboard.jpg`,
-        }
-      : null,
-    largeThumbnailUrl,
-    smallThumbnailUrl,
-    videoCreatedAt,
-  };
 }
 
 export async function getVideoAuthorData(authorId: string) {

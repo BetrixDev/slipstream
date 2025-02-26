@@ -29,6 +29,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { Skeleton } from "./ui/skeleton";
+import NumberFlow from "@number-flow/react";
+import { motion } from "framer-motion";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -37,18 +40,20 @@ type VideoCardProps = {
   title: string;
   views: number;
   createdAt: string;
-  videoLengthSeconds: number;
+  videoLengthSeconds?: number;
   fileSizeBytes: number;
   isPrivate: boolean;
   videoId: string;
   thumbnailUrl?: string | null;
   triggerAccessToken?: string;
   status: "uploading" | "processing" | "ready" | "deleting";
+  uploadProgress?: number;
   pendingDeletionDate?: string | null;
-  onDownloadClick: () => void;
-  onCopyClick: () => void;
-  onEditClick: () => void;
-  onDeleteClick: () => void;
+  onDownloadClick?: () => void;
+  onCopyClick?: () => void;
+  onEditClick?: () => void;
+  onDeleteClick?: () => void;
+  onCancelUploadClick?: () => void;
 };
 
 export const VideoCard = memo(VideoCardComponent, (prev, next) => {
@@ -69,7 +74,7 @@ export const VideoCard = memo(VideoCardComponent, (prev, next) => {
 
 function VideoCardComponent(props: VideoCardProps) {
   return (
-    <div className="relative group/video aspect-video max-w-2xl rounded-lg overflow-hidden border">
+    <div className="relative group/video aspect-video max-w-2xl rounded-lg overflow-hidden border shadow-lg">
       <VideoThumbnail
         smallThumbnailUrl={props.thumbnailUrl}
         title={props.title}
@@ -78,45 +83,62 @@ function VideoCardComponent(props: VideoCardProps) {
       />
 
       {/* Overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 from-20% via-black/20 via-50% to-transparent transition-opacity duration-200 group-hover/video:opacity-50" />
+      {props.status !== "uploading" && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 from-20% via-black/20 via-50% to-transparent transition-opacity duration-200 group-hover/video:opacity-50" />
+      )}
+      {props.status === "uploading" && (
+        <div className="absolute inset-0">
+          <motion.div
+            className="absolute inset-0 animate-pulse rounded-md bg-primary/10"
+            initial={{ width: 0 }}
+            animate={{ width: `${props.uploadProgress}%` }}
+            transition={{ ease: "easeInOut" }}
+          />
+        </div>
+      )}
 
       {/* Play button */}
-      <Link to={"/p/$videoId"} params={{ videoId: props.videoId }}>
-        <button
-          type="button"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-full flex items-center justify-center text-white transition-all"
-        >
-          <PlayIcon className="w-8 h-8 ml-1" fill="currentColor" />
-        </button>
-      </Link>
+      {props.status !== "uploading" && (
+        <Link to={"/p/$videoId"} params={{ videoId: props.videoId }}>
+          <button
+            type="button"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-full flex items-center justify-center text-white transition-all"
+          >
+            <PlayIcon className="w-8 h-8 ml-1" fill="currentColor" />
+          </button>
+        </Link>
+      )}
+      {props.status === "uploading" && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-full flex items-center justify-center text-white transition-all">
+          <Loader2Icon className="w-24 h-24 stroke-[1px] animate-spin" />
+          <span className="text-white text-2xl font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <NumberFlow value={props.uploadProgress ?? 0} />%
+          </span>
+        </div>
+      )}
 
       {/* Top right info */}
       <div className="absolute top-3 right-3 flex items-center gap-3 text-white/90">
         {!!props.pendingDeletionDate && (
           <PendingDeletionChip deletionDate={props.pendingDeletionDate} />
         )}
-        <div className="flex items-center gap-1.5 text-sm bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
-          <FileVideoIcon className="w-3.5 h-3.5" />
+        <InfoChip icon={FileVideoIcon}>
           {humanFileSize(props.fileSizeBytes)}
-        </div>
-        <div className="flex items-center gap-1.5 text-sm bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
-          <ClockIcon className="w-3.5 h-3.5" />
-          {formatSecondsToTimestamp(props.videoLengthSeconds)}
-        </div>
-        <div className="flex items-center gap-1.5 text-sm bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
-          {props.isPrivate ? (
-            <LockIcon className="w-3.5 h-3.5" />
-          ) : (
-            <UnlockIcon className="w-3.5 h-3.5" />
-          )}
+        </InfoChip>
+        {props.videoLengthSeconds && (
+          <InfoChip icon={ClockIcon}>
+            {formatSecondsToTimestamp(props.videoLengthSeconds)}
+          </InfoChip>
+        )}
+        <InfoChip icon={props.isPrivate ? LockIcon : UnlockIcon}>
           {props.isPrivate ? "Private" : "Unlisted"}
-        </div>
+        </InfoChip>
       </div>
 
       {/* Bottom info */}
       <div className="absolute bottom-0 left-0 right-0 p-3 text-white/90">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
+          <div className="grow overflow-hidden">
             <Link to={"/p/$videoId"} params={{ videoId: props.videoId }}>
               <Button variant="link" className="text-lg font-medium p-0">
                 {props.title}
@@ -133,25 +155,29 @@ function VideoCardComponent(props: VideoCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 basis/1-4">
+            {props.status !== "uploading" && (
+              <>
+                <Button
+                  onMouseDown={() => props.onCopyClick?.()}
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/90 hover:text-white"
+                >
+                  <CopyIcon className="w-4 h-4" />
+                </Button>
+                <Button
+                  onMouseDown={() => props.onEditClick?.()}
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/90 hover:text-white"
+                >
+                  <PencilIcon className="w-4 h-4" />
+                </Button>
+              </>
+            )}
             <Button
-              onClick={() => props.onCopyClick()}
-              variant="ghost"
-              size="icon"
-              className="text-white/90 hover:text-white"
-            >
-              <CopyIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              onClick={() => props.onEditClick()}
-              variant="ghost"
-              size="icon"
-              className="text-white/90 hover:text-white"
-            >
-              <PencilIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              onClick={() => props.onDeleteClick()}
+              onMouseDown={() => props.onDeleteClick?.()}
               variant="ghost"
               size="icon"
               className="text-destructive hover:text-destructive"
@@ -161,6 +187,21 @@ function VideoCardComponent(props: VideoCardProps) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoChip({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof FileVideoIcon;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs bg-zinc-950/50 px-2 py-1 rounded-md backdrop-blur-md">
+      <Icon className="w-3.5 h-3.5" />
+      {children}
     </div>
   );
 }
@@ -199,7 +240,7 @@ function VideoThumbnail({
     );
   }
 
-  return null;
+  return <div className="w-full h-full bg-zinc-950" />;
 }
 
 type ThumbnailPlaceholderProps = {

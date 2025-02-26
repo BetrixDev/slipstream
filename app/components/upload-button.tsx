@@ -25,7 +25,7 @@ export function UploadButton() {
             duration: 0.1,
             ease: "easeInOut",
             type: "spring",
-            stiffness: 100,
+            stiffness: 250,
             damping: 15,
           }}
         >

@@ -102,6 +102,7 @@ export const videos = pgTable(
     authorId_idx: index("authorId_idx").on(table.authorId),
     videoId_idx: index("videoId_idx").on(table.id),
     createdAt_idx: index("createdAt_idx").on(table.createdAt),
+    status_idx: index("status_idx").on(table.status),
     pendingDeletionDate_idx: index("pendingDeletionDate_idx").on(
       table.pendingDeletionDate
     ),

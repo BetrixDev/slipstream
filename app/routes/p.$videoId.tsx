@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@clerk/tanstack-start";
-import { getAuth } from "@clerk/tanstack-start/server";
-import { Link, createFileRoute, notFound } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/start";
-import { getWebRequest } from "@tanstack/start/server";
-import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import {
   DefaultVideoLayout,
   defaultLayoutIcons,
@@ -19,75 +16,77 @@ import {
   SquareArrowOutUpRightIcon,
   VideoIcon,
 } from "lucide-react";
-import { z } from "zod";
 import { AuthorInfo } from "../components/author-info";
 import { ViewIncrementer } from "../components/view-incrementer";
 import { WordyDate } from "../components/wordy-date";
-import { getVideoDataServerFn } from "../server-fns/video-player";
 import { seo } from "@/lib/seo";
 import { Footer } from "@/components/footer";
-
-const fetchVideoData = createServerFn({ method: "POST" })
-  .validator(z.object({ videoId: z.string() }))
-  .handler(async ({ data }) => {
-    const video = await getVideoDataServerFn({
-      data: { videoId: data.videoId },
-    });
-
-    if (video.videoData.isPrivate) {
-      const { userId } = await getAuth(getWebRequest()!);
-
-      if (userId !== video.videoData.authorId) {
-        throw notFound();
-      }
-    }
-
-    return video;
-  });
+import { queryClient } from "./__root";
+import { videoQueryOptions } from "@/lib/query-utils";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/p/$videoId")({
   component: RouteComponent,
-  loader: ({ params }) => {
-    return fetchVideoData({ data: { videoId: params.videoId } });
+  loader: async ({ params }) => {
+    const cachedVideoData = queryClient.getQueryData(
+      videoQueryOptions(params.videoId).queryKey
+    );
+
+    if (cachedVideoData) {
+      return cachedVideoData;
+    }
+
+    const videoData = await queryClient.fetchQuery(
+      videoQueryOptions(params.videoId)
+    );
+
+    return videoData;
   },
-  ssr: true,
-  head: ({ loaderData }) => ({
-    links: [
-      { rel: "stylesheet", href: themeCss },
-      { rel: "stylesheet", href: audioCss },
-      { rel: "stylesheet", href: videoCss },
-    ],
-    meta: seo({
-      title: loaderData.videoData.title,
-      description: `Watch ${loaderData.videoData.title} on Slipstream`,
-      image: loaderData.largeThumbnailUrl ?? undefined,
-      video: {
-        url: loaderData.videoSources.at(0)?.src ?? undefined,
-        type: loaderData.videoSources.at(0)?.type ?? undefined,
-        width: loaderData.videoSources.at(0)?.width ?? undefined,
-        height: loaderData.videoSources.at(0)?.height ?? undefined,
-      },
-    }),
-  }),
+  pendingMs: 0,
+  head: ({ loaderData }) => {
+    const sourceData = loaderData.playbackData?.videoSources?.at(0);
+
+    return {
+      links: [
+        { rel: "stylesheet", href: themeCss },
+        { rel: "stylesheet", href: audioCss },
+        { rel: "stylesheet", href: videoCss },
+      ],
+      meta: seo({
+        title: loaderData.videoData.title,
+        description: `Watch ${loaderData.videoData.title} on Slipstream`,
+        image: loaderData.playbackData?.largeThumbnailUrl ?? undefined,
+        video: {
+          url: sourceData?.src,
+          type: sourceData?.type,
+          width: sourceData?.width,
+          height: sourceData?.height,
+        },
+      }),
+    };
+  },
 });
 
 function RouteComponent() {
   const { videoId } = Route.useParams();
-  const video = Route.useLoaderData();
+  const initialVideoData = Route.useLoaderData();
 
   const { user } = useUser();
 
-  const { videoData, videoSources } = video;
+  const { data: videoData } = useQuery({
+    ...videoQueryOptions(videoId),
+    placeholderData: initialVideoData,
+  });
 
-  const isViewerAuthor = user?.id === videoData.authorId;
+  const isViewerAuthor = user?.id === videoData?.videoData.authorId;
 
   return (
     <div className="max-w-screen h-screen flex flex-col">
       <>
-        {videoData.videoLengthSeconds !== null && (
+        {videoData?.videoData.videoLengthSeconds && (
           <ViewIncrementer
             videoId={videoId}
-            videoDuration={videoData.videoLengthSeconds}
+            videoDuration={videoData.videoData.videoLengthSeconds}
           />
         )}
         <header className="max-h-16 h-16 flex justify-between items-center px-4 p-2">
@@ -118,13 +117,13 @@ function RouteComponent() {
           <MediaPlayer
             className="w-full rounded-lg overflow-hidden"
             // biome-ignore lint/suspicious/noExplicitAny: types are fine
-            src={videoSources as any}
+            src={videoData?.playbackData?.videoSources as any}
             viewType="video"
             streamType="on-demand"
             playsInline
-            title={videoData.title}
-            poster={video.largeThumbnailUrl ?? undefined}
-            duration={videoData.videoLengthSeconds ?? undefined}
+            title={videoData?.videoData.title}
+            poster={videoData?.playbackData?.largeThumbnailUrl ?? undefined}
+            duration={videoData?.videoData.videoLengthSeconds ?? undefined}
             storage="player"
             controlsDelay={500}
             posterLoad="eager"
@@ -132,29 +131,38 @@ function RouteComponent() {
             <MediaProvider />
             <DefaultVideoLayout
               icons={defaultLayoutIcons}
-              thumbnails={video.storyboard}
+              thumbnails={videoData?.playbackData?.storyboard}
             />
           </MediaPlayer>
           <div className="flex flex-col gap-4 min-w-96 w-96 grow">
             <Card className="border-none shadow-none bg-transparent">
               <CardContent className="p-0 space-y-4">
-                <h1 className="text-2xl font-bold">{videoData.title}</h1>
+                <h1 className="text-2xl font-bold">
+                  {videoData?.videoData.title}
+                </h1>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
-                  <span>
-                    Uploaded on <WordyDate timestamp={video.videoCreatedAt} />
-                  </span>
+                  {videoData?.videoData.videoCreatedAt && (
+                    <span>
+                      Uploaded on{" "}
+                      <WordyDate
+                        timestamp={videoData?.videoData.videoCreatedAt}
+                      />
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
                     <EyeIcon className="w-4 h-4" />
-                    {videoData.views.toLocaleString()} views
+                    {videoData?.videoData.views.toLocaleString()} views
                   </span>
                 </div>
-                {videoData.isProcessing && (
+                {videoData?.videoData.isProcessing && (
                   <span className="text-sm text-muted flex gap-2">
                     <Loader2Icon className="animate-spin" /> This video is still
                     processing. Playback may less smooth than usual
                   </span>
                 )}
-                <AuthorInfo authorId={videoData.authorId} />
+                {videoData?.videoData.authorId && (
+                  <AuthorInfo authorId={videoData?.videoData.authorId} />
+                )}
               </CardContent>
             </Card>
             <Card className="grow min-h-64 border-none shadow-none bg-transparent" />
