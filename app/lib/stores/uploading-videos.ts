@@ -84,33 +84,18 @@ useUploadingVideosStore.subscribe((state, oldState) => {
 
 class UploadingError extends Error {}
 
-async function handleUploadCancelled(video: UploadingVideo) {
-  const abortController = uploadingVideosAbortControllers.get(video.id);
+async function handleVideoUpload(video: UploadingVideo) {
+  const abortController = new AbortController();
 
-  if (abortController !== undefined) {
-    abortController.abort();
-    uploadingVideosAbortControllers.delete(video.id);
-  }
+  uploadingVideosAbortControllers.set(video.id, abortController);
 
   queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
     if (!oldData) return oldData;
     return {
       ...oldData,
-      totalStorageUsed: oldData.totalStorageUsed - video.file.size,
+      totalStorageUsed: oldData.totalStorageUsed + video.file.size,
     };
   });
-
-  toast.promise(onUploadCancelledServerFn({ data: { videoId: video.id } }), {
-    loading: "Cancelling upload...",
-    success: "Upload cancelled",
-    error: "Failed to cancel upload",
-  });
-}
-
-async function handleVideoUpload(video: UploadingVideo) {
-  const abortController = new AbortController();
-
-  uploadingVideosAbortControllers.set(video.id, abortController);
 
   try {
     toast.success(video.title, {
