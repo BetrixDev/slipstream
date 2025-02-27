@@ -9,6 +9,9 @@ const BATCH_SIZE = 15;
 export const incrementViewsScheduledTask = schedules.task({
   id: "increment-views",
   cron: "*/5 * * * *",
+  machine: {
+    preset: "micro",
+  },
   run: async () => {
     const { env } = await import("../../../app/lib/env");
 

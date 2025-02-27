@@ -99,7 +99,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
           <head>
             <HeadContent />
           </head>
-          <body className="antialiased font-dmSans">
+          <body className="antialiased font-geist">
             <div vaul-drawer-wrapper="">{children}</div>
             <Toaster theme="dark" />
             <TanStackRouterDevtools position="bottom-right" />

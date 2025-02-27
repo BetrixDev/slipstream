@@ -13,7 +13,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        dmSans: '"DM Sans"',
+        geist: '"Geist"',
       },
       colors: {
         background: "hsl(var(--background))",

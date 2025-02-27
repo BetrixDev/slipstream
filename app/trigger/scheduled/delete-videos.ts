@@ -5,6 +5,9 @@ import type { videoDeletionTask } from "../video-deletion.js";
 export const deleteVideosScheduledTask = schedules.task({
   id: "delete-videos",
   cron: "0 * * * *",
+  machine: {
+    preset: "micro",
+  },
   run: async () => {
     const videosToDelete = await logger.trace(
       "Postgres videos to delete",

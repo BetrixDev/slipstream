@@ -1,4 +1,9 @@
-import { SignedIn, SignedOut, UserButton } from "@clerk/tanstack-start";
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useUser,
+} from "@clerk/tanstack-start";
 import { Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,8 +13,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@tanstack/react-router";
+import { AccountTierText } from "./account-tier-text";
+import { Badge } from "./ui/badge";
+import { safeParseAccountTier, TIER_TO_TEXT } from "@/lib/utils";
 
 export default function TopNav() {
+  const { user } = useUser();
+
+  const accountTier = safeParseAccountTier(user?.publicMetadata?.accountTier);
+
   return (
     <div className="sticky md:top-2 flex justify-center z-[99] w-full">
       <header className="px-3 max-w-[64rem] md:w-[90%] w-full bg-white/95 md:dark:bg-zinc-950/30 dark:bg-zinc-950/50 md:border border-border/50 border-b md:rounded-full flex items-center justify-between h-14 reltive backdrop-blur-md shadow-sm sticky">
@@ -129,7 +141,16 @@ export default function TopNav() {
           </DropdownMenu>
         </SignedOut>
         <SignedIn>
-          <span className="md:flex hidden items-center">
+          <span className="md:flex hidden items-center gap-2">
+            <Badge variant="outline" className="h-8">
+              <AccountTierText
+                accountTier={accountTier}
+                className="pointer-events-none"
+              >
+                {TIER_TO_TEXT[accountTier]} Tier
+              </AccountTierText>
+            </Badge>
+
             <UserButton />
           </span>
           <span className="flex md:hidden items-center">

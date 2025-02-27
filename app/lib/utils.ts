@@ -75,7 +75,9 @@ export function formatBytes(
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${(bytes / 1024 ** i).toFixed(decimals)} ${
-    sizeType === "accurate" ? accurateSizes[i] ?? "Bytes" : sizes[i] ?? "Bytes"
+    sizeType === "accurate"
+      ? (accurateSizes[i] ?? "Bytes")
+      : (sizes[i] ?? "Bytes")
   }`;
 }
 
@@ -95,6 +97,13 @@ export function safeParseAccountTier(tier: unknown) {
 
   return parsed.data;
 }
+
+export const TIER_TO_TEXT = {
+  free: "Free",
+  pro: "Pro",
+  premium: "Premium",
+  ultimate: "Ultimate",
+};
 
 export function getIpFromHeaders(headers: Headers) {
   const forwardedFor = headers.get("x-forwarded-for");
