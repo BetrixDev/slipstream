@@ -14,12 +14,16 @@ import {
   Star,
   Zap,
 } from "lucide-react";
-import { ButtonLink } from "../components/pricing/button-link";
 import { seo } from "@/lib/seo";
-import { cn } from "@/lib/utils";
+import { cn, safeParseAccountTier } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Description } from "@radix-ui/react-dialog";
+import {
+  getCheckoutUrlServerFn,
+  getCustomerPortalUrlServerFn,
+} from "@/server-fns/polar";
+import { useServerFn } from "@tanstack/start";
+import { toast } from "sonner";
 
 const buttonStyles = {
   default: cn(
@@ -59,16 +63,9 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function RouteComponent() {
-  const { user } = useUser();
+  const [billingOption, setBillingOption] = useState<string>("month");
 
-  const userEmail = user?.primaryEmailAddress?.emailAddress;
-  const userAccountTier = user?.publicMetadata?.accountTier as
-    | string
-    | undefined;
-
-  const [billingOption, setBillingOption] = useState<string>("monthly");
-
-  const isYearly = billingOption === "yearly";
+  const isYearly = billingOption === "year";
 
   return (
     <HeroHighlight className="min-h-screen flex flex-col">
@@ -85,11 +82,11 @@ function RouteComponent() {
           </p>
           <div className="w-full flex justify-center py-4">
             <Tabs
-              className="bg-background w-[10.8rem] rounded-md border border-secondary shadow-md overflow-visible"
+              className="bg-background w-[11.23rem] rounded-md border border-secondary shadow-md overflow-visible"
               setTab={setBillingOption}
               tabs={[
-                { title: "Monthly", value: "monthly" },
-                { title: "Yearly", value: "yearly" },
+                { title: "Monthly", value: "month" },
+                { title: "Yearly", value: "year" },
               ]}
             />
           </div>
@@ -155,7 +152,7 @@ function RouteComponent() {
                     <div className="mb-6">
                       <div className="flex items-baseline gap-2">
                         <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-                          ${isYearly ? tier.price.yearly : tier.price.monthly}
+                          ${isYearly ? tier.price.year : tier.price.month}
                         </span>
                         <span className="text-sm text-zinc-500 dark:text-zinc-400">
                           /{isYearly ? "year" : "month"}
@@ -190,28 +187,7 @@ function RouteComponent() {
                   </div>
 
                   <div className="p-8 pt-0 mt-auto">
-                    <Button
-                      className={cn(
-                        "w-full relative transition-all duration-300",
-                        tier.highlight
-                          ? buttonStyles.highlight
-                          : buttonStyles.default
-                      )}
-                    >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        {tier.price.monthly > 0 ? (
-                          <>
-                            Buy now
-                            <ArrowRightIcon className="w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            Get started
-                            <ArrowRightIcon className="w-4 h-4" />
-                          </>
-                        )}
-                      </span>
-                    </Button>
+                    <PriceButton tier={tier} interval={billingOption} />
                   </div>
                 </div>
               ))}
@@ -224,16 +200,89 @@ function RouteComponent() {
   );
 }
 
+type PriceButtonProps = {
+  tier: PricingTier;
+  interval: string;
+};
+
+function PriceButton({ tier, interval }: PriceButtonProps) {
+  const getCheckoutUrl = useServerFn(getCheckoutUrlServerFn);
+  const getCustomerPortalUrl = useServerFn(getCustomerPortalUrlServerFn);
+  const { user } = useUser();
+
+  const userAccountTier = safeParseAccountTier(
+    user?.publicMetadata?.accountTier
+  );
+
+  const isFreeTier = userAccountTier === "free";
+
+  function handleClick(tier: string) {
+    if (isFreeTier) {
+      toast.promise(
+        getCheckoutUrl({
+          data: {
+            // biome-ignore lint/suspicious/noExplicitAny: we know more than ts here
+            interval: interval as any,
+            // biome-ignore lint/suspicious/noExplicitAny: we know more than ts here
+            productName: tier.toLowerCase() as any,
+          },
+        }),
+        {
+          loading: "Getting checkout URL...",
+          success: (data) => {
+            window.open(data.url, "_blank");
+            return "Redirecting to checkout...";
+          },
+          error: "Unable to get checkout URL. Please try again later.",
+        }
+      );
+    } else {
+      toast.promise(getCustomerPortalUrl(), {
+        loading: "Getting customer portal URL...",
+        success: (data) => {
+          window.open(data.url, "_blank");
+          return "Redirecting to customer portal...";
+        },
+        error: "Unable to get customer portal URL. Please try again later.",
+      });
+    }
+  }
+
+  return (
+    <Button
+      className={cn(
+        "w-full relative transition-all duration-300 tracking-wide",
+        tier.highlight ? buttonStyles.highlight : buttonStyles.default
+      )}
+      onClick={() => handleClick(tier.name)}
+      disabled={
+        userAccountTier !== "free" &&
+        tier.name.toLowerCase() !== userAccountTier
+      }
+    >
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        {tier.id === userAccountTier
+          ? "Manage Subscription"
+          : tier.price.month > 0
+            ? "Buy now"
+            : "Get started"}
+        <ArrowRightIcon className="w-4 h-4" />
+      </span>
+    </Button>
+  );
+}
+
 type Feature = {
   name: string;
   description?: string;
 };
 
 type PricingTier = {
+  id: string;
   name: string;
   price: {
-    monthly: number;
-    yearly: number;
+    month: number;
+    year: number;
   };
   description: string;
   features: Feature[];
@@ -244,10 +293,11 @@ type PricingTier = {
 
 const tiers: PricingTier[] = [
   {
+    id: "free",
     name: "Free",
     price: {
-      monthly: 0,
-      yearly: 0,
+      month: 0,
+      year: 0,
     },
     description: "Perfect for sharing videos between friends",
     icon: (
@@ -283,10 +333,11 @@ const tiers: PricingTier[] = [
     ],
   },
   {
+    id: "pro",
     name: "Pro",
     price: {
-      monthly: 4,
-      yearly: 40,
+      month: 4,
+      year: 40,
     },
     highlight: true,
     badge: "Great Value!",
@@ -322,10 +373,11 @@ const tiers: PricingTier[] = [
     ],
   },
   {
+    id: "premium",
     name: "Premium",
     price: {
-      monthly: 12,
-      yearly: 120,
+      month: 12,
+      year: 120,
     },
     description: "For that person who has too many videos",
     icon: (

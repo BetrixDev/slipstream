@@ -15,7 +15,7 @@ export const users = pgTable(
   "users",
   {
     id: text("id").primaryKey(),
-    stripeCustomerId: text("stripe_customer_id").notNull(),
+    polarCustomerId: text("polar_customer_id").notNull(),
     email: text("email").notNull(),
     createdAt: timestamp("created_at", { withTimezone: false })
       .notNull()
@@ -30,7 +30,7 @@ export const users = pgTable(
   (table) => ({
     userId_idx: index("userId_idx").on(table.id),
     email_idx: index("email_idx").on(table.email),
-    customerId_idx: index("customerId_idx").on(table.stripeCustomerId),
+    customerId_idx: index("customerId_idx").on(table.polarCustomerId),
   })
 );
 

@@ -80,7 +80,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
         id: event.data.id,
         email: userPrimaryEmail.email_address,
         createdAt: sql`to_timestamp(${event.data.created_at} / 1000.0)`,
-        stripeCustomerId: polarCustomer.id,
+        polarCustomerId: polarCustomer.id,
       });
 
       const clerkPromise = clerk.users.updateUserMetadata(event.data.id, {
@@ -105,7 +105,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
         }));
 
         const polarTask = polar.customers.delete({
-          id: deletedUser.stripeCustomerId,
+          id: deletedUser.polarCustomerId,
         });
 
         const triggerTask = tasks.batchTrigger<typeof videoDeletionTask>(
@@ -135,7 +135,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
         .returning();
 
       await polar.customers.update({
-        id: updatedUser.stripeCustomerId,
+        id: updatedUser.polarCustomerId,
         customerUpdate: {
           email: userPrimaryEmail.email_address,
         },
