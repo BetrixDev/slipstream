@@ -24,6 +24,9 @@ export const handlePolarEventTask = schemaTask({
       .unknown()
       .transform((val) => val as ReturnType<typeof validateEvent>),
   }),
+  machine: {
+    preset: "micro",
+  },
   run: async ({ event }) => {
     const clerk = clerkClient({});
 

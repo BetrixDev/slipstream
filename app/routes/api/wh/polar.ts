@@ -7,23 +7,30 @@ import {
 import { getHeaders } from "@tanstack/start/server";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { handlePolarEventTask } from "@/trigger/handle-polar-event";
+import { env } from "@/lib/env";
 
 export const APIRoute = createAPIFileRoute("/api/wh/polar")({
-  POST: async ({ request, params }) => {
+  POST: async ({ request }) => {
     try {
       const event = validateEvent(
         await request.json(),
         getHeaders() as Record<string, string>,
-        process.env.POLAR_WEBHOOK_SECRET ?? ""
+        env.POLAR_WEBHOOK_SECRET
       );
 
       if (
         event.type === "subscription.active" ||
         event.type === "subscription.revoked"
       ) {
-        await tasks.trigger<typeof handlePolarEventTask>("handle-polar-event", {
-          event,
-        });
+        await tasks.trigger<typeof handlePolarEventTask>(
+          "handle-polar-event",
+          {
+            event,
+          },
+          {
+            tags: [`user_${event.data.customer.metadata.userId}`],
+          }
+        );
       }
 
       return json({ message: "Webhook received" });

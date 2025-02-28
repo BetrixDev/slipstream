@@ -22,6 +22,7 @@ export const env = createEnv({
     UPLOADTHING_TOKEN: z.string(),
     UPLOADTHING_APP_ID: z.string(),
     POLAR_ACCESS_TOKEN: z.string(),
+    POLAR_WEBHOOK_SECRET: z.string(),
   },
   clientPrefix: "VITE_",
   client: {},
