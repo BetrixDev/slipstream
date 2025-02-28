@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { validateEvent } from "@polar-sh/sdk/webhooks";
 import { db } from "@/lib/db";
 import { safeParseAccountTier } from "@/lib/utils";
-import { clerkClient } from "@clerk/tanstack-start/server";
+import { createClerkClient } from "@clerk/backend";
 import { users, videos } from "@/lib/schema";
 import { eq, sql } from "drizzle-orm";
 import {
@@ -28,7 +28,9 @@ export const handlePolarEventTask = schemaTask({
     preset: "micro",
   },
   run: async ({ event }) => {
-    const clerk = clerkClient({});
+    const { env } = await import("../lib/env");
+
+    const clerk = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
 
     if (event.type === "subscription.active") {
       logger.info("Subscription active");

@@ -28,7 +28,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/polar")({
             event,
           },
           {
-            tags: [`user_${event.data.customer.metadata.userId}`],
+            tags: [event.data.customer.metadata.userId.toString()],
           }
         );
       }
