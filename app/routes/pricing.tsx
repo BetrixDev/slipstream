@@ -62,6 +62,12 @@ export const Route = createFileRoute("/pricing")({
   }),
 });
 
+/**
+ * Renders the pricing page with interactive billing options.
+ *
+ * This component constructs the full pricing interface, including a header, billing option toggle tabs, a grid of pricing tier cards, and a footer.
+ * Each pricing tier card displays plan details—such as icon, name, pricing (switching between monthly and yearly based on the selected billing option), description, and features—and includes a button that initiates the checkout or customer portal process.
+ */
 function RouteComponent() {
   const [billingOption, setBillingOption] = useState<string>("month");
 
@@ -205,6 +211,19 @@ type PriceButtonProps = {
   interval: string;
 };
 
+/**
+ * Renders a pricing action button that initiates a subscription checkout or allows subscription management.
+ *
+ * When clicked, the button determines the appropriate action based on the user's current subscription tier:
+ * - For free tier users, it fetches a checkout URL to begin the upgrade process.
+ * - For paid tier users, it retrieves a customer portal URL to manage their existing subscription.
+ *
+ * The button's text and disabled state are dynamically set based on the pricing tier details and the user's account tier.
+ *
+ * @param tier - An object containing the pricing tier details, including its name, pricing information, and highlight status.
+ * @param interval - The billing interval ("month" or "year") representing the selected subscription period.
+ * @returns A button element that triggers the corresponding subscription action when clicked.
+ */
 function PriceButton({ tier, interval }: PriceButtonProps) {
   const getCheckoutUrl = useServerFn(getCheckoutUrlServerFn);
   const getCustomerPortalUrl = useServerFn(getCustomerPortalUrlServerFn);
