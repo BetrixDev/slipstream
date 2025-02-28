@@ -103,18 +103,20 @@ export const handlePolarEventTask = schemaTask({
       const difference = Math.abs(
         currentAmountOfStorage - futureAmountOfStorage
       );
-      let videoSizeDeleted = 0;
+      let totalSizeRecovered = 0;
 
       const jobs: { payload: { videoId: string } }[] = [];
 
-      for (const video of user.videos) {
-        if (videoSizeDeleted >= difference) {
-          break;
+      if (difference > 0) {
+        for (const video of user.videos) {
+          if (totalSizeRecovered >= difference) {
+            break;
+          }
+
+          totalSizeRecovered += video.fileSizeBytes;
+
+          jobs.push({ payload: { videoId: video.id } });
         }
-
-        videoSizeDeleted += video.fileSizeBytes;
-
-        jobs.push({ payload: { videoId: video.id } });
       }
 
       await Promise.all([

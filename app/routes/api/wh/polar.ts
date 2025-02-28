@@ -35,6 +35,8 @@ export const APIRoute = createAPIFileRoute("/api/wh/polar")({
         );
       }
 
+      console.error(error);
+
       return json({ message: "Unknown error" }, { status: 500 });
     }
   },

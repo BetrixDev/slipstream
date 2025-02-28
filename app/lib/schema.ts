@@ -89,7 +89,7 @@ export const videos = pgTable(
       .notNull()
       .defaultNow(),
     views: bigint("views", { mode: "number" }).notNull().default(0),
-    fileSizeBytes: real("file_size_bytes").notNull(),
+    fileSizeBytes: bigint("file_size_bytes", { mode: "number" }).notNull(),
     videoLengthSeconds: integer("video_length_seconds"),
     isPrivate: boolean("is_private").notNull().default(false),
     storyboardJson: jsonb("storyboard_json").$type<VideoStoryboard>(),
