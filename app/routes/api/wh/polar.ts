@@ -13,7 +13,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/polar")({
   POST: async ({ request }) => {
     try {
       const event = validateEvent(
-        await request.json(),
+        await request.text(),
         getHeaders() as Record<string, string>,
         env.POLAR_WEBHOOK_SECRET
       );
