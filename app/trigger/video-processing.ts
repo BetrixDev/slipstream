@@ -234,6 +234,8 @@ export const videoProcessingTask = schemaTask({
                     Bucket: env.THUMBS_BUCKET_NAME,
                     Key: `${videoData.id}-large.webp`,
                     Body: buffer,
+                    CacheControl: "public, max-age=31536000",
+                    ContentType: "image/webp",
                   },
                   abortController,
                 }).done()
@@ -262,6 +264,8 @@ export const videoProcessingTask = schemaTask({
                     Bucket: env.THUMBS_BUCKET_NAME,
                     Key: `${videoData.id}-small.webp`,
                     Body: buffer,
+                    CacheControl: "public, max-age=31536000",
+                    ContentType: "image/webp",
                   },
                   abortController,
                 }).done()
