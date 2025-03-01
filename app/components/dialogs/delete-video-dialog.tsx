@@ -68,17 +68,16 @@ export function DeleteVideoDialog() {
 
       setDeleteVideoData(undefined);
 
-      const result = await deleteVideoServerFn({
-        data: { videoId: deleteVideoData.id },
-      });
-
-      if (!result.success) {
-        reset(result.message);
-      } else {
-        toast.success("Video deleted", {
-          description: result.message,
-        });
-      }
+      toast.promise(
+        deleteVideoServerFn({
+          data: { videoId: deleteVideoData.id },
+        }),
+        {
+          loading: "Queueing video for deletion...",
+          error: "Error deleting video",
+          success: (result) => result.message,
+        }
+      );
     } catch (e) {
       console.error(e);
       reset();

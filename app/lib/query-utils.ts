@@ -106,10 +106,16 @@ const fetchVideoData = createServerFn({ method: "POST" })
       token: env.REDIS_REST_TOKEN,
     });
 
-    const cachedVideoData = await redis.get<VideoData>(`video:${data.videoId}`);
+    try {
+      const cachedVideoData = await redis.get<VideoData>(
+        `video:${data.videoId}`
+      );
 
-    if (cachedVideoData) {
-      return cachedVideoData;
+      if (cachedVideoData) {
+        return cachedVideoData;
+      }
+    } catch (error) {
+      console.log(error);
     }
 
     const videoData = await db.query.videos.findFirst({
@@ -178,9 +184,13 @@ const fetchVideoData = createServerFn({ method: "POST" })
     } as VideoData;
 
     if (videoData.status === "ready" && !videoData.isPrivate) {
-      await redis.set(`video:${data.videoId}`, fullVideoData, {
-        ex: 60 * 60 * 24, // 1 day
-      });
+      try {
+        await redis.set(`video:${data.videoId}`, fullVideoData, {
+          ex: 60 * 60 * 24, // 1 day
+        });
+      } catch (error) {
+        console.log(error);
+      }
     }
 
     return fullVideoData;

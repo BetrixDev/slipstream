@@ -88,11 +88,10 @@ export const deleteVideoServerFn = createServerFn({ method: "POST" })
           videoId: data.videoId,
         }),
       ]);
-    } catch {
-      return {
-        success: false,
-        message: "Failed to delete video",
-      };
+    } catch (error) {
+      console.error(error);
+
+      throw error;
     }
 
     return { success: true, message: "Video queued for deletion" };

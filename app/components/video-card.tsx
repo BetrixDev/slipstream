@@ -110,9 +110,9 @@ function VideoCardComponent(props: VideoCardProps) {
       )}
       {props.status === "uploading" && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-full flex items-center justify-center text-white transition-all">
-          <Loader2Icon className="w-24 h-24 stroke-[1px] animate-spin" />
+          <Loader2Icon className="w-20 h-20 stroke-[1px] animate-spin" />
           <span className="text-white text-2xl font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <NumberFlow value={props.uploadProgress ?? 0} />%
+            <NumberFlow value={props.uploadProgress ?? 0} />
           </span>
         </div>
       )}
@@ -125,7 +125,7 @@ function VideoCardComponent(props: VideoCardProps) {
         <InfoChip icon={FileVideoIcon}>
           {humanFileSize(props.fileSizeBytes)}
         </InfoChip>
-        {props.videoLengthSeconds && (
+        {props.videoLengthSeconds !== undefined && (
           <InfoChip icon={ClockIcon}>
             {formatSecondsToTimestamp(props.videoLengthSeconds)}
           </InfoChip>
