@@ -1,6 +1,7 @@
 import {
   AbortTaskRunError,
   logger,
+  metadata,
   schemaTask,
   tasks,
 } from "@trigger.dev/sdk/v3";
@@ -28,12 +29,16 @@ export const handlePolarEventTask = schemaTask({
     preset: "micro",
   },
   run: async ({ event }) => {
+    metadata.set("progress", 0);
+
     const { env } = await import("../lib/env");
 
     const clerk = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
 
     if (event.type === "subscription.active") {
       logger.info("Subscription active");
+
+      metadata.set("progress", 15);
 
       const user = await db.query.users.findFirst({
         where: (table, { eq }) =>
@@ -43,6 +48,8 @@ export const handlePolarEventTask = schemaTask({
           accountTier: true,
         },
       });
+
+      metadata.set("progress", 33);
 
       if (!user) {
         throw new AbortTaskRunError("User not found");
@@ -63,6 +70,8 @@ export const handlePolarEventTask = schemaTask({
           .where(eq(users.id, user.id)),
       ];
 
+      metadata.set("progress", 45);
+
       if (oldAccountTier === "free") {
         dbCalls.push(
           db
@@ -81,6 +90,8 @@ export const handlePolarEventTask = schemaTask({
         // @ts-expect-error drizzle has stricter types than we need for these batch calls
         db.batch(dbCalls),
       ]);
+
+      metadata.set("progress", 70);
     } else if (event.type === "subscription.revoked") {
       logger.info("Subscription revoked");
 
@@ -151,5 +162,7 @@ export const handlePolarEventTask = schemaTask({
     } else {
       throw new AbortTaskRunError("Unknown event type");
     }
+
+    metadata.set("progress", 100);
   },
 });

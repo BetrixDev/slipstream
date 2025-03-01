@@ -133,6 +133,7 @@ export const getCheckoutUrlServerFn = createServerFn({
       productId: selectedPrice.id,
       customerId: user.polarCustomerId,
       customerEmail: user.email,
+      successUrl: "https://www.slipstream.video/success",
     });
 
     return {
