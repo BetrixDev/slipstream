@@ -1,17 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { useSetAtom } from "jotai";
 import { ArrowUp } from "lucide-react";
-import { isUploadDialogOpenAtom } from "../lib/atoms";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 export function UploadButton() {
-  const setIsUploadDialogOpen = useSetAtom(isUploadDialogOpenAtom);
+  const openUploadVideoDialog = useDialogsStore(
+    (state) => state.openUploadVideoDialog
+  );
+
   const [isHovering, setIsHovering] = useState(false);
 
   return (
     <Button
-      onMouseDown={() => setIsUploadDialogOpen(true)}
+      onMouseDown={() => openUploadVideoDialog()}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       variant="ghost"

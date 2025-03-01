@@ -6,19 +6,26 @@ import {
   CredenzaHeader,
   CredenzaTitle,
 } from "@/components/ui/credenza";
-import { useAtom } from "jotai";
 import { toast } from "sonner";
-import { deleteVideoAtom } from "@/lib/atoms";
 import { usageDataQueryOptions, videosQueryOptions } from "@/lib/query-utils";
 import { notNanOrDefault } from "@/lib/utils";
 import { queryClient } from "@/routes/__root";
 import { deleteVideoServerFn } from "@/server-fns/videos";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 export function DeleteVideoDialog() {
-  const [deleteVideoData, setDeleteVideoData] = useAtom(deleteVideoAtom);
+  const closeDeleteVideoDialog = useDialogsStore(
+    (state) => state.closeDeleteVideoDialog
+  );
+  const deleteVideoDialogData = useDialogsStore(
+    (state) => state.deleteVideoDialogData
+  );
+  const isDeleteVideoDialogOpen = useDialogsStore(
+    (state) => state.isDeleteVideoDialogOpen
+  );
 
   async function doDeleteVideo() {
-    if (!deleteVideoData) {
+    if (!isDeleteVideoDialogOpen || !deleteVideoDialogData) {
       return;
     }
 
@@ -28,7 +35,6 @@ export function DeleteVideoDialog() {
     );
 
     function reset(message?: string) {
-      console.log("resetting videos to ", oldVideos);
       queryClient.setQueryData(usageDataQueryOptions.queryKey, oldUsageData);
 
       queryClient.setQueryData(videosQueryOptions.queryKey, (old) => {
@@ -45,7 +51,7 @@ export function DeleteVideoDialog() {
       const videos =
         queryClient.getQueryData(videosQueryOptions.queryKey)?.videos ?? [];
 
-      const video = videos.find((v) => v.id === deleteVideoData.id);
+      const video = videos.find((v) => v.id === deleteVideoDialogData.videoId);
 
       queryClient.setQueryData(usageDataQueryOptions.queryKey, (old) => {
         console.log(old);
@@ -62,15 +68,15 @@ export function DeleteVideoDialog() {
       queryClient.setQueryData(videosQueryOptions.queryKey, (old) => {
         return {
           ...old,
-          videos: videos.filter((v) => v.id !== deleteVideoData.id),
+          videos: videos.filter((v) => v.id !== deleteVideoDialogData.videoId),
         };
       });
 
-      setDeleteVideoData(undefined);
+      closeDeleteVideoDialog();
 
       toast.promise(
         deleteVideoServerFn({
-          data: { videoId: deleteVideoData.id },
+          data: { videoId: deleteVideoDialogData.videoId },
         }),
         {
           loading: "Queueing video for deletion...",
@@ -84,7 +90,7 @@ export function DeleteVideoDialog() {
     }
   }
 
-  if (deleteVideoData === undefined) {
+  if (!isDeleteVideoDialogOpen || !deleteVideoDialogData) {
     return null;
   }
 
@@ -92,26 +98,21 @@ export function DeleteVideoDialog() {
     <Credenza
       onOpenChange={(o) => {
         if (!o) {
-          setDeleteVideoData(undefined);
+          closeDeleteVideoDialog();
         }
       }}
-      open={deleteVideoData !== undefined}
+      open={isDeleteVideoDialogOpen}
     >
       <CredenzaContent>
         <CredenzaHeader>
           <CredenzaTitle>Confirm Video Deletion</CredenzaTitle>
           <CredenzaDescription>
             Are you sure you want to delete{" "}
-            <strong>{deleteVideoData.name}</strong>?
+            <strong>{deleteVideoDialogData.videoTitle}</strong>?
           </CredenzaDescription>
         </CredenzaHeader>
         <div className="flex gap-2 items-end">
-          <Button
-            className="grow"
-            onMouseDown={() => {
-              setDeleteVideoData(undefined);
-            }}
-          >
+          <Button className="grow" onMouseDown={closeDeleteVideoDialog}>
             Cancel
           </Button>
           <Button

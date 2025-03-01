@@ -1,12 +1,11 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
-import { useSetAtom } from "jotai";
 import { toast } from "sonner";
-import { deleteVideoAtom, editVideoAtom } from "../lib/atoms";
 import { handleCopyLink } from "../lib/utils";
 import { getVideoDownloadDetailsServerFn } from "../server-fns/videos";
 import { VideoCard } from "./video-card";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -26,8 +25,12 @@ type Video = {
 };
 
 export function VideosBoard({ videos }: { videos: Video[] }) {
-  const setDeleteVideo = useSetAtom(deleteVideoAtom);
-  const setEditVideo = useSetAtom(editVideoAtom);
+  const openDeleteVideoDialog = useDialogsStore(
+    (state) => state.openDeleteVideoDialog
+  );
+  const openEditVideoDialog = useDialogsStore(
+    (state) => state.openEditVideoDialog
+  );
 
   async function onDownloadClick(videoId: string, videoTitle: string) {
     try {
@@ -66,17 +69,10 @@ export function VideosBoard({ videos }: { videos: Video[] }) {
       onDownloadClick={() => onDownloadClick(video.id, video.title)}
       onCopyClick={() => handleCopyLink(video.id, video.title)}
       onEditClick={() => {
-        setEditVideo({
-          id: video.id,
-          name: video.title,
-        });
+        openEditVideoDialog(video.id, video.title);
       }}
       onDeleteClick={() => {
-        setDeleteVideo({
-          id: video.id,
-          name: video.title,
-          contentLength: video.fileSizeBytes,
-        });
+        openDeleteVideoDialog(video.id, video.title, video.fileSizeBytes);
       }}
     />
   ));

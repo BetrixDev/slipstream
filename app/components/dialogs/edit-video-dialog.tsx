@@ -9,15 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useForm } from "@tanstack/react-form";
-import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { FieldInfo } from "./upload-video-dialog";
 import { useRouter } from "@tanstack/react-router";
-import { editVideoAtom } from "@/lib/atoms";
 import { updateVideoDataServerFn } from "@/server-fns/videos";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { videosQueryOptions } from "@/lib/query-utils";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 type FormData = {
   title?: string;
@@ -28,13 +27,24 @@ export function EditVideoDialog() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data } = useQuery(videosQueryOptions);
-  const [editVideo, setEditVideo] = useAtom(editVideoAtom);
 
-  const videoData = data?.videos.find((v) => v.id === editVideo?.id);
+  const editVideoDialogData = useDialogsStore(
+    (state) => state.editVideoDialogData
+  );
+  const isEditVideoDialogOpen = useDialogsStore(
+    (state) => state.isEditVideoDialogOpen
+  );
+  const closeEditVideoDialog = useDialogsStore(
+    (state) => state.closeEditVideoDialog
+  );
+
+  const videoData = data?.videos.find(
+    (v) => v.id === editVideoDialogData?.videoId
+  );
 
   async function handleUpdateVideo(data: FormData) {
     try {
-      if (editVideo === undefined) {
+      if (editVideoDialogData === undefined) {
         return;
       }
 
@@ -42,17 +52,17 @@ export function EditVideoDialog() {
       queryClient.setQueryData(videosQueryOptions.queryKey, (old) => ({
         ...old,
         videos: (old?.videos ?? []).map((v) => {
-          if (v.id === editVideo.id) {
+          if (v.id === editVideoDialogData.videoId) {
             return { ...v, ...data };
           }
           return v;
         }),
       }));
 
-      setEditVideo(undefined);
+      closeEditVideoDialog();
 
       const result = await updateVideoDataServerFn({
-        data: { videoId: editVideo.id, data },
+        data: { videoId: editVideoDialogData.videoId, data },
       });
 
       if (!result.success) {
@@ -84,7 +94,7 @@ export function EditVideoDialog() {
       if (!form.state.isPristine) {
         handleUpdateVideo(value);
       } else {
-        setEditVideo(undefined);
+        closeEditVideoDialog();
       }
       form.reset();
     },
@@ -93,14 +103,14 @@ export function EditVideoDialog() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: only should react to editVideo changes
   useEffect(() => {
     form.reset();
-  }, [editVideo]);
+  }, [isEditVideoDialogOpen]);
 
-  if (editVideo === undefined) {
+  if (!isEditVideoDialogOpen || !editVideoDialogData) {
     return null;
   }
 
   if (videoData === undefined) {
-    setEditVideo(undefined);
+    closeEditVideoDialog();
     return null;
   }
 
@@ -108,14 +118,14 @@ export function EditVideoDialog() {
     <Dialog
       onOpenChange={(o) => {
         if (!o) {
-          setEditVideo(undefined);
+          closeEditVideoDialog();
         }
       }}
-      open={editVideo !== undefined}
+      open={isEditVideoDialogOpen}
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit {editVideo.name}</DialogTitle>
+          <DialogTitle>Edit {editVideoDialogData.videoTitle}</DialogTitle>
         </DialogHeader>
         <form
           className="flex flex-col gap-2"
@@ -172,12 +182,7 @@ export function EditVideoDialog() {
             }}
           />
           <div className="flex gap-2 mt-2">
-            <Button
-              className="grow basis-1/2"
-              onClick={() => {
-                setEditVideo(undefined);
-              }}
-            >
+            <Button className="grow basis-1/2" onClick={closeEditVideoDialog}>
               Cancel
             </Button>
             <Button

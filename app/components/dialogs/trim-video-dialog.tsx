@@ -9,40 +9,42 @@ import { RangeSlider } from "@/components/ui/range-slider";
 import { formatSecondsToTimestamp } from "@/lib/utils";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
-import { useAtom, useSetAtom } from "jotai";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2Icon, PauseIcon, PlayIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  customFileToUploadAtom,
-  isUploadDialogOpenAtom,
-  trimVideoDataAtom,
-} from "@/lib/atoms";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 export function TrimVideoDialog() {
-  const [trimVideoData] = useAtom(trimVideoDataAtom);
-  const [queryClient] = useState(new QueryClient());
+  const isTrimVideoDialogOpen = useDialogsStore(
+    (state) => state.isTrimVideoDialogOpen
+  );
+  const trimVideoDialogData = useDialogsStore(
+    (state) => state.trimVideoDialogData
+  );
 
-  if (!trimVideoData) {
+  if (!isTrimVideoDialogOpen || !trimVideoDialogData) {
     return null;
   }
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TrimVideoDialogChild />
-    </QueryClientProvider>
-  );
+  return <TrimVideoDialogChild />;
 }
 
 function TrimVideoDialogChild() {
-  const [trimVideoData, setTrimVideoData] = useAtom(trimVideoDataAtom);
-  const setCustomFileToUploadAtom = useSetAtom(customFileToUploadAtom);
-  const setIsUploadDialogOpenAtom = useSetAtom(isUploadDialogOpenAtom);
+  const closeTrimVideoDialog = useDialogsStore(
+    (state) => state.closeTrimVideoDialog
+  );
+  const trimVideoDialogData = useDialogsStore(
+    (state) => state.trimVideoDialogData
+  );
+  const openTrimVideoDialog = useDialogsStore(
+    (state) => state.openTrimVideoDialog
+  );
+  const openUploadVideoDialog = useDialogsStore(
+    (state) => state.openUploadVideoDialog
+  );
+  const isTrimVideoDialogOpen = useDialogsStore(
+    (state) => state.isTrimVideoDialogOpen
+  );
 
   const ffmpegRef = useRef(new FFmpeg());
   const viewportRef = useRef<HTMLVideoElement>(null);
@@ -52,19 +54,20 @@ function TrimVideoDialogChild() {
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
   const videoUrl = useMemo(
-    () => URL.createObjectURL(trimVideoData!.file),
-    [trimVideoData]
+    () => URL.createObjectURL(trimVideoDialogData!.videoFile),
+    [trimVideoDialogData]
   );
 
   const { isLoading } = useQuery({
-    queryKey: ["loadFfmpeg"],
     refetchOnMount: true,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
+    staleTime: 0,
+    queryKey: ["loadFfmpeg"],
     queryFn: async () => {
       const ffmpeg = ffmpegRef.current;
 
-      const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+      const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
 
       await ffmpeg.load({
         coreURL: await toBlobURL(
@@ -87,7 +90,7 @@ function TrimVideoDialogChild() {
     isError: isRenderError,
   } = useMutation({
     mutationFn: async () => {
-      if (!lastRangeValue.current || !trimVideoData) {
+      if (!lastRangeValue.current || !trimVideoDialogData) {
         return false;
       }
 
@@ -95,7 +98,10 @@ function TrimVideoDialogChild() {
 
       const ffmpeg = ffmpegRef.current;
 
-      await ffmpeg.writeFile("input.mp4", await fetchFile(trimVideoData.file));
+      await ffmpeg.writeFile(
+        "input.mp4",
+        await fetchFile(trimVideoDialogData.videoFile)
+      );
 
       const startTimestamp = formatSecondsToTimestamp(
         lastRangeValue.current[0]
@@ -116,13 +122,15 @@ function TrimVideoDialogChild() {
 
       const data = await ffmpeg.readFile("output_video.mp4");
 
-      const file = new File([new Blob([data])], trimVideoData.file.name, {
-        type: trimVideoData?.file.type,
-      });
+      const file = new File(
+        [new Blob([data])],
+        trimVideoDialogData.videoFile.name,
+        {
+          type: trimVideoDialogData.videoFile.type,
+        }
+      );
 
-      console.log(file.type);
-
-      setTrimVideoData({ title: trimVideoData?.title ?? null, file });
+      openTrimVideoDialog(file, trimVideoDialogData.videoTitle);
     },
     onError: (err) => {
       console.error(err);
@@ -178,9 +186,11 @@ function TrimVideoDialogChild() {
   }, [isViewportPlaying]);
 
   function handleBackToUploadClick() {
-    setTrimVideoData(undefined);
-    setCustomFileToUploadAtom(trimVideoData?.file);
-    setIsUploadDialogOpenAtom(true);
+    openUploadVideoDialog(
+      trimVideoDialogData?.videoFile,
+      trimVideoDialogData?.videoTitle
+    );
+    closeTrimVideoDialog();
   }
 
   function handleRangeValueChange(value: [number, number]) {
@@ -236,10 +246,10 @@ function TrimVideoDialogChild() {
             viewportRef.current.src = "";
           }
 
-          setTrimVideoData(undefined);
+          closeTrimVideoDialog();
         }
       }}
-      open={trimVideoData !== undefined}
+      open={isTrimVideoDialogOpen}
     >
       <DialogContent>
         <DialogHeader>
