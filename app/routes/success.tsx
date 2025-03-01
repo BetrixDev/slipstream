@@ -10,8 +10,8 @@ import { useRealtimeRun } from "@trigger.dev/react-hooks";
 import { runs, auth as triggerAuth } from "@trigger.dev/sdk/v3";
 import { CheckCircleIcon, Loader2Icon, XCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import Confetti from "react-confetti-boom";
+import { z } from "zod";
 
 export const Route = createFileRoute("/success")({
   component: RouteComponent,
@@ -180,33 +180,38 @@ function RouteComponent() {
 const getPolarEventHandlerForUserServerFn = createServerFn({
   method: "POST",
 }).handler(async () => {
-  const { userId } = await getAuth(getWebRequest()!);
+  try {
+    const { userId } = await getAuth(getWebRequest()!);
 
-  if (!userId) {
-    throw redirect({ to: "/" });
-  }
+    if (!userId) {
+      throw redirect({ to: "/" });
+    }
 
-  const runningTasks = await runs.list({ tag: userId });
+    const runningTasks = await runs.list({ tag: userId });
 
-  const polarEventHandler = runningTasks.data.find(
-    (t) => t.taskIdentifier === "polar-event-handler"
-  );
+    const polarEventHandler = runningTasks.data.find(
+      (t) => t.taskIdentifier === "polar-event-handler"
+    );
 
-  if (!polarEventHandler) {
+    if (!polarEventHandler) {
+      throw redirect({ to: "/videos" });
+    }
+
+    const accessToken = await triggerAuth.createPublicToken({
+      expirationTime: 1000 * 60 * 5,
+      scopes: {
+        read: {
+          tags: [userId],
+        },
+      },
+    });
+
+    return {
+      token: accessToken,
+      runId: polarEventHandler.id,
+    };
+  } catch (error) {
+    console.error("Error in getPolarEventHandlerForUserServerFn:", error);
     throw redirect({ to: "/videos" });
   }
-
-  const accessToken = await triggerAuth.createPublicToken({
-    expirationTime: 1000 * 60 * 5,
-    scopes: {
-      read: {
-        tags: [userId],
-      },
-    },
-  });
-
-  return {
-    token: accessToken,
-    runId: polarEventHandler.id,
-  };
 });
