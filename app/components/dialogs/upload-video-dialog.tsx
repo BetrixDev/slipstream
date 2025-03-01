@@ -16,17 +16,12 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import { type FieldApi, useForm } from "@tanstack/react-form";
-import { useAtom, useSetAtom } from "jotai";
 import { Scissors } from "lucide-react";
 import { useCallback, useEffect } from "react";
-import {
-  customFileToUploadAtom,
-  isUploadDialogOpenAtom,
-  trimVideoDataAtom,
-} from "@/lib/atoms";
 import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { useQuery } from "@tanstack/react-query";
 import { usageDataQueryOptions } from "@/lib/query-utils";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 type FormData = {
   title: string | null;
@@ -46,9 +41,11 @@ export function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
 }
 
 export function UploadVideoDialog() {
-  const [isUploadDialogOpen] = useAtom(isUploadDialogOpenAtom);
+  const isUploadVideoDialogOpen = useDialogsStore(
+    (state) => state.isUploadVideoDialogOpen
+  );
 
-  if (!isUploadDialogOpen) {
+  if (!isUploadVideoDialogOpen) {
     return null;
   }
 
@@ -63,12 +60,20 @@ function UploadVideoDialogChild() {
   const totalStorageAvailable =
     (usageData?.maxStorage ?? 0) - (usageData?.totalStorageUsed ?? 0);
 
-  const setTrimVideoData = useSetAtom(trimVideoDataAtom);
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useAtom(
-    isUploadDialogOpenAtom
+  const openTrimVideoDialog = useDialogsStore(
+    (state) => state.openTrimVideoDialog
   );
-  const [customFileToUpload, setCustomFileToUpload] = useAtom(
-    customFileToUploadAtom
+  const closeUploadVideoDialog = useDialogsStore(
+    (state) => state.closeUploadVideoDialog
+  );
+  const isUploadVideoDialogOpen = useDialogsStore(
+    (state) => state.isUploadVideoDialogOpen
+  );
+  const uploadVideoDialogData = useDialogsStore(
+    (state) => state.uploadVideoDialogData
+  );
+  const openUploadVideoDialog = useDialogsStore(
+    (state) => state.openUploadVideoDialog
   );
 
   const { addVideo } = useUploadingVideosStore();
@@ -101,7 +106,7 @@ function UploadVideoDialogChild() {
 
       addVideo({ title: videoTitle, file: value.file });
 
-      setIsUploadDialogOpen(false);
+      closeUploadVideoDialog();
     },
   });
 
@@ -109,28 +114,28 @@ function UploadVideoDialogChild() {
   useEffect(() => {
     form.reset();
 
-    if (isUploadDialogOpen && customFileToUpload) {
+    if (isUploadVideoDialogOpen && uploadVideoDialogData) {
       form.update({
         defaultValues: {
-          file: customFileToUpload,
+          file: uploadVideoDialogData.videoFile,
           title: `${getVideoTitleFromFileName(
-            customFileToUpload.name
+            uploadVideoDialogData.videoTitle
           )} - Trimmed`,
         },
       });
     }
-  }, [isUploadDialogOpen]);
+  }, [isUploadVideoDialogOpen]);
 
   return (
     <Credenza
       onOpenChange={(o) => {
-        setIsUploadDialogOpen(o);
-
         if (!o) {
-          setCustomFileToUpload(undefined);
+          closeUploadVideoDialog();
+        } else {
+          openUploadVideoDialog();
         }
       }}
-      open={isUploadDialogOpen}
+      open={isUploadVideoDialogOpen}
     >
       <CredenzaContent>
         <CredenzaHeader>
@@ -208,7 +213,7 @@ function UploadVideoDialogChild() {
                       </span>
                     )}{" "}
                   </Label>
-                  {customFileToUpload ? (
+                  {uploadVideoDialogData?.videoFile ? (
                     <Input disabled placeholder="Using trimmed file" />
                   ) : (
                     <Input
@@ -260,10 +265,10 @@ function UploadVideoDialogChild() {
                                 return;
                               }
 
-                              setTrimVideoData({
-                                file: file,
-                                title: form.state.values.title,
-                              });
+                              openTrimVideoDialog(
+                                file,
+                                form.state.values.title ?? file.name
+                              );
                             }}
                           >
                             <Scissors className="h-4 w-4" /> Trim Video
@@ -284,7 +289,7 @@ function UploadVideoDialogChild() {
                   className="w-full bg-red-500 hover:bg-red-600 text-primary mt-2"
                   type="button"
                   onMouseDown={() => {
-                    setCustomFileToUpload(undefined);
+                    closeUploadVideoDialog();
                     form.handleSubmit();
                   }}
                 >

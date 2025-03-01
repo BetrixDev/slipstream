@@ -64,7 +64,6 @@
     "glob": "^11.0.0",
     "got": "^14.4.6",
     "import-in-the-middle": "^1.11.2",
-    "jotai": "^2.10.0",
     "lucide-react": "^0.441.0",
     "mini-svg-data-uri": "^1.4.4",
     "nanoid": "^5.0.7",

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /videos
+Allow: /sign-in
+Allow: /sign-up

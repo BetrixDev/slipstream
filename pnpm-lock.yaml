@@ -152,9 +152,6 @@ importers:
       import-in-the-middle:
         specifier: ^1.11.2
         version: 1.11.2
-      jotai:
-        specifier: ^2.10.0
-        version: 2.10.0(@types/react@18.3.8)(react@19.0.0-rc-66855b96-20241106)
       lucide-react:
         specifier: ^0.441.0
         version: 0.441.0(react@19.0.0-rc-66855b96-20241106)
