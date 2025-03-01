@@ -109,7 +109,9 @@ function RouteComponent() {
               className="text-md flex gap-2 items-center rounded-lg h-10"
             >
               <SquareArrowOutUpRightIcon className="w-5 h-5" />
-              {isViewerAuthor ? "Back to your videos" : "Go to Slipstream"}
+              <span className="hidden md:block">
+                {isViewerAuthor ? "Back to your videos" : "Go to Slipstream"}
+              </span>
             </Button>
           </Link>
         </header>

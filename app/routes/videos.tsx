@@ -93,7 +93,7 @@ function RouteComponent() {
           <div className="flex flex-col gap-4 md:gap-2 md:flex-row md:items-center">
             <div className="text-sm md:order-1 md:p-2">
               {usageData && (
-                <div className="bg-zinc-900/50 h-12 p-2 rounded-lg flex items-center justify-center border backdrop-blur-sm">
+                <div className="bg-background/50 h-12 p-2 rounded-lg flex items-center justify-center border backdrop-blur-sm">
                   Storage used:
                   <span className="mx-1">
                     <HumanFileSizeMotion size={usageData.totalStorageUsed} />

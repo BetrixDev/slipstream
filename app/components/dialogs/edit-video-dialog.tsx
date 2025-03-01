@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Credenza,
+  CredenzaContent,
+  CredenzaHeader,
+  CredenzaTitle,
+} from "@/components/ui/credenza";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -80,7 +80,6 @@ export function EditVideoDialog() {
       toast.error("An error occurred while editing the video.", {
         description: "Please try again",
       });
-      // TODO: this might not be the best way to do this
       router.navigate({ to: "/videos" });
     }
   }
@@ -115,7 +114,7 @@ export function EditVideoDialog() {
   }
 
   return (
-    <Dialog
+    <Credenza
       onOpenChange={(o) => {
         if (!o) {
           closeEditVideoDialog();
@@ -123,12 +122,12 @@ export function EditVideoDialog() {
       }}
       open={isEditVideoDialogOpen}
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit {editVideoDialogData.videoTitle}</DialogTitle>
-        </DialogHeader>
+      <CredenzaContent>
+        <CredenzaHeader>
+          <CredenzaTitle>Edit {editVideoDialogData.videoTitle}</CredenzaTitle>
+        </CredenzaHeader>
         <form
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             form.handleSubmit();
@@ -182,18 +181,19 @@ export function EditVideoDialog() {
             }}
           />
           <div className="flex gap-2 mt-2">
-            <Button className="grow basis-1/2" onClick={closeEditVideoDialog}>
+            <Button
+              variant="outline"
+              className="grow basis-1/2"
+              onClick={closeEditVideoDialog}
+            >
               Cancel
             </Button>
-            <Button
-              className="grow basis-1/2 bg-red-600 text-white"
-              type="submit"
-            >
+            <Button className="grow basis-1/2" type="submit">
               Save Changes
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </CredenzaContent>
+    </Credenza>
   );
 }
