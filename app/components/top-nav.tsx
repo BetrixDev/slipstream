@@ -17,7 +17,11 @@ import { AccountTierText } from "./account-tier-text";
 import { Badge } from "./ui/badge";
 import { safeParseAccountTier, TIER_TO_TEXT } from "@/lib/utils";
 
-export default function TopNav() {
+type TopNavProps = {
+  showTierPill?: boolean;
+};
+
+export default function TopNav({ showTierPill = true }: TopNavProps) {
   const { user } = useUser();
 
   const accountTier = safeParseAccountTier(user?.publicMetadata?.accountTier);
@@ -142,14 +146,16 @@ export default function TopNav() {
         </SignedOut>
         <SignedIn>
           <span className="md:flex hidden items-center gap-2">
-            <Badge variant="outline" className="h-8">
-              <AccountTierText
-                accountTier={accountTier}
-                className="pointer-events-none"
-              >
-                {TIER_TO_TEXT[accountTier]} Tier
-              </AccountTierText>
-            </Badge>
+            {showTierPill && (
+              <Badge variant="outline" className="h-8">
+                <AccountTierText
+                  accountTier={accountTier}
+                  className="pointer-events-none"
+                >
+                  {TIER_TO_TEXT[accountTier]} Tier
+                </AccountTierText>
+              </Badge>
+            )}
 
             <UserButton />
           </span>
