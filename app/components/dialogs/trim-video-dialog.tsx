@@ -54,7 +54,10 @@ function TrimVideoDialogChild() {
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
   const videoUrl = useMemo(
-    () => URL.createObjectURL(trimVideoDialogData!.videoFile),
+    () =>
+      trimVideoDialogData
+        ? URL.createObjectURL(trimVideoDialogData.videoFile)
+        : "",
     [trimVideoDialogData]
   );
 

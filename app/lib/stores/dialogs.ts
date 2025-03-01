@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 type DialogsStore = {
   isUploadVideoDialogOpen: boolean;
-  isUploadVideoDialogData?: {
+  uploadVideoDialogData?: {
     videoFile: File;
     videoTitle: string;
   };
@@ -46,7 +46,7 @@ export const useDialogsStore = create<DialogsStore>()((set) => ({
       isUploadVideoDialogOpen: true,
       ...(videoFile && videoTitle
         ? {
-            isUploadVideoDialogData: { videoFile, videoTitle },
+            uploadVideoDialogData: { videoFile, videoTitle },
           }
         : {}),
     }),
@@ -65,7 +65,8 @@ export const useDialogsStore = create<DialogsStore>()((set) => ({
       isTrimVideoDialogOpen: true,
       trimVideoDialogData: { videoFile, videoTitle },
     }),
-  closeUploadVideoDialog: () => set({ isUploadVideoDialogOpen: false }),
+  closeUploadVideoDialog: () =>
+    set({ isUploadVideoDialogOpen: false, uploadVideoDialogData: undefined }),
   closeDeleteVideoDialog: () =>
     set({ isDeleteVideoDialogOpen: false, deleteVideoDialogData: undefined }),
   closeEditVideoDialog: () =>

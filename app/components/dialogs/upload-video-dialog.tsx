@@ -70,7 +70,7 @@ function UploadVideoDialogChild() {
     (state) => state.isUploadVideoDialogOpen
   );
   const uploadVideoDialogData = useDialogsStore(
-    (state) => state.isUploadVideoDialogData
+    (state) => state.uploadVideoDialogData
   );
   const openUploadVideoDialog = useDialogsStore(
     (state) => state.openUploadVideoDialog

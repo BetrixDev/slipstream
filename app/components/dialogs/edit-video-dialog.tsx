@@ -100,7 +100,7 @@ export function EditVideoDialog() {
     },
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: only should react to editVideo changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only should react to dialog open state changes
   useEffect(() => {
     form.reset();
   }, [isEditVideoDialogOpen]);
