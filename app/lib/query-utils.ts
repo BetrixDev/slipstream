@@ -3,11 +3,15 @@ import { createServerFn } from "@tanstack/start";
 import { z } from "zod";
 import { authGuardMiddleware } from "../middleware/auth-guard";
 import { db } from "./db";
-import { desc, inArray, not } from "drizzle-orm";
+import { and, desc, eq, inArray, not, sum } from "drizzle-orm";
 import { videos, type VideoStoryboard } from "./schema";
 import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "./constants";
 import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
-import { getIpFromHeaders, safeParseAccountTier } from "./utils";
+import {
+  getIpFromHeaders,
+  notNanOrDefault,
+  safeParseAccountTier,
+} from "./utils";
 import { getWebRequest } from "@tanstack/start/server";
 import dayjs from "dayjs";
 import { createSigner } from "fast-jwt";
@@ -215,18 +219,30 @@ export const videoQueryOptions = (videoId: string) =>
 const fetchUsageDataServerFn = createServerFn({ method: "GET" })
   .middleware([authGuardMiddleware])
   .handler(async ({ context }) => {
-    const userData = await db.query.users.findFirst({
-      where: (table, { eq }) => eq(table.id, context.userId),
-      columns: {
-        totalStorageUsed: true,
-        accountTier: true,
-      },
-    });
+    const [userData, [{ totalVideoStorageUsed }]] = await db.batch([
+      db.query.users.findFirst({
+        where: (table, { eq }) => eq(table.id, context.userId),
+        columns: {
+          accountTier: true,
+        },
+      }),
+      db
+        .select({
+          totalVideoStorageUsed: sum(videos.fileSizeBytes),
+        })
+        .from(videos)
+        .where(
+          and(
+            eq(videos.authorId, context.userId),
+            inArray(videos.status, ["ready", "processing"])
+          )
+        ),
+    ]);
 
     const maxStorage = PLAN_STORAGE_SIZES[userData?.accountTier ?? "free"];
 
     return {
-      totalStorageUsed: userData?.totalStorageUsed ?? 0,
+      totalStorageUsed: notNanOrDefault(totalVideoStorageUsed),
       maxStorage,
       maxFileUpload:
         userData?.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : undefined,

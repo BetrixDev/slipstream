@@ -22,6 +22,8 @@ import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Separator } from "@/components/ui/seperator";
 import { Footer } from "@/components/footer";
 import { useEffect } from "react";
+import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
+import { humanFileSize } from "@/lib/utils";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
@@ -85,15 +87,21 @@ function RouteComponent() {
       <TrimVideoDialog />
       <FullPageDropzone />
       <main className="grow container space-y-8 mx-auto px-4 py-8">
-        <div className="flex gap-2 items-center justify-between">
-          <h1 className="text-2xl w-64 font-bold">Your Catalog</h1>
-          <div className="flex flex-col-reverse md:flex-row items-center md:gap-8">
-            {usageData && (
-              <StorageUsedText
-                maxStorage={usageData.maxStorage}
-                totalStorageUsed={usageData.totalStorageUsed}
-              />
-            )}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+          <h1 className="text-2xl font-bold">Your Videos</h1>
+
+          <div className="flex flex-col gap-4 md:gap-2 md:flex-row md:items-center">
+            <div className="text-sm md:order-1 md:p-2">
+              {usageData && (
+                <div className="bg-zinc-900/50 h-12 p-2 rounded-lg flex items-center justify-center border backdrop-blur-sm">
+                  Storage used:
+                  <span className="mx-1">
+                    <HumanFileSizeMotion size={usageData.totalStorageUsed} />
+                  </span>{" "}
+                  / {humanFileSize(usageData.maxStorage)}
+                </div>
+              )}
+            </div>
             <UploadButton />
           </div>
         </div>

@@ -200,26 +200,95 @@ export const videoProcessingTask = schemaTask({
 
     if (steps.includes("thumbnails")) {
       await logger.trace("Step thumbnails", async (span) => {
-        const frameFilePath = `${nativeFilePath}.webp`;
+        const framesDir = path.join(workingDir, "frames");
+        await mkdir(framesDir, { recursive: true });
 
-        await logger.trace("FFMPEG thumbnail", async (span) => {
-          span.setAttributes({
-            input: nativeFilePath,
-            output: frameFilePath,
-            command: "ffmpeg -frames:v 1 -q:v 75 -f image2",
-          });
+        // First get video duration and fps
+        const { stdout: videoInfo } =
+          await execa`ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate,duration -of json ${nativeFilePath}`;
+        const info = JSON.parse(videoInfo);
 
-          await execa`ffmpeg -i ${nativeFilePath} -frames:v 1 -q:v 75 -f image2 ${frameFilePath}`;
+        // Parse frame rate (comes as ratio like "24000/1001")
+        const [num, den] = info.streams[0].r_frame_rate.split("/");
+        const fps = Number(num) / (Number(den) || 1);
 
-          span.end();
+        // Get duration in seconds
+        const duration = Math.min(Number(info.streams[0].duration) || 60, 60); // Cap at 60 seconds
+
+        // Calculate sampling interval to get ~10 frames from first minute
+        // but ensure we don't sample faster than 1 frame per second
+        const targetFrames = 10;
+        const interval = Math.max(duration / targetFrames, 1);
+
+        logger.info("Video analysis", {
+          fps,
+          duration,
+          samplingInterval: interval,
+          expectedFrames: Math.floor(duration / interval),
         });
+
+        // Extract frames using calculated interval
+        await logger.trace("FFMPEG multiple thumbnails", async (span) => {
+          try {
+            await execa`ffmpeg -i ${nativeFilePath} -vf fps=1/${interval} -t ${duration} -q:v 75 -f image2 ${framesDir}/frame_%03d.webp`;
+          } catch (error) {
+            logger.error("Failed to extract frames", { error });
+            // Fallback to single frame if multiple frames fail
+            await execa`ffmpeg -i ${nativeFilePath} -frames:v 1 -q:v 75 -f image2 ${framesDir}/frame_001.webp`;
+          }
+        });
+
+        // Find the brightest frame
+        const files = readdirSync(framesDir).sort(); // Ensure consistent order
+        let brightestFrame = "";
+        let maxBrightness = -1;
+
+        if (files.length === 0) {
+          throw new Error("No frames were extracted");
+        }
+
+        // Default to first frame in case brightness calculation fails
+        brightestFrame = path.join(framesDir, files[0]);
+
+        try {
+          await Promise.all(
+            files.map(async (file) => {
+              const framePath = path.join(framesDir, file);
+              try {
+                const stats = await sharp(framePath).stats();
+
+                // Calculate perceived brightness using the luminance formula
+                const brightness =
+                  stats.channels[0].mean * 0.299 + // Red
+                  stats.channels[1].mean * 0.587 + // Green
+                  stats.channels[2].mean * 0.114; // Blue
+
+                if (brightness > maxBrightness) {
+                  maxBrightness = brightness;
+                  brightestFrame = framePath;
+                }
+              } catch (error) {
+                logger.error("Failed to process frame", { file, error });
+              }
+            })
+          );
+
+          logger.info("Selected brightest frame", {
+            brightness: maxBrightness,
+            frame: brightestFrame,
+            totalFrames: files.length,
+          });
+        } catch (error) {
+          logger.error("Failed to process frames for brightness", { error });
+          // We'll use the default first frame that was set earlier
+        }
 
         const uploadPromises: Promise<unknown>[] = [];
 
         await Promise.all([
           logger
             .trace("Sharp large thumbnail", async (span) => {
-              const buffer = await sharp(frameFilePath)
+              const buffer = await sharp(brightestFrame)
                 .webp({ quality: 90, effort: 6, alphaQuality: 90 })
                 .toBuffer();
 
@@ -243,7 +312,7 @@ export const videoProcessingTask = schemaTask({
             }),
           logger
             .trace("Sharp small thumbnail", async (span) => {
-              const buffer = await sharp(frameFilePath)
+              const buffer = await sharp(brightestFrame)
                 .resize(1280, 720, { fit: "cover" })
                 .webp({
                   quality: 70,
