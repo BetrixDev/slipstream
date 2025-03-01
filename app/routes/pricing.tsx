@@ -230,7 +230,9 @@ function PriceButton({ tier, interval }: PriceButtonProps) {
         {
           loading: "Getting checkout URL...",
           success: (data) => {
-            window.open(data.url, "_blank");
+            setTimeout(() => {
+              window.open(data.url, "_blank");
+            });
             return "Redirecting to checkout...";
           },
           error: "Unable to get checkout URL. Please try again later.",
@@ -240,7 +242,9 @@ function PriceButton({ tier, interval }: PriceButtonProps) {
       toast.promise(getCustomerPortalUrl(), {
         loading: "Getting customer portal URL...",
         success: (data) => {
-          window.open(data.url, "_blank");
+          setTimeout(() => {
+            window.open(data.url, "_blank");
+          });
           return "Redirecting to customer portal...";
         },
         error: "Unable to get customer portal URL. Please try again later.",

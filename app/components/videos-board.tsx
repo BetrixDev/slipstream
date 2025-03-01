@@ -39,7 +39,9 @@ export function VideosBoard({ videos }: { videos: Video[] }) {
         throw new Error("URL is null");
       }
 
-      window.open(url);
+      setTimeout(() => {
+        window.open(url);
+      });
     } catch {
       toast.error("Unable to download video at this time", {
         description: videoTitle,
