@@ -9,11 +9,13 @@ import {
 import { toast } from "sonner";
 import { usageDataQueryOptions, videosQueryOptions } from "@/lib/query-utils";
 import { notNanOrDefault } from "@/lib/utils";
-import { queryClient } from "@/routes/__root";
 import { deleteVideoServerFn } from "@/server-fns/videos";
 import { useDialogsStore } from "@/lib/stores/dialogs";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function DeleteVideoDialog() {
+  const queryClient = useQueryClient();
+
   const closeDeleteVideoDialog = useDialogsStore(
     (state) => state.closeDeleteVideoDialog
   );
@@ -54,21 +56,30 @@ export function DeleteVideoDialog() {
       const video = videos.find((v) => v.id === deleteVideoDialogData.videoId);
 
       queryClient.setQueryData(usageDataQueryOptions.queryKey, (old) => {
-        console.log(old);
+        if (!old) {
+          return;
+        }
+
         return {
+          ...old,
           totalStorageUsed: Math.max(
-            old?.totalStorageUsed ?? 0 - notNanOrDefault(video?.fileSizeBytes),
+            (old?.totalStorageUsed ?? 0) -
+              notNanOrDefault(video?.fileSizeBytes),
             0
           ),
-          maxStorage: old?.maxStorage ?? 0,
-          maxFileUpload: old?.maxFileUpload ?? undefined,
         };
       });
 
       queryClient.setQueryData(videosQueryOptions.queryKey, (old) => {
+        if (!old) {
+          return;
+        }
+
         return {
           ...old,
-          videos: videos.filter((v) => v.id !== deleteVideoDialogData.videoId),
+          videos: old.videos.filter(
+            (v) => v.id !== deleteVideoDialogData.videoId
+          ),
         };
       });
 
