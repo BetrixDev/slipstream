@@ -91,7 +91,9 @@ function RouteComponent() {
 
     if (run.status === "COMPLETED") {
       setStatus("success");
-      navigate({ to: "/videos" });
+      setTimeout(() => {
+        navigate({ to: "/videos" });
+      }, 3000);
       return;
     }
 
@@ -112,16 +114,18 @@ function RouteComponent() {
   return (
     <HeroHighlight>
       <div className="absolute inset-0">
-        <Confetti
-          particleCount={75}
-          shapeSize={15}
-          deg={250}
-          effectCount={1}
-          spreadDeg={100}
-          x={0.5}
-          y={0.5}
-          launchSpeed={1}
-        />
+        {status === "success" && (
+          <Confetti
+            particleCount={75}
+            shapeSize={15}
+            deg={250}
+            effectCount={1}
+            spreadDeg={100}
+            x={0.5}
+            y={0.5}
+            launchSpeed={1}
+          />
+        )}
       </div>
       <TopNav showTierPill={false} />
       <div className="w-full min-h-[calc(100dvh-8rem)] flex items-center justify-center">
