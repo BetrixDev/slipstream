@@ -42,7 +42,7 @@ function RouteComponent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [progress, setProgress] = useState(0);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["success", "polarEventHandler"],
     queryFn: async () => {
       const data = await getPolarEventHandlerForUserServer();
@@ -55,6 +55,20 @@ function RouteComponent() {
     accessToken: data?.token,
     enabled: !!data?.runId && !!data?.token && !isLoading,
   });
+
+  useEffect(() => {
+    if (!isError) {
+      return;
+    }
+
+    setStatus("error");
+    setErrorMessage(
+      "Failed to fetch payment status. Don't worry, your payment will be processed soon"
+    );
+    setTimeout(() => {
+      navigate({ to: "/videos" });
+    }, 5000);
+  }, [isError, navigate]);
 
   useEffect(() => {
     if (!run?.metadata?.progress) {
