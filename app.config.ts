@@ -12,7 +12,16 @@ export default defineConfig({
   server: {
     preset: "vercel",
     prerender: {
-      routes: ["/", "/pricing", "/success", "/videos"],
+      routes: [
+        "/",
+        "/pricing",
+        "/success",
+        "/videos",
+        "/privacy-policy",
+        "/terms-of-service",
+        "/sign-in",
+        "/sign-up",
+      ],
     },
   },
 });
