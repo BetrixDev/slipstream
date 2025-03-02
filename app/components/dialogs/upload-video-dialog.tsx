@@ -24,11 +24,9 @@ import {
   humanFileSize,
   notNanOrDefault,
 } from "@/lib/utils";
-import { Progress } from "../ui/progress";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { RangeSlider } from "../ui/range-slider";
-import { toast } from "sonner";
 
 type FormData = {
   title: string | null;
@@ -113,10 +111,7 @@ function UploadVideoDialogChild() {
     form.validateField("file", "change");
 
     if (file?.name && form.state.values.title === null) {
-      form.setFieldValue(
-        "title",
-        file.name.split(".").slice(0, -1).join(".").slice(0, 100)
-      );
+      form.setFieldValue("title", getVideoTitleFromFile(file));
     }
   }
 
@@ -212,7 +207,6 @@ function UploadVideoDialogChild() {
               name="file"
               validators={{
                 onChange: ({ value }) => {
-                  console.log(value);
                   if (!value) {
                     return "File is required";
                   }
@@ -301,6 +295,17 @@ function UploadVideoDialogChild() {
                                   if (fileInputRef.current) {
                                     fileInputRef.current.value = "";
                                   }
+
+                                  if (
+                                    form.state.values.file &&
+                                    form.state.values.title ===
+                                      getVideoTitleFromFile(
+                                        form.state.values.file
+                                      )
+                                  ) {
+                                    form.setFieldValue("title", null);
+                                  }
+
                                   handleFileChange(null);
                                 }}
                                 className="bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700 hover:text-white"
@@ -634,4 +639,13 @@ function TrimVideoDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Extracts a title from a video file name by removing the extension and truncating to 100 characters
+ * @param {File} file - The video file to get the title from
+ * @returns The extracted title, truncated to 100 characters
+ */
+function getVideoTitleFromFile(file: File) {
+  return file.name.split(".").slice(0, -1).join(".").slice(0, 100);
 }
