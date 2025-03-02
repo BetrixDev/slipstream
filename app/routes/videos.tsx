@@ -14,7 +14,6 @@ import { UploadButton } from "../components/upload-button";
 import { UploadingVideosContainer } from "../components/uploading-videos-container";
 import { VideosBoard } from "../components/videos-board";
 import { useQuery } from "@tanstack/react-query";
-import { fetchClerkAuth } from "@/server-fns/clerk";
 import { seo } from "@/lib/seo";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
 import { Separator } from "@/components/ui/seperator";
@@ -22,26 +21,12 @@ import { Footer } from "@/components/footer";
 import { useEffect } from "react";
 import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
 import { humanFileSize } from "@/lib/utils";
+import { useUser } from "@clerk/tanstack-start";
+import { VideoCardSkeleton } from "@/components/video-card";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,
-  beforeLoad: async () => {
-    const { userId } = await fetchClerkAuth();
-
-    if (!userId) {
-      throw redirect({ to: "/sign-in/$" });
-    }
-
-    return {
-      userId,
-    };
-  },
   pendingMs: 0,
-  loader: ({ context }) => {
-    return {
-      userId: context.userId,
-    };
-  },
   head: () => ({
     meta: seo({
       title: "Your Videos",
@@ -52,12 +37,44 @@ export const Route = createFileRoute("/videos")({
 });
 
 function RouteComponent() {
-  const { userId } = Route.useLoaderData();
-  const { data: videoData } = useQuery(videosQueryOptions);
+  const navigate = Route.useNavigate();
+  const { user } = useUser();
+  const { data: videoData, isLoading } = useQuery({
+    ...videosQueryOptions,
+    queryFn: async () => {
+      try {
+        // @ts-expect-error
+        const data = await videosQueryOptions.queryFn!();
+
+        return data;
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "isRedirect" in error &&
+          error.isRedirect &&
+          "to" in error &&
+          typeof error.to === "string"
+        ) {
+          // @ts-expect-error
+          navigate(error);
+
+          return {
+            videos: [],
+            signedIn: false,
+          };
+        }
+
+        return {
+          videos: [],
+        };
+      }
+    },
+  });
   const { data: usageData } = useQuery(usageDataQueryOptions);
 
   useEffect(() => {
-    if (!videoData) {
+    if (!videoData || !user?.id) {
       return;
     }
 
@@ -68,13 +85,13 @@ function RouteComponent() {
           isPrivate: video.isPrivate,
           videoLengthSeconds: video.videoLengthSeconds,
           views: video.views,
-          authorId: userId,
+          authorId: user.id,
           isProcessing: video.status === "processing",
           videoCreatedAt: video.createdAt.toString(),
         },
       });
     });
-  }, [videoData, userId]);
+  }, [videoData, user]);
 
   return (
     <HeroHighlight className="min-h-screen flex flex-col">
@@ -106,7 +123,15 @@ function RouteComponent() {
         <div className="container flex flex-col gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <UploadingVideosContainer />
-            {videoData && <VideosBoard videos={videoData.videos} />}
+            {isLoading ? (
+              <>
+                <VideoCardSkeleton />
+                <VideoCardSkeleton />
+                <VideoCardSkeleton />
+              </>
+            ) : (
+              videoData && <VideosBoard videos={videoData.videos} />
+            )}
           </div>
         </div>
       </main>

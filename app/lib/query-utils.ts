@@ -80,7 +80,17 @@ const fetchVideosData = createServerFn({ method: "GET" })
 export const videosQueryOptions = queryOptions({
   queryKey: queryKeys.videos,
   queryFn: () => fetchVideosData(),
-  staleTime: 1000 * 60 * 5,
+  staleTime: ({ state }) => {
+    if (
+      state?.data &&
+      "signedIn" in state.data &&
+      state.data?.signedIn === false
+    ) {
+      return 0;
+    }
+
+    return 1000 * 60 * 5;
+  },
 });
 
 export type VideoData = {

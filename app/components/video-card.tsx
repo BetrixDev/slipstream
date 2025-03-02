@@ -36,6 +36,12 @@ import { motion } from "framer-motion";
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
 
+export function VideoCardSkeleton() {
+  return (
+    <Skeleton className="relative group/video aspect-video max-w-2xl rounded-lg overflow-hidden border shadow-lg" />
+  );
+}
+
 type VideoCardProps = {
   title: string;
   views: number;
