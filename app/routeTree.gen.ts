@@ -12,7 +12,9 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as VideosImport } from './routes/videos'
+import { Route as TermsOfServiceImport } from './routes/terms-of-service'
 import { Route as SuccessImport } from './routes/success'
+import { Route as PrivacyPolicyImport } from './routes/privacy-policy'
 import { Route as PricingImport } from './routes/pricing'
 import { Route as IndexImport } from './routes/index'
 import { Route as SignUpSplatImport } from './routes/sign-up.$'
@@ -27,9 +29,21 @@ const VideosRoute = VideosImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const TermsOfServiceRoute = TermsOfServiceImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const SuccessRoute = SuccessImport.update({
   id: '/success',
   path: '/success',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PrivacyPolicyRoute = PrivacyPolicyImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -81,11 +95,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingImport
       parentRoute: typeof rootRoute
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyImport
+      parentRoute: typeof rootRoute
+    }
     '/success': {
       id: '/success'
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessImport
+      parentRoute: typeof rootRoute
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceImport
       parentRoute: typeof rootRoute
     }
     '/videos': {
@@ -124,7 +152,9 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/success': typeof SuccessRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/videos': typeof VideosRoute
   '/p/$videoId': typeof PVideoIdRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -134,7 +164,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/success': typeof SuccessRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/videos': typeof VideosRoute
   '/p/$videoId': typeof PVideoIdRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -145,7 +177,9 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/success': typeof SuccessRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/videos': typeof VideosRoute
   '/p/$videoId': typeof PVideoIdRoute
   '/sign-in/$': typeof SignInSplatRoute
@@ -157,7 +191,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/pricing'
+    | '/privacy-policy'
     | '/success'
+    | '/terms-of-service'
     | '/videos'
     | '/p/$videoId'
     | '/sign-in/$'
@@ -166,7 +202,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/pricing'
+    | '/privacy-policy'
     | '/success'
+    | '/terms-of-service'
     | '/videos'
     | '/p/$videoId'
     | '/sign-in/$'
@@ -175,7 +213,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/pricing'
+    | '/privacy-policy'
     | '/success'
+    | '/terms-of-service'
     | '/videos'
     | '/p/$videoId'
     | '/sign-in/$'
@@ -186,7 +226,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PricingRoute: typeof PricingRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SuccessRoute: typeof SuccessRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
   VideosRoute: typeof VideosRoute
   PVideoIdRoute: typeof PVideoIdRoute
   SignInSplatRoute: typeof SignInSplatRoute
@@ -196,7 +238,9 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PricingRoute: PricingRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   SuccessRoute: SuccessRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
   VideosRoute: VideosRoute,
   PVideoIdRoute: PVideoIdRoute,
   SignInSplatRoute: SignInSplatRoute,
@@ -215,7 +259,9 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/pricing",
+        "/privacy-policy",
         "/success",
+        "/terms-of-service",
         "/videos",
         "/p/$videoId",
         "/sign-in/$",
@@ -228,8 +274,14 @@ export const routeTree = rootRoute
     "/pricing": {
       "filePath": "pricing.tsx"
     },
+    "/privacy-policy": {
+      "filePath": "privacy-policy.tsx"
+    },
     "/success": {
       "filePath": "success.tsx"
+    },
+    "/terms-of-service": {
+      "filePath": "terms-of-service.tsx"
     },
     "/videos": {
       "filePath": "videos.tsx"
