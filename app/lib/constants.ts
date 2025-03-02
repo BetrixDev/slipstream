@@ -16,3 +16,5 @@ export const FREE_PLAN_VIDEO_RETENION_DAYS = 100;
 export const LOWEST_BITRATE_THRESHOLD = 2.5 * 1000 * 1000;
 
 export const MAX_FILE_SIZE_FREE_TIER = 512 * 1024 * 1024; // "512 mb" -> 512mb in bytes
+
+export const MAX_FILE_SIZE_PAID_TIER = 1024 * 1024 * 1024 * 2; // "2 gb" -> 2gb in bytes

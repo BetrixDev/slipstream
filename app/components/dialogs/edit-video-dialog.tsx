@@ -84,6 +84,7 @@ export function EditVideoDialog() {
     }
   }
 
+  // @ts-expect-error this needs 10 generics in this version for some reason
   const form = useForm<FormData>({
     defaultValues: {
       title: videoData?.title,

@@ -2,10 +2,6 @@ import { create } from "zustand";
 
 type DialogsStore = {
   isUploadVideoDialogOpen: boolean;
-  uploadVideoDialogData?: {
-    videoFile: File;
-    videoTitle: string;
-  };
   isDeleteVideoDialogOpen: boolean;
   deleteVideoDialogData?: {
     videoId: string;
@@ -17,38 +13,25 @@ type DialogsStore = {
     videoId: string;
     videoTitle: string;
   };
-  isTrimVideoDialogOpen: boolean;
-  trimVideoDialogData?: {
-    videoFile: File;
-    videoTitle: string;
-  };
-  openUploadVideoDialog: (videoFile?: File, videoTitle?: string) => void;
+  openUploadVideoDialog: () => void;
   openDeleteVideoDialog: (
     videoId: string,
     videoTitle: string,
     contentLength: number
   ) => void;
   openEditVideoDialog: (videoId: string, videoTitle: string) => void;
-  openTrimVideoDialog: (videoFile: File, videoTitle: string) => void;
   closeUploadVideoDialog: () => void;
   closeDeleteVideoDialog: () => void;
   closeEditVideoDialog: () => void;
-  closeTrimVideoDialog: () => void;
 };
 
 export const useDialogsStore = create<DialogsStore>()((set) => ({
   isUploadVideoDialogOpen: false,
   isDeleteVideoDialogOpen: false,
   isEditVideoDialogOpen: false,
-  isTrimVideoDialogOpen: false,
-  openUploadVideoDialog: (videoFile, videoTitle) =>
+  openUploadVideoDialog: () =>
     set({
       isUploadVideoDialogOpen: true,
-      ...(videoFile && videoTitle
-        ? {
-            uploadVideoDialogData: { videoFile, videoTitle },
-          }
-        : {}),
     }),
   openDeleteVideoDialog: (videoId, videoTitle, contentLength) =>
     set({
@@ -60,17 +43,9 @@ export const useDialogsStore = create<DialogsStore>()((set) => ({
       isEditVideoDialogOpen: true,
       editVideoDialogData: { videoId, videoTitle },
     }),
-  openTrimVideoDialog: (videoFile, videoTitle) =>
-    set({
-      isTrimVideoDialogOpen: true,
-      trimVideoDialogData: { videoFile, videoTitle },
-    }),
-  closeUploadVideoDialog: () =>
-    set({ isUploadVideoDialogOpen: false, uploadVideoDialogData: undefined }),
+  closeUploadVideoDialog: () => set({ isUploadVideoDialogOpen: false }),
   closeDeleteVideoDialog: () =>
     set({ isDeleteVideoDialogOpen: false, deleteVideoDialogData: undefined }),
   closeEditVideoDialog: () =>
     set({ isEditVideoDialogOpen: false, editVideoDialogData: undefined }),
-  closeTrimVideoDialog: () =>
-    set({ isTrimVideoDialogOpen: false, trimVideoDialogData: undefined }),
 }));
