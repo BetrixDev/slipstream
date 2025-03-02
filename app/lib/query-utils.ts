@@ -5,7 +5,11 @@ import { authGuardMiddleware } from "../middleware/auth-guard";
 import { db } from "./db";
 import { and, desc, eq, inArray, not, sum } from "drizzle-orm";
 import { videos, type VideoStoryboard } from "./schema";
-import { MAX_FILE_SIZE_FREE_TIER, PLAN_STORAGE_SIZES } from "./constants";
+import {
+  MAX_FILE_SIZE_FREE_TIER,
+  MAX_FILE_SIZE_PAID_TIER,
+  PLAN_STORAGE_SIZES,
+} from "./constants";
 import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
 import {
   getIpFromHeaders,
@@ -245,7 +249,9 @@ const fetchUsageDataServerFn = createServerFn({ method: "GET" })
       totalStorageUsed: notNanOrDefault(totalVideoStorageUsed),
       maxStorage,
       maxFileUpload:
-        userData?.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : undefined,
+        userData?.accountTier === "free"
+          ? MAX_FILE_SIZE_FREE_TIER
+          : MAX_FILE_SIZE_PAID_TIER,
     };
   });
 

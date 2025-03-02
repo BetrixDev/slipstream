@@ -7,11 +7,9 @@ import {
 } from "../lib/query-utils";
 import { DeleteVideoDialog } from "../components/dialogs/delete-video-dialog";
 import { EditVideoDialog } from "../components/dialogs/edit-video-dialog";
-import { TrimVideoDialog } from "../components/dialogs/trim-video-dialog";
 import { UploadVideoDialog } from "../components/dialogs/upload-video-dialog";
 import { FullPageDropzone } from "../components/full-page-dropzone";
 import { queryClient } from "./__root";
-import { StorageUsedText } from "../components/storage-used-text";
 import { UploadButton } from "../components/upload-button";
 import { UploadingVideosContainer } from "../components/uploading-videos-container";
 import { VideosBoard } from "../components/videos-board";
@@ -84,7 +82,6 @@ function RouteComponent() {
       <EditVideoDialog />
       <DeleteVideoDialog />
       <UploadVideoDialog />
-      <TrimVideoDialog />
       <FullPageDropzone />
       <main className="grow container space-y-8 mx-auto px-4 py-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">

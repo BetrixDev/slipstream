@@ -5,8 +5,12 @@ import { useEffect, useState } from "react";
 import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { usageDataQueryOptions } from "@/lib/query-utils";
 import { useQuery } from "@tanstack/react-query";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 
 export function FullPageDropzone() {
+  const isUploadVideoDialogOpen = useDialogsStore(
+    (s) => s.isUploadVideoDialogOpen
+  );
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -80,6 +84,10 @@ export function FullPageDropzone() {
         (e) => {
           e.preventDefault();
 
+          if (isUploadVideoDialogOpen) {
+            return;
+          }
+
           const file = e.dataTransfer?.files[0];
 
           if (file) {
@@ -105,6 +113,10 @@ export function FullPageDropzone() {
         (e) => {
           e.preventDefault();
 
+          if (isUploadVideoDialogOpen) {
+            return;
+          }
+
           const fileToUpload = e.dataTransfer?.files[0];
 
           if (fileToUpload) {
@@ -123,7 +135,7 @@ export function FullPageDropzone() {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [isUploadVideoDialogOpen]);
 
   return (
     <Dialog open={debouncedIsDragOver}>

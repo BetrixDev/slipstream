@@ -6,6 +6,7 @@ import {
   useUser,
 } from "@clerk/tanstack-start";
 import {
+  CrownIcon,
   HomeIcon,
   LogOutIcon,
   MailIcon,
@@ -225,10 +226,12 @@ function NewTopNav() {
   return (
     <>
       <header className="sticky top-0 z-10 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-        <div className="flex items-center gap-2">
-          <Video className="w-8 h-8 text-red-500" />
-          <span className="font-semibold">Slipstream</span>
-        </div>
+        <Link to="/">
+          <div className="flex items-center gap-2">
+            <Video className="w-8 h-8 text-red-500" />
+            <span className="font-semibold">Slipstream</span>
+          </div>
+        </Link>
 
         <div className="flex items-center gap-2">
           <Button
@@ -305,7 +308,19 @@ function NewTopNav() {
                       )}
                     >
                       <HomeIcon className="w-4 h-4" />
-                      Dashboard
+                      Home
+                    </Link>
+                  </SheetClose>
+                  <SheetClose>
+                    <Link
+                      to="/pricing"
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md hover:bg-accent",
+                        currentPath === "/pricing" && "bg-accent"
+                      )}
+                    >
+                      <CrownIcon className="w-4 h-4" />
+                      Pricing
                     </Link>
                   </SheetClose>
                   <SheetClose>
