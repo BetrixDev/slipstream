@@ -194,9 +194,6 @@ importers:
       uploadthing:
         specifier: ^7.5.2
         version: 7.5.2(h3@1.13.0)(tailwindcss@3.4.13)
-      vaul:
-        specifier: ^1.1.1
-        version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.8)(react-dom@19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106))(react@19.0.0-rc-66855b96-20241106)
       vinxi:
         specifier: ^0.5.3
         version: 0.5.3(@libsql/client@0.11.0)(@types/node@20.12.14)(@upstash/redis@1.34.3)(db0@0.2.4(@libsql/client@0.11.0)(drizzle-orm@0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.4)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@19.0.0-rc-66855b96-20241106)))(drizzle-orm@0.33.0(@libsql/client@0.11.0)(@neondatabase/serverless@0.10.4)(@opentelemetry/api@1.9.0)(@types/pg@8.11.6)(@types/react@18.3.8)(bun-types@1.1.34)(pg@8.13.1)(postgres@3.4.5)(react@19.0.0-rc-66855b96-20241106))(ioredis@5.5.0)(jiti@2.4.2)(terser@5.39.0)(tsx@4.19.3)(typescript@5.6.3)(uploadthing@7.5.2(h3@1.13.0)(tailwindcss@3.4.13))(yaml@2.5.1)

@@ -69,6 +69,11 @@ export const Route = createRootRoute({
       },
       { rel: "manifest", href: "/site.webmanifest", color: "#fffff" },
       { rel: "icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", href: "/android-chrome-192x192.png" },
+      { rel: "icon", type: "image/png", href: "/android-chrome-512x512.png" },
+      { rel: "robots", href: "/robots.txt" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
+      { rel: "text/plain", href: "/ads.txt" },
     ],
   }),
   component: RootComponent,
@@ -100,7 +105,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             <HeadContent />
           </head>
           <body className="antialiased font-geist">
-            <div vaul-drawer-wrapper="">{children}</div>
+            {children}
             <Toaster theme="dark" />
             <TanStackRouterDevtools position="bottom-right" />
             <ReactQueryDevtools buttonPosition="bottom-left" />

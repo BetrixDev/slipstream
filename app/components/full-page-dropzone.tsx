@@ -6,6 +6,7 @@ import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { usageDataQueryOptions } from "@/lib/query-utils";
 import { useQuery } from "@tanstack/react-query";
 import { useDialogsStore } from "@/lib/stores/dialogs";
+import { Button } from "./ui/button";
 
 export function FullPageDropzone() {
   const isUploadVideoDialogOpen = useDialogsStore(
@@ -155,6 +156,15 @@ export function FullPageDropzone() {
               {errorMessage !== undefined && (
                 <p className="text-destructive">{errorMessage}</p>
               )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDragOver(false);
+                  setErrorMessage(undefined);
+                }}
+              >
+                Close
+              </Button>
             </div>
           </div>
         </DialogOverlay>

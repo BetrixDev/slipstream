@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
-import {
-  Credenza,
-  CredenzaContent,
-  CredenzaDescription,
-  CredenzaHeader,
-  CredenzaTitle,
-} from "@/components/ui/credenza";
 import { toast } from "sonner";
 import { usageDataQueryOptions, videosQueryOptions } from "@/lib/query-utils";
 import { notNanOrDefault } from "@/lib/utils";
 import { deleteVideoServerFn } from "@/server-fns/videos";
 import { useDialogsStore } from "@/lib/stores/dialogs";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../ui/dialog";
 
 export function DeleteVideoDialog() {
   const queryClient = useQueryClient();
@@ -106,7 +106,7 @@ export function DeleteVideoDialog() {
   }
 
   return (
-    <Credenza
+    <Dialog
       onOpenChange={(o) => {
         if (!o) {
           closeDeleteVideoDialog();
@@ -114,14 +114,14 @@ export function DeleteVideoDialog() {
       }}
       open={isDeleteVideoDialogOpen}
     >
-      <CredenzaContent>
-        <CredenzaHeader>
-          <CredenzaTitle>Confirm Video Deletion</CredenzaTitle>
-          <CredenzaDescription>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Video Deletion</DialogTitle>
+          <DialogDescription>
             Are you sure you want to delete{" "}
             <strong>{deleteVideoDialogData.videoTitle}</strong>?
-          </CredenzaDescription>
-        </CredenzaHeader>
+          </DialogDescription>
+        </DialogHeader>
         <div className="flex gap-2 items-end">
           <Button className="grow" onMouseDown={closeDeleteVideoDialog}>
             Cancel
@@ -136,7 +136,7 @@ export function DeleteVideoDialog() {
             Delete
           </Button>
         </div>
-      </CredenzaContent>
-    </Credenza>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,10 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  Credenza,
-  CredenzaContent,
-  CredenzaHeader,
-  CredenzaTitle,
-} from "@/components/ui/credenza";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +11,7 @@ import { updateVideoDataServerFn } from "@/server-fns/videos";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { videosQueryOptions } from "@/lib/query-utils";
 import { useDialogsStore } from "@/lib/stores/dialogs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
 type FormData = {
   title?: string;
@@ -115,7 +110,7 @@ export function EditVideoDialog() {
   }
 
   return (
-    <Credenza
+    <Dialog
       onOpenChange={(o) => {
         if (!o) {
           closeEditVideoDialog();
@@ -123,10 +118,10 @@ export function EditVideoDialog() {
       }}
       open={isEditVideoDialogOpen}
     >
-      <CredenzaContent>
-        <CredenzaHeader>
-          <CredenzaTitle>Edit {editVideoDialogData.videoTitle}</CredenzaTitle>
-        </CredenzaHeader>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit {editVideoDialogData.videoTitle}</DialogTitle>
+        </DialogHeader>
         <form
           className="flex flex-col gap-4"
           onSubmit={(e) => {
@@ -194,7 +189,7 @@ export function EditVideoDialog() {
             </Button>
           </div>
         </form>
-      </CredenzaContent>
-    </Credenza>
+      </DialogContent>
+    </Dialog>
   );
 }
