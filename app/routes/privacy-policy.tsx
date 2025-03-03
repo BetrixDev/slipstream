@@ -1,6 +1,7 @@
 import { Footer } from "@/components/footer";
 import { StyledMarkdown } from "@/components/styled-markdown";
 import TopNav from "@/components/top-nav";
+import { seo } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 
 const markdown = `
@@ -109,6 +110,13 @@ If you have any questions about this Privacy Policy, please contact us at suppor
 
 export const Route = createFileRoute("/privacy-policy")({
   component: RouteComponent,
+  head: () => ({
+    meta: seo({
+      title: "Privacy Policy - Slipstream Video",
+      description:
+        "This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.",
+    }),
+  }),
 });
 
 function RouteComponent() {
