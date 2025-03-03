@@ -99,7 +99,19 @@ export const queryClient = new QueryClient({
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ClerkProvider>
+      <ClerkProvider
+        appearance={{
+          elements: {
+            logoImage: "rounded-lg",
+            providerIcon__github: {
+              filter: "brightness(0) invert(1)",
+            },
+            socialButtonsIconButton: "bg-zinc-800",
+            profileSectionPrimaryButton: "text-primary",
+            navbarMobileMenuRow: "bg-zinc-800",
+          },
+        }}
+      >
         <html lang="en" className="dark">
           <head>
             <HeadContent />
