@@ -1,0 +1,120 @@
+.plyr {
+  --plyr-color-main: oklch(0.637 0.237 25.331);
+  --plyr-border-radius: 10px;
+
+  --plyr-font-family: inherit;
+  --plyr-font-weight-regular: 400;
+  --plyr-font-size-small: 13px;
+  --plyr-font-size-base: 15px;
+  --plyr-font-size-large: 18px;
+  --plyr-font-size-xlarge: 21px;
+  --plyr-line-height: 1.7;
+
+  --plyr-audio-border: 1px solid #edecec;
+
+  --plyr-video-controls-background: linear-gradient(
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.75)
+  );
+
+  /* Focus */
+  --plyr-focus-visible-color: var(--plyr-color-main);
+
+  /* Control */
+  --plyr-control-spacing: 10px;
+  --plyr-control-radius: 4px;
+  --plyr-control-icon-size: 18px;
+  --plyr-control-toggle-checked-background: var(--plyr-color-main);
+
+  --plyr-audio-controls-background: #fff;
+  --plyr-audio-control-background-hover: var(--plyr-color-main);
+  --plyr-audio-control-color: oklch(0.141 0.005 285.823);
+  --plyr-audio-control-color-hover: #fff;
+
+  --plyr-video-control-color: #fff;
+  --plyr-video-control-color-hover: #fff;
+  --plyr-video-control-background-hover: var(--plyr-color-main);
+
+  /* Badge */
+  --plyr-font-size-badge: 9px;
+
+  --plyr-badge-background: oklch(0.141 0.005 285.823);
+  --plyr-badge-border-radius: 2px;
+  --plyr-badge-text-color: #fff;
+
+  /* Captions */
+  --plyr-captions-background: rgba(0, 0, 0, 0.8);
+  --plyr-captions-text-color: #fff;
+
+  /* Menu */
+  --plyr-font-size-menu: var(--plyr-font-size-small, 13px);
+
+  --plyr-menu-background: rgba(255, 255, 255, 0.9);
+  --plyr-menu-color: oklch(0.141 0.005 285.823);
+  --plyr-menu-radius: 8px;
+  --plyr-menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+
+  --plyr-menu-arrow-size: 4px;
+  --plyr-menu-arrow-color: hsl(216, 15%, 52%);
+  --plyr-menu-item-arrow-size: 4px;
+
+  --plyr-menu-back-border-color: hsl(216, 15%, 88%);
+  --plyr-menu-back-border-shadow-color: #fff;
+
+  /* Range */
+  --plyr-range-track-height: 5px;
+  --plyr-range-fill-background: var(--plyr-color-main);
+
+  --plyr-range-thumb-height: 13px;
+  --plyr-range-thumb-active-shadow-width: 3px;
+  --plyr-range-thumb-background: #fff;
+  --plyr-range-thumb-shadow: 0 1px 1px rgba(35, 40, 47, 0.15), 0 0 0 1px
+    rgba(35, 40, 47, 0.2);
+
+  --plyr-audio-range-track-background: var(
+    --plyr-audio-progress-buffered-background
+  );
+  --plyr-audio-range-thumb-active-shadow-color: rgba(35, 40, 47, 0.1);
+
+  --plyr-video-range-track-background: var(
+    --plyr-video-progress-buffered-background,
+    rgba(255, 255, 255, 0.25)
+  );
+
+  /* Progress */
+  --plyr-font-size-progress-marker: var(--plyr-font-size-small, 13px);
+
+  --plyr-progress-loading-background: rgba(35, 40, 47, 0.6);
+  --plyr-progress-loading-size: 25px;
+
+  --plyr-progress-marker-width: 3px;
+  --plyr-progress-marker-background: #fff;
+
+  --plyr-progress-live-color: white;
+  --plyr-progress-live-edge-color: var(--plyr-color-main);
+
+  --plyr-audio-progress-buffered-background: rgba(193, 200, 209, 0.6);
+
+  --plyr-video-progress-buffered-background: rgba(255, 255, 255, 0.25);
+
+  /* Time */
+  --plyr-font-size-time: var(--plyr-font-size-small, 13px);
+
+  --plyr-time-radius: 5px;
+
+  /* Tooltip */
+  --plyr-tooltip-background: #fff;
+  --plyr-tooltip-radius: 5px;
+  --plyr-tooltip-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --plyr-tooltip-color: oklch(0.141 0.005 285.823);
+  --plyr-tooltip-arrow-size: 4px;
+
+  /* Thumbnail */
+  --plyr-thumbnail-aspect-ratio: 16 / 9;
+
+  --plyr-thumbnail-min-width: 140px;
+  --plyr-thumbnail-min-height: calc(var(--min-width) / var(--aspect-ratio));
+
+  --plyr-thumbnail-max-width: 180px;
+  --plyr-thumbnail-max-height: calc(var(--max-width) / var(--aspect-ratio));
+}

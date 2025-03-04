@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@clerk/tanstack-start";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { MediaPlayer, MediaProvider } from "@vidstack/react";
+import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
 import {
-  DefaultVideoLayout,
-  defaultLayoutIcons,
-} from "@vidstack/react/player/layouts/default";
-import audioCss from "@vidstack/react/player/styles/default/layouts/audio.css?url";
-import videoCss from "@vidstack/react/player/styles/default/layouts/video.css?url";
-import themeCss from "@vidstack/react/player/styles/default/theme.css?url";
+  PlyrLayout,
+  plyrLayoutIcons,
+} from "@vidstack/react/player/layouts/plyr";
+import playerBaseCss from "@vidstack/react/player/styles/base.css?url";
+import playerThemeCss from "@vidstack/react/player/styles/plyr/theme.css?url";
+import plyrCss from "../plyr.css?url";
 import {
   EyeIcon,
   Loader2Icon,
@@ -22,7 +22,7 @@ import { WordyDate } from "../components/wordy-date";
 import { seo } from "@/lib/seo";
 import { Footer } from "@/components/footer";
 import { queryClient } from "./__root";
-import { videoQueryOptions } from "@/lib/query-utils";
+import { type VideoData, videoQueryOptions } from "@/lib/query-utils";
 import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/p/$videoId")({
@@ -48,9 +48,9 @@ export const Route = createFileRoute("/p/$videoId")({
 
     return {
       links: [
-        { rel: "stylesheet", href: themeCss },
-        { rel: "stylesheet", href: audioCss },
-        { rel: "stylesheet", href: videoCss },
+        { rel: "stylesheet", href: playerBaseCss },
+        { rel: "stylesheet", href: playerThemeCss },
+        { rel: "stylesheet", href: plyrCss },
       ],
       meta: seo({
         title: loaderData.videoData.title,
@@ -116,26 +116,9 @@ function RouteComponent() {
           </Link>
         </header>
         <div className="flex gap-4 p-4 max-w-full overflow-x-hidden h-full flex-col xl:flex-row">
-          <MediaPlayer
-            className="w-full rounded-lg overflow-hidden"
-            // biome-ignore lint/suspicious/noExplicitAny: types are fine
-            src={videoData?.playbackData?.videoSources as any}
-            viewType="video"
-            streamType="on-demand"
-            playsInline
-            title={videoData?.videoData.title}
-            poster={videoData?.playbackData?.largeThumbnailUrl ?? undefined}
-            duration={videoData?.videoData.videoLengthSeconds ?? undefined}
-            storage="player"
-            controlsDelay={500}
-            posterLoad="eager"
-          >
-            <MediaProvider />
-            <DefaultVideoLayout
-              icons={defaultLayoutIcons}
-              thumbnails={videoData?.playbackData?.storyboard}
-            />
-          </MediaPlayer>
+          <div className="w-full">
+            {videoData && <VideoPlayer video={videoData} />}
+          </div>
           <div className="flex flex-col gap-4 min-w-96 w-96 grow">
             <Card className="border-none shadow-none bg-transparent">
               <CardContent className="p-0 space-y-4">
@@ -173,5 +156,30 @@ function RouteComponent() {
       </>
       <Footer />
     </div>
+  );
+}
+
+type VideoPlayerProps = {
+  video: VideoData;
+};
+
+function VideoPlayer({ video }: VideoPlayerProps) {
+  if (!video.playbackData) {
+    return null;
+  }
+
+  return (
+    <MediaPlayer
+      title={video.videoData.title}
+      // biome-ignore lint/suspicious/noExplicitAny: types are fine
+      src={video.playbackData.videoSources as any}
+      poster={video.playbackData.largeThumbnailUrl ?? undefined}
+    >
+      <MediaProvider />
+      <PlyrLayout
+        thumbnails={video.playbackData.storyboard}
+        icons={plyrLayoutIcons}
+      />
+    </MediaPlayer>
   );
 }
