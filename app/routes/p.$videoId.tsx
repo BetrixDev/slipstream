@@ -170,10 +170,12 @@ function VideoPlayer({ video }: VideoPlayerProps) {
 
   return (
     <MediaPlayer
+      className="xl:h-[calc(100vh-10rem)] lg:h-[calc(100vh-20rem)] relative w-full"
       title={video.videoData.title}
       // biome-ignore lint/suspicious/noExplicitAny: types are fine
       src={video.playbackData.videoSources as any}
       poster={video.playbackData.largeThumbnailUrl ?? undefined}
+      playsInline={false}
     >
       <MediaProvider />
       <PlyrLayout
