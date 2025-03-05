@@ -117,6 +117,26 @@ export const getCheckoutUrlServerFn = createServerFn({
       throw signInPricingRedirect;
     }
 
+    let customerId = user.polarCustomerId;
+
+    if (!customerId) {
+      const customer = await polar.customers.create({
+        email: user.email,
+        metadata: {
+          userId,
+        },
+      });
+
+      await db
+        .update(users)
+        .set({
+          polarCustomerId: customer.id,
+        })
+        .where(eq(users.id, userId));
+
+      customerId = customer.id;
+    }
+
     const products = await getProductsServerFn();
 
     const product = products.find((x) => x.nameId === data.productName);
