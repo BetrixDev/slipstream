@@ -1,6 +1,6 @@
-import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { cn } from "../lib/utils";
 
 type Tab = {
   title: string;
@@ -40,7 +40,7 @@ export const Tabs = ({
     <div
       className={cn(
         "flex flex-row items-center justify-start [perspective:1000px] relative overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full w-full",
-        className
+        className,
       )}
     >
       {propTabs.map((tab) => (
@@ -59,10 +59,7 @@ export const Tabs = ({
             <motion.div
               layoutId="clickedbutton"
               transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-              className={cn(
-                "absolute inset-0 bg-secondary  rounded-md ",
-                activeTabClassName
-              )}
+              className={cn("absolute inset-0 bg-secondary  rounded-md ", activeTabClassName)}
             />
           )}
 

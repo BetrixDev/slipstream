@@ -1,12 +1,12 @@
+import { queryClient } from "@/routes/__root";
+import { onUploadCancelledServerFn } from "@/server-fns/videos";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
-import { create } from "zustand";
-import { queryClient } from "@/routes/__root";
-import { usageDataQueryOptions, videosQueryOptions } from "../query-utils";
-import { uploadFiles } from "../uploadthing";
 import { UploadAbortedError } from "uploadthing/client";
 import { UploadThingError } from "uploadthing/server";
-import { onUploadCancelledServerFn } from "@/server-fns/videos";
+import { create } from "zustand";
+import { usageDataQueryOptions, videosQueryOptions } from "../query-utils";
+import { uploadFiles } from "../uploadthing";
 
 type UploadingVideo = {
   id: string;
@@ -21,51 +21,49 @@ type UploadingVideosState = {
 };
 
 type UploadingVideosActions = {
-  addVideo: (
-    video: Omit<UploadingVideo, "uploadProgress" | "videoSizeBytes" | "id">
-  ) => void;
+  addVideo: (video: Omit<UploadingVideo, "uploadProgress" | "videoSizeBytes" | "id">) => void;
   removeVideo: (id: string) => void;
   setUploadProgress: (id: string, progress: number) => void;
 };
 
-export const useUploadingVideosStore = create<
-  UploadingVideosState & UploadingVideosActions
->()((set) => ({
-  uploadingVideos: [],
-  addVideo: (video) =>
-    set((state) => ({
-      uploadingVideos: [
-        {
-          ...video,
-          uploadProgress: 0,
-          videoSizeBytes: video.file.size,
-          id: nanoid(10),
-          deletionDate: null,
-        },
-        ...state.uploadingVideos,
-      ],
-    })),
-  removeVideo: (id) =>
-    set((state) => ({
-      uploadingVideos: state.uploadingVideos.filter((video) => video.id !== id),
-    })),
-  setUploadProgress: (id, progress) =>
-    set((state) => ({
-      uploadingVideos: state.uploadingVideos.map((video) =>
-        video.id === id ? { ...video, uploadProgress: progress } : video
-      ),
-    })),
-}));
+export const useUploadingVideosStore = create<UploadingVideosState & UploadingVideosActions>()(
+  (set) => ({
+    uploadingVideos: [],
+    addVideo: (video) =>
+      set((state) => ({
+        uploadingVideos: [
+          {
+            ...video,
+            uploadProgress: 0,
+            videoSizeBytes: video.file.size,
+            id: nanoid(10),
+            deletionDate: null,
+          },
+          ...state.uploadingVideos,
+        ],
+      })),
+    removeVideo: (id) =>
+      set((state) => ({
+        uploadingVideos: state.uploadingVideos.filter((video) => video.id !== id),
+      })),
+    setUploadProgress: (id, progress) =>
+      set((state) => ({
+        uploadingVideos: state.uploadingVideos.map((video) =>
+          video.id === id ? { ...video, uploadProgress: progress } : video,
+        ),
+      })),
+  }),
+);
 
 const uploadingVideosAbortControllers = new Map<string, AbortController>();
 
 useUploadingVideosStore.subscribe((state, oldState) => {
   const newVideos = state.uploadingVideos.filter(
-    (n) => oldState.uploadingVideos.find((o) => o.id === n.id) === undefined
+    (n) => oldState.uploadingVideos.find((o) => o.id === n.id) === undefined,
   );
 
   const removedVideos = oldState.uploadingVideos.filter(
-    (o) => state.uploadingVideos.find((n) => n.id === o.id) === undefined
+    (o) => state.uploadingVideos.find((n) => n.id === o.id) === undefined,
   );
 
   for (const video of newVideos) {
@@ -115,9 +113,7 @@ async function handleVideoUpload(video: UploadingVideo) {
           .uploadingVideos.find((v) => v.id === video.id);
 
         if (currentVideo && progress > currentVideo.uploadProgress) {
-          useUploadingVideosStore
-            .getState()
-            .setUploadProgress(video.id, progress);
+          useUploadingVideosStore.getState().setUploadProgress(video.id, progress);
         }
       },
       onUploadBegin: () => {
@@ -144,10 +140,7 @@ async function handleVideoUpload(video: UploadingVideo) {
 
       const videos = [newVideo, ...(oldData?.videos ?? [])];
 
-      videos.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      videos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       return {
         ...oldData,

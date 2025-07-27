@@ -7,10 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function notNanOrDefault(
-  number?: number | string | null,
-  defaultValue = 0
-) {
+export function notNanOrDefault(number?: number | string | null, defaultValue = 0) {
   if (number === undefined || number === null) {
     return defaultValue;
   }
@@ -49,7 +46,7 @@ export function formatSecondsToTimestamp(seconds: number) {
   if (hours > 0) {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
       2,
-      "0"
+      "0",
     )}:${String(secs).padStart(2, "0")}`;
   }
 
@@ -61,7 +58,7 @@ export function formatBytes(
   opts: {
     decimals?: number;
     sizeType?: "accurate" | "normal";
-  } = {}
+  } = {},
 ) {
   const { decimals = 0, sizeType = "normal" } = opts;
 
@@ -75,9 +72,7 @@ export function formatBytes(
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${(bytes / 1024 ** i).toFixed(decimals)} ${
-    sizeType === "accurate"
-      ? (accurateSizes[i] ?? "Bytes")
-      : (sizes[i] ?? "Bytes")
+    sizeType === "accurate" ? (accurateSizes[i] ?? "Bytes") : (sizes[i] ?? "Bytes")
   }`;
 }
 

@@ -5,12 +5,12 @@ import { createServerFn } from "@tanstack/start";
 import { tasks, auth as triggerAuth } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { and, eq, sql } from "drizzle-orm";
+import { UTApi } from "uploadthing/server";
 import { z } from "zod";
 import { db } from "../lib/db";
 import { env } from "../lib/env";
 import { users, videos } from "../lib/schema";
 import { authGuardMiddleware } from "../middleware/auth-guard";
-import { UTApi } from "uploadthing/server";
 
 export const getVideoDownloadDetailsServerFn = createServerFn({
   method: "POST",
@@ -27,9 +27,7 @@ export const getVideoDownloadDetailsServerFn = createServerFn({
       return { url: null };
     }
 
-    const nativeVideoSource = videoData.sources.find(
-      (source) => source.isNative
-    );
+    const nativeVideoSource = videoData.sources.find((source) => source.isNative);
 
     if (!nativeVideoSource) {
       throw new Error("Unable to get video source");
@@ -78,12 +76,7 @@ export const deleteVideoServerFn = createServerFn({ method: "POST" })
           .set({
             isQueuedForDeletion: true,
           })
-          .where(
-            and(
-              eq(videos.id, data.videoId),
-              eq(videos.authorId, context.userId)
-            )
-          ),
+          .where(and(eq(videos.id, data.videoId), eq(videos.authorId, context.userId))),
         tasks.trigger<typeof videoDeletionTask>("video-deletion", {
           videoId: data.videoId,
         }),
@@ -112,9 +105,7 @@ export const onUploadCancelledServerFn = createServerFn({ method: "POST" })
     const [[videoData]] = await db.batch([
       db
         .delete(videos)
-        .where(
-          and(eq(videos.id, data.videoId), eq(videos.authorId, context.userId))
-        )
+        .where(and(eq(videos.id, data.videoId), eq(videos.authorId, context.userId)))
         .returning(),
       db
         .update(users)
@@ -166,16 +157,14 @@ export const updateVideoDataServerFn = createServerFn({ method: "POST" })
         title: z.string().optional(),
         isPrivate: z.boolean().optional(),
       }),
-    })
+    }),
   )
   .middleware([authGuardMiddleware])
   .handler(async ({ context, data }) => {
     const [videoData] = await db
       .update(videos)
       .set(data.data)
-      .where(
-        and(eq(videos.id, data.videoId), eq(videos.authorId, context.userId))
-      )
+      .where(and(eq(videos.id, data.videoId), eq(videos.authorId, context.userId)))
       .returning();
 
     if (videoData === undefined) {
@@ -189,8 +178,7 @@ export const updateVideoDataServerFn = createServerFn({ method: "POST" })
 
     try {
       const largeThumbnailUrl =
-        videoData.largeThumbnailKey &&
-        `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+        videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
       const videoCreatedAt = videoData.createdAt.toString();
 
@@ -214,7 +202,7 @@ export const updateVideoDataServerFn = createServerFn({ method: "POST" })
     try {
       const cachedVideos = await redis.hget<(typeof videoData)[]>(
         `videos:${context.userId}`,
-        "videos"
+        "videos",
       );
 
       if (cachedVideos) {
@@ -244,10 +232,7 @@ const USER_VIDEO_DAILY_LIMIT: Record<string, number> = {
   pro: 12,
 };
 
-export async function incrementUserUploadRateLimit(
-  accountTier: string,
-  userId: string
-) {
+export async function incrementUserUploadRateLimit(accountTier: string, userId: string) {
   if (accountTier === "premium" || accountTier === "ultimate") {
     return true;
   }

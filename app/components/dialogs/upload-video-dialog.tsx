@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usageDataQueryOptions } from "@/lib/query-utils";
+import { useDialogsStore } from "@/lib/stores/dialogs";
+import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
+import { cn, formatSecondsToTimestamp, humanFileSize, notNanOrDefault } from "@/lib/utils";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { type FieldApi, useForm } from "@tanstack/react-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlertCircleIcon,
   FileVideoIcon,
@@ -13,19 +20,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { usageDataQueryOptions } from "@/lib/query-utils";
-import { useDialogsStore } from "@/lib/stores/dialogs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import {
-  cn,
-  formatSecondsToTimestamp,
-  humanFileSize,
-  notNanOrDefault,
-} from "@/lib/utils";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { RangeSlider } from "../ui/range-slider";
 
 type FormData = {
@@ -47,9 +42,7 @@ export function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
 }
 
 export function UploadVideoDialog() {
-  const isUploadVideoDialogOpen = useDialogsStore(
-    (state) => state.isUploadVideoDialogOpen
-  );
+  const isUploadVideoDialogOpen = useDialogsStore((state) => state.isUploadVideoDialogOpen);
 
   if (!isUploadVideoDialogOpen) {
     return null;
@@ -70,12 +63,8 @@ function UploadVideoDialogChild() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addVideo = useUploadingVideosStore((s) => s.addVideo);
 
-  const closeUploadVideoDialog = useDialogsStore(
-    (s) => s.closeUploadVideoDialog
-  );
-  const isUploadVideoDialogOpen = useDialogsStore(
-    (s) => s.isUploadVideoDialogOpen
-  );
+  const closeUploadVideoDialog = useDialogsStore((s) => s.closeUploadVideoDialog);
+  const isUploadVideoDialogOpen = useDialogsStore((s) => s.isUploadVideoDialogOpen);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -137,9 +126,7 @@ function UploadVideoDialogChild() {
       >
         <DialogContent className="sm:max-w-md bg-zinc-900 text-white border-zinc-800">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-white">
-              Upload a Video
-            </DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-white">Upload a Video</DialogTitle>
           </DialogHeader>
 
           <form
@@ -183,10 +170,7 @@ function UploadVideoDialogChild() {
               }}
               children={(field) => (
                 <div className="grid gap-2">
-                  <Label
-                    htmlFor={field.name}
-                    className="text-sm font-medium text-zinc-200"
-                  >
+                  <Label htmlFor={field.name} className="text-sm font-medium text-zinc-200">
                     Title
                   </Label>
                   <Input
@@ -215,10 +199,7 @@ function UploadVideoDialogChild() {
                     return `File size must be less than ${humanFileSize(userMaxFileUploadSize)}`;
                   }
 
-                  if (
-                    value.size + userTotalStorageUsed >
-                    userTotalStorageAvailable
-                  ) {
+                  if (value.size + userTotalStorageUsed > userTotalStorageAvailable) {
                     return `You have used ${humanFileSize(userTotalStorageUsed)} of your storage, you can only upload up to ${humanFileSize(userTotalStorageAvailable)}`;
                   }
 
@@ -233,10 +214,7 @@ function UploadVideoDialogChild() {
               children={(field) => {
                 return (
                   <div className="grid gap-2">
-                    <Label
-                      className="text-sm font-medium text-zinc-200"
-                      htmlFor={field.name}
-                    >
+                    <Label className="text-sm font-medium text-zinc-200" htmlFor={field.name}>
                       Video File
                     </Label>
                     <div
@@ -248,7 +226,7 @@ function UploadVideoDialogChild() {
                             ? "bg-zinc-700/10"
                             : field.state.value
                               ? "border-green-500 bg-green-500/10"
-                              : "border-zinc-700 hover:border-zinc-600"
+                              : "border-zinc-700 hover:border-zinc-600",
                       )}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
@@ -299,9 +277,7 @@ function UploadVideoDialogChild() {
                                   if (
                                     form.state.values.file &&
                                     form.state.values.title ===
-                                      getVideoTitleFromFile(
-                                        form.state.values.file
-                                      )
+                                      getVideoTitleFromFile(form.state.values.file)
                                   ) {
                                     form.setFieldValue("title", null);
                                   }
@@ -336,9 +312,7 @@ function UploadVideoDialogChild() {
                               <p className="font-medium text-sm text-zinc-200">
                                 Drag and drop your video here
                               </p>
-                              <p className="text-xs text-zinc-400">
-                                or click to browse files
-                              </p>
+                              <p className="text-xs text-zinc-400">or click to browse files</p>
                             </div>
                           </>
                         )}
@@ -350,8 +324,7 @@ function UploadVideoDialogChild() {
                     {!field.state.value && (
                       <p className="text-xs flex items-center gap-1 text-zinc-400 mt-1">
                         <AlertCircleIcon className="h-3 w-3" />
-                        Supports most video formats. (max{" "}
-                        {humanFileSize(userMaxFileUploadSize)})
+                        Supports most video formats. (max {humanFileSize(userMaxFileUploadSize)})
                       </p>
                     )}
                   </div>
@@ -360,9 +333,7 @@ function UploadVideoDialogChild() {
             />
 
             <form.Subscribe
-              selector={(state) =>
-                state.isValid && !state.isSubmitting && !state.isValidating
-              }
+              selector={(state) => state.isValid && !state.isSubmitting && !state.isValidating}
               children={(isValid) => (
                 <Button className="w-full" disabled={!isValid} type="submit">
                   Upload Video
@@ -393,9 +364,7 @@ function TrimVideoDialog({
   const viewportRef = useRef<HTMLVideoElement>(null);
 
   const lastRangeValue = useRef<[number, number] | null>(null);
-  const [rangeValues, setRangeValues] = useState<
-    [number | null, number | null]
-  >([null, null]);
+  const [rangeValues, setRangeValues] = useState<[number | null, number | null]>([null, null]);
   const [isViewportPlaying, setIsViewportPlaying] = useState(false);
   const [videoDurationSeconds, setVideoDurationSeconds] = useState<number>();
 
@@ -413,14 +382,8 @@ function TrimVideoDialog({
       const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm";
 
       await ffmpeg.load({
-        coreURL: await toBlobURL(
-          `${baseURL}/ffmpeg-core.js`,
-          "text/javascript"
-        ),
-        wasmURL: await toBlobURL(
-          `${baseURL}/ffmpeg-core.wasm`,
-          "application/wasm"
-        ),
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
       });
 
       return true;
@@ -443,9 +406,7 @@ function TrimVideoDialog({
 
       await ffmpeg.writeFile("input.mp4", await fetchFile(videoFile));
 
-      const startTimestamp = formatSecondsToTimestamp(
-        lastRangeValue.current[0]
-      );
+      const startTimestamp = formatSecondsToTimestamp(lastRangeValue.current[0]);
       const endTimestamp = formatSecondsToTimestamp(lastRangeValue.current[1]);
 
       await ffmpeg.exec([
@@ -490,7 +451,7 @@ function TrimVideoDialog({
       },
       {
         signal: controller.signal,
-      }
+      },
     );
 
     return () => {
@@ -504,8 +465,7 @@ function TrimVideoDialog({
       return;
     }
 
-    const playbackDuration =
-      (lastRangeValue.current[1] - lastRangeValue.current[0]) * 1000;
+    const playbackDuration = (lastRangeValue.current[1] - lastRangeValue.current[0]) * 1000;
 
     const timeout = setTimeout(() => {
       if (!viewportRef.current) {
@@ -604,11 +564,7 @@ function TrimVideoDialog({
             </div>
             <div className="flex justify-between">
               <span>{formatSecondsToTimestamp(rangeValues[0] ?? 0)}</span>
-              <span>
-                {formatSecondsToTimestamp(
-                  rangeValues[1] ?? videoDurationSeconds
-                )}
-              </span>
+              <span>{formatSecondsToTimestamp(rangeValues[1] ?? videoDurationSeconds)}</span>
             </div>
             <RangeSlider
               defaultValue={[0, 100]}
@@ -630,8 +586,7 @@ function TrimVideoDialog({
             </Button>
             {isRenderError && (
               <p className="text-destructive text-small">
-                An error occured when trying to render your video. Please try
-                again later
+                An error occured when trying to render your video. Please try again later
               </p>
             )}
           </>

@@ -1,6 +1,6 @@
-import { Footer } from "../components/footer";
 import { SignIn } from "@clerk/tanstack-start";
 import { createFileRoute } from "@tanstack/react-router";
+import { Footer } from "../components/footer";
 
 export const Route = createFileRoute("/sign-in/$")({
   component: RouteComponent,

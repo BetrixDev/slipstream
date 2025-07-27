@@ -34,9 +34,7 @@ type ProcessingStatus = "loading" | "success" | "error";
 function RouteComponent() {
   const navigate = Route.useNavigate();
 
-  const getPolarEventHandlerForUserServer = useServerFn(
-    getPolarEventHandlerForUserServerFn
-  );
+  const getPolarEventHandlerForUserServer = useServerFn(getPolarEventHandlerForUserServerFn);
 
   const [status, setStatus] = useState<ProcessingStatus>("loading");
   const [errorMessage, setErrorMessage] = useState("");
@@ -63,7 +61,7 @@ function RouteComponent() {
 
     setStatus("error");
     setErrorMessage(
-      "Failed to fetch payment status. Don't worry, your payment will be processed soon"
+      "Failed to fetch payment status. Don't worry, your payment will be processed soon",
     );
     setTimeout(() => {
       navigate({ to: "/videos" });
@@ -75,9 +73,7 @@ function RouteComponent() {
       return;
     }
 
-    const { data: progressValue } = numberSchema.safeParse(
-      run.metadata.progress
-    );
+    const { data: progressValue } = numberSchema.safeParse(run.metadata.progress);
 
     if (progressValue) {
       setProgress(progressValue);
@@ -99,9 +95,7 @@ function RouteComponent() {
 
     if (ERROR_STATUSES.includes(run.status)) {
       setStatus("error");
-      setErrorMessage(
-        "An error occurred while processing your payment. Please contact support"
-      );
+      setErrorMessage("An error occurred while processing your payment. Please contact support");
 
       setTimeout(() => {
         navigate({ to: "/videos" });
@@ -139,10 +133,8 @@ function RouteComponent() {
               {status === "error" && "Processing Error"}
             </h1>
             <p className="text-zinc-400">
-              {status === "loading" &&
-                "Please wait while we process your payment..."}
-              {status === "success" &&
-                "Your payment has been processed successfully."}
+              {status === "loading" && "Please wait while we process your payment..."}
+              {status === "success" && "Your payment has been processed successfully."}
               {status === "error" && errorMessage}
             </p>
           </div>
@@ -157,12 +149,8 @@ function RouteComponent() {
                 </div>
               </div>
             )}
-            {status === "success" && (
-              <CheckCircleIcon className="h-20 w-20 text-green-500" />
-            )}
-            {status === "error" && (
-              <XCircleIcon className="h-20 w-20 text-red-500" />
-            )}
+            {status === "success" && <CheckCircleIcon className="h-20 w-20 text-green-500" />}
+            {status === "error" && <XCircleIcon className="h-20 w-20 text-red-500" />}
           </div>
 
           {/* Progress Bar (only shown during loading) */}
@@ -194,7 +182,7 @@ const getPolarEventHandlerForUserServerFn = createServerFn({
     const runningTasks = await runs.list({ tag: userId });
 
     const polarEventHandler = runningTasks.data.find(
-      (t) => t.taskIdentifier === "polar-event-handler"
+      (t) => t.taskIdentifier === "polar-event-handler",
     );
 
     if (!polarEventHandler) {

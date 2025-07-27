@@ -1,29 +1,19 @@
-import TopNav from "../components/top-nav";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { createFileRoute } from "@tanstack/react-router";
-import { Footer } from "../components/footer";
-import { useUser } from "@clerk/tanstack-start";
-import { useState } from "react";
-import { Tabs } from "../components/tabs";
-import { AccountTierText } from "../components/account-tier-text";
-import {
-  ArrowRightIcon,
-  CheckIcon,
-  Crown,
-  PiggyBank,
-  Star,
-  Zap,
-} from "lucide-react";
 import { seo } from "@/lib/seo";
 import { cn, safeParseAccountTier } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  getCheckoutUrlServerFn,
-  getCustomerPortalUrlServerFn,
-} from "@/server-fns/polar";
+import { getCheckoutUrlServerFn, getCustomerPortalUrlServerFn } from "@/server-fns/polar";
+import { useUser } from "@clerk/tanstack-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/start";
+import { ArrowRightIcon, CheckIcon, Crown, PiggyBank, Star, Zap } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { AccountTierText } from "../components/account-tier-text";
+import { Footer } from "../components/footer";
+import { Tabs } from "../components/tabs";
+import TopNav from "../components/top-nav";
 
 const buttonStyles = {
   default: cn(
@@ -33,7 +23,7 @@ const buttonStyles = {
     "border border-zinc-200 dark:border-zinc-800",
     "hover:border-zinc-300 dark:hover:border-zinc-700",
     "shadow-sm hover:shadow-md",
-    "text-sm font-medium"
+    "text-sm font-medium",
   ),
   highlight: cn(
     "h-12 bg-zinc-900 dark:bg-zinc-100",
@@ -41,7 +31,7 @@ const buttonStyles = {
     "text-white dark:text-zinc-900",
     "shadow-[0_1px_15px_rgba(0,0,0,0.1)]",
     "hover:shadow-[0_1px_20px_rgba(0,0,0,0.15)]",
-    "font-semibold text-base"
+    "font-semibold text-base",
   ),
 };
 
@@ -49,7 +39,7 @@ const badgeStyles = cn(
   "px-4 py-1.5 text-sm font-medium",
   "bg-zinc-900 dark:bg-zinc-100",
   "text-white dark:text-zinc-900",
-  "border-none shadow-md"
+  "border-none shadow-md",
 );
 
 export const Route = createFileRoute("/pricing")({
@@ -108,7 +98,7 @@ function RouteComponent() {
                     tier.highlight
                       ? "border-zinc-400/50 dark:border-zinc-400/20 shadow-xl"
                       : "border-zinc-200 dark:border-zinc-700 shadow-md",
-                    "hover:translate-y-0 hover:shadow-lg"
+                    "hover:translate-y-0 hover:shadow-lg",
                   )}
                 >
                   {tier.badge && tier.highlight && (
@@ -129,21 +119,13 @@ function RouteComponent() {
                           "p-3 rounded-xl",
                           tier.highlight
                             ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
                         )}
                       >
                         {tier.icon}
                       </div>
-                      <Badge
-                        className={cn(
-                          badgeStyles,
-                          "dark:bg-background bg-background"
-                        )}
-                      >
-                        <AccountTierText
-                          accountTier={tier.name}
-                          defaultColor="text-primary"
-                        >
+                      <Badge className={cn(badgeStyles, "dark:bg-background bg-background")}>
+                        <AccountTierText accountTier={tier.name} defaultColor="text-primary">
                           {tier.name}
                         </AccountTierText>
                       </Badge>
@@ -168,7 +150,7 @@ function RouteComponent() {
                         <div key={feature.name} className="flex gap-4">
                           <div
                             className={cn(
-                              "mt-1 p-0.5 rounded-full transition-colors duration-200 text-red-600 dark:text-red-400"
+                              "mt-1 p-0.5 rounded-full transition-colors duration-200 text-red-600 dark:text-red-400",
                             )}
                           >
                             <CheckIcon className="w-4 h-4" />
@@ -210,9 +192,7 @@ function PriceButton({ tier, interval }: PriceButtonProps) {
   const getCustomerPortalUrl = useServerFn(getCustomerPortalUrlServerFn);
   const { user } = useUser();
 
-  const userAccountTier = safeParseAccountTier(
-    user?.publicMetadata?.accountTier
-  );
+  const userAccountTier = safeParseAccountTier(user?.publicMetadata?.accountTier);
 
   const isFreeTier = userAccountTier === "free";
 
@@ -236,7 +216,7 @@ function PriceButton({ tier, interval }: PriceButtonProps) {
             return "Redirecting to checkout...";
           },
           error: "Unable to get checkout URL. Please try again later.",
-        }
+        },
       );
     } else {
       toast.promise(getCustomerPortalUrl(), {
@@ -256,13 +236,10 @@ function PriceButton({ tier, interval }: PriceButtonProps) {
     <Button
       className={cn(
         "w-full relative transition-all duration-300 tracking-wide",
-        tier.highlight ? buttonStyles.highlight : buttonStyles.default
+        tier.highlight ? buttonStyles.highlight : buttonStyles.default,
       )}
       onClick={() => handleClick(tier.name)}
-      disabled={
-        userAccountTier !== "free" &&
-        tier.name.toLowerCase() !== userAccountTier
-      }
+      disabled={userAccountTier !== "free" && tier.name.toLowerCase() !== userAccountTier}
     >
       <span className="relative z-10 flex items-center justify-center gap-2">
         {tier.id === userAccountTier
@@ -314,13 +291,11 @@ const tiers: PricingTier[] = [
       },
       {
         name: "512mb max size per video",
-        description:
-          "Videos larger than 512mb will be automatically downscaled",
+        description: "Videos larger than 512mb will be automatically downscaled",
       },
       {
         name: "Upload 3 videos each day",
-        description:
-          "This is a limit on the number of videos you can upload each day",
+        description: "This is a limit on the number of videos you can upload each day",
       },
       {
         name: "Native video quality",

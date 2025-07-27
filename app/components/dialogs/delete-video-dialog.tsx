@@ -1,30 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { usageDataQueryOptions, videosQueryOptions } from "@/lib/query-utils";
+import { useDialogsStore } from "@/lib/stores/dialogs";
 import { notNanOrDefault } from "@/lib/utils";
 import { deleteVideoServerFn } from "@/server-fns/videos";
-import { useDialogsStore } from "@/lib/stores/dialogs";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "../ui/dialog";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 
 export function DeleteVideoDialog() {
   const queryClient = useQueryClient();
 
-  const closeDeleteVideoDialog = useDialogsStore(
-    (state) => state.closeDeleteVideoDialog
-  );
-  const deleteVideoDialogData = useDialogsStore(
-    (state) => state.deleteVideoDialogData
-  );
-  const isDeleteVideoDialogOpen = useDialogsStore(
-    (state) => state.isDeleteVideoDialogOpen
-  );
+  const closeDeleteVideoDialog = useDialogsStore((state) => state.closeDeleteVideoDialog);
+  const deleteVideoDialogData = useDialogsStore((state) => state.deleteVideoDialogData);
+  const isDeleteVideoDialogOpen = useDialogsStore((state) => state.isDeleteVideoDialogOpen);
 
   async function doDeleteVideo() {
     if (!isDeleteVideoDialogOpen || !deleteVideoDialogData) {
@@ -32,9 +20,7 @@ export function DeleteVideoDialog() {
     }
 
     const oldVideos = queryClient.getQueryData(videosQueryOptions.queryKey);
-    const oldUsageData = queryClient.getQueryData(
-      usageDataQueryOptions.queryKey
-    );
+    const oldUsageData = queryClient.getQueryData(usageDataQueryOptions.queryKey);
 
     function reset(message?: string) {
       queryClient.setQueryData(usageDataQueryOptions.queryKey, oldUsageData);
@@ -50,8 +36,7 @@ export function DeleteVideoDialog() {
     }
 
     try {
-      const videos =
-        queryClient.getQueryData(videosQueryOptions.queryKey)?.videos ?? [];
+      const videos = queryClient.getQueryData(videosQueryOptions.queryKey)?.videos ?? [];
 
       const video = videos.find((v) => v.id === deleteVideoDialogData.videoId);
 
@@ -63,9 +48,8 @@ export function DeleteVideoDialog() {
         return {
           ...old,
           totalStorageUsed: Math.max(
-            (old?.totalStorageUsed ?? 0) -
-              notNanOrDefault(video?.fileSizeBytes),
-            0
+            (old?.totalStorageUsed ?? 0) - notNanOrDefault(video?.fileSizeBytes),
+            0,
           ),
         };
       });
@@ -77,9 +61,7 @@ export function DeleteVideoDialog() {
 
         return {
           ...old,
-          videos: old.videos.filter(
-            (v) => v.id !== deleteVideoDialogData.videoId
-          ),
+          videos: old.videos.filter((v) => v.id !== deleteVideoDialogData.videoId),
         };
       });
 
@@ -93,7 +75,7 @@ export function DeleteVideoDialog() {
           loading: "Queueing video for deletion...",
           error: "Error deleting video",
           success: (result) => result.message,
-        }
+        },
       );
     } catch (e) {
       console.error(e);
@@ -118,8 +100,7 @@ export function DeleteVideoDialog() {
         <DialogHeader>
           <DialogTitle>Confirm Video Deletion</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete{" "}
-            <strong>{deleteVideoDialogData.videoTitle}</strong>?
+            Are you sure you want to delete <strong>{deleteVideoDialogData.videoTitle}</strong>?
           </DialogDescription>
         </DialogHeader>
         <div className="flex gap-2 items-end">

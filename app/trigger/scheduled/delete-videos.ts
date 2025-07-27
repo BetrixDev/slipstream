@@ -1,5 +1,5 @@
-import { db } from "../../../app/lib/db.js";
 import { logger, schedules, tasks } from "@trigger.dev/sdk/v3";
+import { db } from "../../../app/lib/db.js";
 import type { videoDeletionTask } from "../video-deletion.js";
 
 export const deleteVideosScheduledTask = schedules.task({
@@ -9,31 +9,25 @@ export const deleteVideosScheduledTask = schedules.task({
     preset: "micro",
   },
   run: async () => {
-    const videosToDelete = await logger.trace(
-      "Postgres videos to delete",
-      async (span) => {
-        span.setAttributes({
-          table: "videos",
-          limit: 25,
-        });
+    const videosToDelete = await logger.trace("Postgres videos to delete", async (span) => {
+      span.setAttributes({
+        table: "videos",
+        limit: 25,
+      });
 
-        const videos = await db.query.videos.findMany({
-          where: (table, { sql, or, and, eq }) =>
-            or(
-              sql`${table.pendingDeletionDate} < NOW()`,
-              and(
-                eq(table.status, "uploading"),
-                sql`${table.createdAt} <= NOW() - INTERVAL '1 day'`
-              )
-            ),
-          limit: 25,
-        });
+      const videos = await db.query.videos.findMany({
+        where: (table, { sql, or, and, eq }) =>
+          or(
+            sql`${table.pendingDeletionDate} < NOW()`,
+            and(eq(table.status, "uploading"), sql`${table.createdAt} <= NOW() - INTERVAL '1 day'`),
+          ),
+        limit: 25,
+      });
 
-        span.end();
+      span.end();
 
-        return videos;
-      }
-    );
+      return videos;
+    });
 
     const jobs = videosToDelete.map(({ id }) => ({ payload: { videoId: id } }));
 
@@ -46,10 +40,7 @@ export const deleteVideosScheduledTask = schedules.task({
         jobCount: jobs.length,
       });
 
-      await tasks.batchTrigger<typeof videoDeletionTask>(
-        "video-deletion",
-        jobs
-      );
+      await tasks.batchTrigger<typeof videoDeletionTask>("video-deletion", jobs);
 
       span.end();
     });

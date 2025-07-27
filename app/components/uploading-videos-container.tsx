@@ -1,27 +1,20 @@
-import { toast } from "sonner";
-import { onUploadCancelledServerFn } from "@/server-fns/videos";
-import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { usageDataQueryOptions } from "@/lib/query-utils";
+import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { queryClient } from "@/routes/__root";
+import { onUploadCancelledServerFn } from "@/server-fns/videos";
+import { toast } from "sonner";
 import { VideoCard } from "./video-card";
 
 export function UploadingVideosContainer() {
   const { uploadingVideos, removeVideo } = useUploadingVideosStore();
 
-  function handleUploadCancel(
-    videoId: string,
-    videoTitle: string,
-    videoSizeBytes: number
-  ) {
+  function handleUploadCancel(videoId: string, videoTitle: string, videoSizeBytes: number) {
     removeVideo(videoId);
     queryClient.setQueryData(usageDataQueryOptions.queryKey, (oldData) => {
       if (!oldData) return oldData;
       return {
         ...oldData,
-        totalStorageUsed: Math.max(
-          oldData.totalStorageUsed - videoSizeBytes,
-          0
-        ),
+        totalStorageUsed: Math.max(oldData.totalStorageUsed - videoSizeBytes, 0),
       };
     });
 
@@ -46,12 +39,8 @@ export function UploadingVideosContainer() {
           videoId={video.id}
           status="uploading"
           uploadProgress={video.uploadProgress}
-          onCancelUploadClick={() =>
-            handleUploadCancel(video.id, video.title, video.file.size)
-          }
-          onDeleteClick={() =>
-            handleUploadCancel(video.id, video.title, video.file.size)
-          }
+          onCancelUploadClick={() => handleUploadCancel(video.id, video.title, video.file.size)}
+          onDeleteClick={() => handleUploadCancel(video.id, video.title, video.file.size)}
         />
       ))}
     </>

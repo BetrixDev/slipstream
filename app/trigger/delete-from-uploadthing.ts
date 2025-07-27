@@ -1,6 +1,6 @@
+import assert from "node:assert";
 import { db } from "@/lib/db";
 import { AbortTaskRunError, logger, schemaTask } from "@trigger.dev/sdk/v3";
-import assert from "node:assert";
 import { UTApi } from "uploadthing/server";
 import { z } from "zod";
 
@@ -56,9 +56,7 @@ export const deleteFromUploadthingTask = schemaTask({
 
         span.setStatus({ code: 2, message: "Failed to delete files" });
         span.recordException(error);
-        throw new Error(
-          `Failed to delete files from Uploadthing: ${error.message}`
-        );
+        throw new Error(`Failed to delete files from Uploadthing: ${error.message}`);
       }
 
       span.end();

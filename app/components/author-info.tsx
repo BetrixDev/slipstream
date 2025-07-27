@@ -1,6 +1,6 @@
 import { AccountTierText } from "@/components/account-tier-text";
-import { useQuery } from "@tanstack/react-query";
 import { authorDataQueryOptions } from "@/lib/query-utils";
+import { useQuery } from "@tanstack/react-query";
 
 export function AuthorInfo({ authorId }: { authorId: string }) {
   const { data } = useQuery(authorDataQueryOptions(authorId));

@@ -7,16 +7,10 @@ export function Footer() {
         © {new Date().getFullYear()} Slipstream
       </p>
       <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-        <Link
-          className="text-xs hover:underline underline-offset-4"
-          to="/terms-of-service"
-        >
+        <Link className="text-xs hover:underline underline-offset-4" to="/terms-of-service">
           Terms of Service
         </Link>
-        <Link
-          className="text-xs hover:underline underline-offset-4"
-          to="/privacy-policy"
-        >
+        <Link className="text-xs hover:underline underline-offset-4" to="/privacy-policy">
           Privacy Policy
         </Link>
       </nav>

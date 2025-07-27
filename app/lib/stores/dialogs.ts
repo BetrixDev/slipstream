@@ -14,11 +14,7 @@ type DialogsStore = {
     videoTitle: string;
   };
   openUploadVideoDialog: () => void;
-  openDeleteVideoDialog: (
-    videoId: string,
-    videoTitle: string,
-    contentLength: number
-  ) => void;
+  openDeleteVideoDialog: (videoId: string, videoTitle: string, contentLength: number) => void;
   openEditVideoDialog: (videoId: string, videoTitle: string) => void;
   closeUploadVideoDialog: () => void;
   closeDeleteVideoDialog: () => void;
@@ -46,6 +42,5 @@ export const useDialogsStore = create<DialogsStore>()((set) => ({
   closeUploadVideoDialog: () => set({ isUploadVideoDialogOpen: false }),
   closeDeleteVideoDialog: () =>
     set({ isDeleteVideoDialogOpen: false, deleteVideoDialogData: undefined }),
-  closeEditVideoDialog: () =>
-    set({ isEditVideoDialogOpen: false, editVideoDialogData: undefined }),
+  closeEditVideoDialog: () => set({ isEditVideoDialogOpen: false, editVideoDialogData: undefined }),
 }));

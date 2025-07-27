@@ -1,11 +1,11 @@
-import { db } from "../../app/lib/db";
-import { users, videos } from "../../app/lib/schema";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { AbortTaskRunError, runs, schemaTask } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
-import { z } from "zod";
 import { UTApi } from "uploadthing/server";
+import { z } from "zod";
+import { db } from "../../app/lib/db";
+import { users, videos } from "../../app/lib/schema";
 
 export const videoDeletionTask = schemaTask({
   id: "video-deletion",
@@ -78,8 +78,8 @@ export const videoDeletionTask = schemaTask({
             new DeleteObjectCommand({
               Bucket: env.VIDEOS_BUCKET_NAME,
               Key: source.key,
-            })
-          )
+            }),
+          ),
         );
       } else {
         videoDeleteCommandPromises.push(utApi.deleteFiles([source.key]));
@@ -94,8 +94,8 @@ export const videoDeletionTask = schemaTask({
           new DeleteObjectCommand({
             Bucket: env.THUMBS_BUCKET_NAME,
             Key: videoData.smallThumbnailKey,
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -105,8 +105,8 @@ export const videoDeletionTask = schemaTask({
           new DeleteObjectCommand({
             Bucket: env.THUMBS_BUCKET_NAME,
             Key: videoData.largeThumbnailKey,
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -115,8 +115,8 @@ export const videoDeletionTask = schemaTask({
         new DeleteObjectCommand({
           Bucket: env.THUMBS_BUCKET_NAME,
           Key: `${videoData.id}-storyboard.jpg`,
-        })
-      )
+        }),
+      ),
     );
 
     await Promise.all([
@@ -139,7 +139,7 @@ export const videoDeletionTask = schemaTask({
     try {
       const cachedVideos = await redis.hget<(typeof videoData)[]>(
         `videos:${videoData.authorId}`,
-        "videos"
+        "videos",
       );
 
       if (cachedVideos) {

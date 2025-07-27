@@ -1,10 +1,23 @@
+import { Button } from "@/components/ui/button";
 import {
-  SignedIn,
-  SignedOut,
-  useClerk,
-  UserButton,
-  useUser,
-} from "@clerk/tanstack-start";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { usageDataQueryOptions } from "@/lib/query-utils";
+import {
+  TIER_TO_TEXT,
+  cn,
+  humanFileSize,
+  notNanOrDefault,
+  safeParseAccountTier,
+} from "@/lib/utils";
+import { SignedIn, SignedOut, UserButton, useClerk, useUser } from "@clerk/tanstack-start";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
 import {
   CrownIcon,
   HomeIcon,
@@ -15,30 +28,11 @@ import {
   UserIcon,
   Video,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Link, useRouter } from "@tanstack/react-router";
 import { AccountTierText } from "./account-tier-text";
-import { Badge } from "./ui/badge";
-import {
-  cn,
-  humanFileSize,
-  notNanOrDefault,
-  safeParseAccountTier,
-  TIER_TO_TEXT,
-} from "@/lib/utils";
-import { Sheet, SheetClose, SheetContent, SheetTrigger } from "./ui/sheet";
-import { usageDataQueryOptions } from "@/lib/query-utils";
-import { useQuery } from "@tanstack/react-query";
-import { Progress } from "./ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from "./ui/sheet";
 
 type TopNavProps = {
   showTierPill?: boolean;
@@ -55,9 +49,8 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
   const accountTier = safeParseAccountTier(user?.publicMetadata?.accountTier);
 
   const storageUsedPercentage = Math.max(
-    notNanOrDefault(usageData?.totalStorageUsed, 0) /
-      notNanOrDefault(usageData?.maxStorage, 1),
-    1
+    notNanOrDefault(usageData?.totalStorageUsed, 0) / notNanOrDefault(usageData?.maxStorage, 1),
+    1,
   );
 
   return (
@@ -71,12 +64,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            asChild
-          >
+          <Button variant="outline" size="icon" className="rounded-full" asChild>
             <Link to="/videos">
               <UploadIcon className="w-4 h-4" />
               <span className="sr-only">Upload</span>
@@ -110,9 +98,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
                       <AccountDropdown />
                     </div>
                     <div>
-                      <p className="text-medium text-primary">
-                        {user?.username}
-                      </p>
+                      <p className="text-medium text-primary">{user?.username}</p>
                       {showTierPill && (
                         <p className="font-sm">
                           <AccountTierText accountTier={accountTier}>
@@ -127,10 +113,8 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
                     <p className="text-sm font-medium">Storage</p>
                     <Progress value={storageUsedPercentage} className="h-2" />
                     <p className="text-xs text-muted-foreground">
-                      {humanFileSize(
-                        notNanOrDefault(usageData?.totalStorageUsed)
-                      )}{" "}
-                      / {humanFileSize(notNanOrDefault(usageData?.maxStorage))}
+                      {humanFileSize(notNanOrDefault(usageData?.totalStorageUsed))} /{" "}
+                      {humanFileSize(notNanOrDefault(usageData?.maxStorage))}
                     </p>
                   </div>
                 </SignedIn>
@@ -141,7 +125,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
                       to="/"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md hover:bg-accent",
-                        currentPath === "/" && "bg-accent"
+                        currentPath === "/" && "bg-accent",
                       )}
                     >
                       <HomeIcon className="w-4 h-4" />
@@ -153,7 +137,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
                       to="/pricing"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md hover:bg-accent",
-                        currentPath === "/pricing" && "bg-accent"
+                        currentPath === "/pricing" && "bg-accent",
                       )}
                     >
                       <CrownIcon className="w-4 h-4" />
@@ -165,7 +149,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
                       to="/videos"
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 text-sm transition-colors rounded-md hover:bg-accent",
-                        currentPath === "/videos" && "bg-accent"
+                        currentPath === "/videos" && "bg-accent",
                       )}
                     >
                       <Video className="w-4 h-4" />
@@ -201,7 +185,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
               className={cn(
                 currentPath === "/pricing"
                   ? "text-sm font-medium"
-                  : "text-sm text-muted-foreground hover:text-foreground"
+                  : "text-sm text-muted-foreground hover:text-foreground",
               )}
             >
               Pricing
@@ -211,7 +195,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
               className={cn(
                 currentPath === "/videos"
                   ? "text-sm font-medium"
-                  : "text-sm text-muted-foreground hover:text-foreground"
+                  : "text-sm text-muted-foreground hover:text-foreground",
               )}
             >
               Your Videos
@@ -240,10 +224,7 @@ export default function TopNav({ showTierPill = true }: TopNavProps) {
             <span className="text-sm font-medium">
               {showTierPill && (
                 <Badge variant="outline" className="h-8">
-                  <AccountTierText
-                    accountTier={accountTier}
-                    className="pointer-events-none"
-                  >
+                  <AccountTierText accountTier={accountTier} className="pointer-events-none">
                     {TIER_TO_TEXT[accountTier]} Tier
                   </AccountTierText>
                 </Badge>

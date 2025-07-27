@@ -1,23 +1,21 @@
-import { clerkClient, type WebhookEvent } from "@clerk/tanstack-start/server";
-import { json } from "@tanstack/start";
-import { createAPIFileRoute } from "@tanstack/start/api";
-import { Webhook } from "svix";
-import { getHeaders } from "@tanstack/start/server";
-import { Polar } from "@polar-sh/sdk";
 import { db } from "@/lib/db";
 import { users, videos } from "@/lib/schema";
-import { eq, sql } from "drizzle-orm";
-import { tasks } from "@trigger.dev/sdk/v3";
 import type { videoDeletionTask } from "@/trigger/video-deletion";
+import { type WebhookEvent, clerkClient } from "@clerk/tanstack-start/server";
+import { Polar } from "@polar-sh/sdk";
+import { json } from "@tanstack/start";
+import { createAPIFileRoute } from "@tanstack/start/api";
+import { getHeaders } from "@tanstack/start/server";
+import { tasks } from "@trigger.dev/sdk/v3";
+import { eq, sql } from "drizzle-orm";
+import { Webhook } from "svix";
 
 export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
   POST: async ({ request }) => {
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
     if (!WEBHOOK_SECRET) {
-      throw new Error(
-        "Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
-      );
+      throw new Error("Please add WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local");
     }
 
     const headers = getHeaders();
@@ -59,7 +57,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
 
     if (event.type === "user.created") {
       const userPrimaryEmail = event.data.email_addresses.find(
-        (e) => e.id === event.data.primary_email_address_id
+        (e) => e.id === event.data.primary_email_address_id,
       );
 
       if (!userPrimaryEmail) {
@@ -93,10 +91,7 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
     } else if (event.type === "user.deleted") {
       if (event.data.id && event.data.deleted) {
         const [deletedVideos, [deletedUser]] = await Promise.all([
-          db
-            .delete(videos)
-            .where(eq(videos.authorId, event.data.id))
-            .returning(),
+          db.delete(videos).where(eq(videos.authorId, event.data.id)).returning(),
           db.delete(users).where(eq(users.id, event.data.id)).returning(),
         ]);
 
@@ -110,14 +105,14 @@ export const APIRoute = createAPIFileRoute("/api/wh/clerk")({
 
         const triggerTask = tasks.batchTrigger<typeof videoDeletionTask>(
           "video-deletion",
-          videoDeletionTasks
+          videoDeletionTasks,
         );
 
         await Promise.all([polarTask, triggerTask]);
       }
     } else if (event.type === "user.updated") {
       const userPrimaryEmail = event.data.email_addresses.find(
-        (e) => e.id === event.data.primary_email_address_id
+        (e) => e.id === event.data.primary_email_address_id,
       );
 
       if (!userPrimaryEmail) {

@@ -16,7 +16,7 @@ export function AccountTierText({
       <span
         className={cn(
           "bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-bold",
-          className
+          className,
         )}
       >
         {children}
@@ -29,7 +29,7 @@ export function AccountTierText({
       <span
         className={cn(
           "bg-gradient-to-r from-pink-500 to-purple-300 bg-clip-text text-transparent font-bold",
-          className
+          className,
         )}
       >
         {children}
@@ -37,7 +37,5 @@ export function AccountTierText({
     );
   }
 
-  return (
-    <span className={cn(defaultColor, "font-bold", className)}>{children}</span>
-  );
+  return <span className={cn(defaultColor, "font-bold", className)}>{children}</span>;
 }

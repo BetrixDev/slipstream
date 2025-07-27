@@ -100,7 +100,7 @@ export const getCheckoutUrlServerFn = createServerFn({
     z.object({
       interval: z.union([z.literal("month"), z.literal("year")]),
       productName: z.union([z.literal("pro"), z.literal("premium")]),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const { userId } = await getAuth(getWebRequest()!);
@@ -141,9 +141,7 @@ export const getCheckoutUrlServerFn = createServerFn({
 
     const product = products.find((x) => x.nameId === data.productName);
 
-    const selectedPrice = product?.prices.find(
-      (x) => x.interval === data.interval
-    );
+    const selectedPrice = product?.prices.find((x) => x.interval === data.interval);
 
     if (!product || !selectedPrice) {
       throw new Error("Product not found");

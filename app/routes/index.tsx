@@ -1,9 +1,7 @@
 import { BlurFade } from "@/components/blur-fade-text";
-import { Footer } from "../components/footer";
-import TopNav from "../components/top-nav";
 import { Button } from "@/components/ui/button";
 import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   ChevronRightIcon,
   GlobeIcon,
@@ -13,6 +11,8 @@ import {
   UsersIcon,
   ZapIcon,
 } from "lucide-react";
+import { Footer } from "../components/footer";
+import TopNav from "../components/top-nav";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -38,8 +38,8 @@ function RouteComponent() {
                   <BlurFade delay={0.25}>with anyone</BlurFade>
                 </h1>
                 <p className="text-xl text-muted-foreground md:text-left text-center text-balance">
-                  Slipstream makes it simple to share high-quality videos with
-                  friends or embed them beautifully on your website.
+                  Slipstream makes it simple to share high-quality videos with friends or embed them
+                  beautifully on your website.
                 </p>
                 <div className="flex flex-row gap-4 justify-center md:justify-start">
                   <Link to="/videos">
@@ -63,8 +63,8 @@ function RouteComponent() {
               Simple, fast video sharing for everyone
             </h2>
             <p className="text-xl text-muted-foreground">
-              Slipstream provides all the tools you need to share videos quickly
-              and embed them anywhere.
+              Slipstream provides all the tools you need to share videos quickly and embed them
+              anywhere.
             </p>
           </div>
 
@@ -122,9 +122,7 @@ function RouteComponent() {
         {/* How It Works Section */}
         <section className="py-20 md:py-32 mx-4">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              How Slipstream works
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold">How Slipstream works</h2>
             <p className="text-xl text-muted-foreground">
               Share your videos in three simple steps.
             </p>
@@ -140,21 +138,17 @@ function RouteComponent() {
               {
                 step: "02",
                 title: "Get your link",
-                description:
-                  "Instantly receive a shareable link or embed code for your video.",
+                description: "Instantly receive a shareable link or embed code for your video.",
               },
               {
                 step: "03",
                 title: "Share anywhere",
-                description:
-                  "Send to friends, family, or embed on your website with one click.",
+                description: "Send to friends, family, or embed on your website with one click.",
               },
             ].map((step, i) => (
               <div key={step.step} className="relative">
                 <div className="bg-background rounded-lg p-8 border border-zinc-500/25 shadow-sm h-full">
-                  <div className="text-5xl font-bold text-primary/20 mb-4">
-                    {step.step}
-                  </div>
+                  <div className="text-5xl font-bold text-primary/20 mb-4">{step.step}</div>
                   <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
                   <p className="text-muted-foreground">{step.description}</p>
                 </div>
@@ -171,12 +165,10 @@ function RouteComponent() {
         {/* CTA Section */}
         <section className="py-20 md:py-32 mx-4">
           <div className="max-w-4xl mx-auto text-center bg-primary/5 border border-primary/20 rounded-xl p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to share your videos?
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to share your videos?</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Start sharing high-quality videos with friends or embedding them
-              on your website in seconds - no account required.
+              Start sharing high-quality videos with friends or embedding them on your website in
+              seconds - no account required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/videos">

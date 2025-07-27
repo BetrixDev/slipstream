@@ -2,16 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useForm } from "@tanstack/react-form";
-import { useEffect } from "react";
-import { toast } from "sonner";
-import { FieldInfo } from "./upload-video-dialog";
-import { useRouter } from "@tanstack/react-router";
-import { updateVideoDataServerFn } from "@/server-fns/videos";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { videosQueryOptions } from "@/lib/query-utils";
 import { useDialogsStore } from "@/lib/stores/dialogs";
+import { updateVideoDataServerFn } from "@/server-fns/videos";
+import { useForm } from "@tanstack/react-form";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { FieldInfo } from "./upload-video-dialog";
 
 type FormData = {
   title?: string;
@@ -23,19 +23,11 @@ export function EditVideoDialog() {
   const queryClient = useQueryClient();
   const { data } = useQuery(videosQueryOptions);
 
-  const editVideoDialogData = useDialogsStore(
-    (state) => state.editVideoDialogData
-  );
-  const isEditVideoDialogOpen = useDialogsStore(
-    (state) => state.isEditVideoDialogOpen
-  );
-  const closeEditVideoDialog = useDialogsStore(
-    (state) => state.closeEditVideoDialog
-  );
+  const editVideoDialogData = useDialogsStore((state) => state.editVideoDialogData);
+  const isEditVideoDialogOpen = useDialogsStore((state) => state.isEditVideoDialogOpen);
+  const closeEditVideoDialog = useDialogsStore((state) => state.closeEditVideoDialog);
 
-  const videoData = data?.videos.find(
-    (v) => v.id === editVideoDialogData?.videoId
-  );
+  const videoData = data?.videos.find((v) => v.id === editVideoDialogData?.videoId);
 
   async function handleUpdateVideo(data: FormData) {
     try {
@@ -134,8 +126,7 @@ export function EditVideoDialog() {
             validators={{
               onChange: ({ value }) => {
                 if (!value) return "A video title is required";
-                if (value.length > 100)
-                  return "Title must be 100 characters or less";
+                if (value.length > 100) return "Title must be 100 characters or less";
                 return undefined;
               },
             }}
@@ -177,11 +168,7 @@ export function EditVideoDialog() {
             }}
           />
           <div className="flex gap-2 mt-2">
-            <Button
-              variant="outline"
-              className="grow basis-1/2"
-              onClick={closeEditVideoDialog}
-            >
+            <Button variant="outline" className="grow basis-1/2" onClick={closeEditVideoDialog}>
               Cancel
             </Button>
             <Button className="grow basis-1/2" type="submit">
