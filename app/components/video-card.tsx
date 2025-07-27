@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { videosQueryOptions } from "@/lib/query-utils";
 import { formatSecondsToTimestamp, humanFileSize } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-  TriggerAuthContext,
-  useRealtimeRunsWithTag,
-} from "@trigger.dev/react-hooks";
+import { TriggerAuthContext, useRealtimeRunsWithTag } from "@trigger.dev/react-hooks";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
+import { motion } from "framer-motion";
 import {
   ClockIcon,
   CopyIcon,
@@ -23,15 +22,8 @@ import {
   UnlockIcon,
 } from "lucide-react";
 import { type ComponentProps, memo, useEffect, useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import { Skeleton } from "./ui/skeleton";
-import NumberFlow from "@number-flow/react";
-import { motion } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -128,13 +120,9 @@ function VideoCardComponent(props: VideoCardProps) {
         {!!props.pendingDeletionDate && (
           <PendingDeletionChip deletionDate={props.pendingDeletionDate} />
         )}
-        <InfoChip icon={FileVideoIcon}>
-          {humanFileSize(props.fileSizeBytes)}
-        </InfoChip>
+        <InfoChip icon={FileVideoIcon}>{humanFileSize(props.fileSizeBytes)}</InfoChip>
         {props.videoLengthSeconds !== undefined && (
-          <InfoChip icon={ClockIcon}>
-            {formatSecondsToTimestamp(props.videoLengthSeconds)}
-          </InfoChip>
+          <InfoChip icon={ClockIcon}>{formatSecondsToTimestamp(props.videoLengthSeconds)}</InfoChip>
         )}
         <InfoChip icon={props.isPrivate ? LockIcon : UnlockIcon}>
           {props.isPrivate ? "Private" : "Unlisted"}

@@ -1,16 +1,11 @@
-import { seo } from "../lib/seo";
 import { ClerkProvider } from "@clerk/tanstack-start";
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRoute,
-} from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { type ReactNode, lazy } from "react";
 import { Toaster } from "sonner";
 import clerkCss from "../clerk.css?url";
 import globalCss from "../globals.css?url";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { seo } from "../lib/seo";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -18,7 +13,7 @@ const TanStackRouterDevtools =
     : lazy(() =>
         import("@tanstack/router-devtools").then((res) => ({
           default: res.TanStackRouterDevtools,
-        }))
+        })),
       );
 
 const ReactQueryDevtools =
@@ -27,7 +22,7 @@ const ReactQueryDevtools =
     : lazy(() =>
         import("@tanstack/react-query-devtools").then((res) => ({
           default: res.ReactQueryDevtools,
-        }))
+        })),
       );
 
 export const Route = createRootRoute({

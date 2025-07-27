@@ -1,3 +1,4 @@
+import { useDialogsStore } from "@/lib/stores/dialogs";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
@@ -5,7 +6,6 @@ import { toast } from "sonner";
 import { handleCopyLink } from "../lib/utils";
 import { getVideoDownloadDetailsServerFn } from "../server-fns/videos";
 import { VideoCard } from "./video-card";
-import { useDialogsStore } from "@/lib/stores/dialogs";
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -25,12 +25,8 @@ type Video = {
 };
 
 export function VideosBoard({ videos }: { videos: Video[] }) {
-  const openDeleteVideoDialog = useDialogsStore(
-    (state) => state.openDeleteVideoDialog
-  );
-  const openEditVideoDialog = useDialogsStore(
-    (state) => state.openEditVideoDialog
-  );
+  const openDeleteVideoDialog = useDialogsStore((state) => state.openDeleteVideoDialog);
+  const openEditVideoDialog = useDialogsStore((state) => state.openEditVideoDialog);
 
   async function onDownloadClick(videoId: string, videoTitle: string) {
     try {

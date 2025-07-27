@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "polar_customer_id" DROP NOT NULL;

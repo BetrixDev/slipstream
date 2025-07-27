@@ -1,21 +1,18 @@
-import {
-  FREE_PLAN_VIDEO_RETENION_DAYS,
-  MAX_FILE_SIZE_FREE_TIER,
-} from "@/lib/constants";
-import { env } from "@/lib/env";
+import { FREE_PLAN_VIDEO_RETENION_DAYS, MAX_FILE_SIZE_FREE_TIER } from "@/lib/constants";
 import { PLAN_STORAGE_SIZES } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { users, videos } from "@/lib/schema";
 import { incrementUserUploadRateLimit } from "@/server-fns/videos";
+import type { Step, videoProcessingTask } from "@/trigger/video-processing";
 import { getAuth } from "@clerk/tanstack-start/server";
+import { tasks, auth as triggerAuth } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { createUploadthing, UploadThingError } from "uploadthing/server";
+import { UploadThingError, createUploadthing } from "uploadthing/server";
 import type { FileRouter } from "uploadthing/server";
 import { z } from "zod";
-import type { Step, videoProcessingTask } from "@/trigger/video-processing";
-import { tasks, auth as triggerAuth } from "@trigger.dev/sdk/v3";
 import { getPlayableMimeType } from "./utils";
 
 const f = createUploadthing();
@@ -31,7 +28,7 @@ export const uploadRouter = {
       z.object({
         title: z.string().min(1).max(128),
         isPrivate: z.boolean().default(false),
-      })
+      }),
     )
     .middleware(async ({ req, files, input }) => {
       const videoToUpload = files[0];
@@ -46,23 +43,18 @@ export const uploadRouter = {
 
       if (!userData) throw new UploadThingError("User not found");
 
-      const canUploadVideoToday = await incrementUserUploadRateLimit(
-        userData.accountTier,
-        userId
-      );
+      const canUploadVideoToday = await incrementUserUploadRateLimit(userData.accountTier, userId);
 
       if (!canUploadVideoToday) {
         throw new UploadThingError("You have reached your daily upload limit.");
       }
 
       const maxFileSize =
-        userData.accountTier === "free"
-          ? MAX_FILE_SIZE_FREE_TIER
-          : Number.POSITIVE_INFINITY;
+        userData.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : Number.POSITIVE_INFINITY;
 
       if (videoToUpload.size > maxFileSize) {
         throw new UploadThingError(
-          "This video file is too large for your current plan. Please upgrade your account tier to upload larger videos."
+          "This video file is too large for your current plan. Please upgrade your account tier to upload larger videos.",
         );
       }
 
@@ -71,7 +63,7 @@ export const uploadRouter = {
         PLAN_STORAGE_SIZES[userData.accountTier]
       ) {
         throw new UploadThingError(
-          "Uploading this video would exceed your total available storage. Please upgrade your account tier or delete some videos and try again."
+          "Uploading this video would exceed your total available storage. Please upgrade your account tier or delete some videos and try again.",
         );
       }
 
@@ -96,9 +88,7 @@ export const uploadRouter = {
             fileSizeBytes: videoToUpload.size,
             pendingDeletionDate:
               userData.accountTier === "free"
-                ? sql.raw(
-                    `now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`
-                  )
+                ? sql.raw(`now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`)
                 : null,
           })
           .returning(),
@@ -148,7 +138,7 @@ export const uploadRouter = {
       try {
         const cachedVideos = await redis.hget<(typeof videoData)[]>(
           `videos:${metadata.user.id}`,
-          "videos"
+          "videos",
         );
 
         if (cachedVideos) {
@@ -180,7 +170,7 @@ export const uploadRouter = {
             },
             {
               tags: [`videoProcessing_${videoData.id}`],
-            }
+            },
           );
           break;
         } catch (err) {
@@ -199,8 +189,7 @@ export const uploadRouter = {
           title: videoData.title,
           fileSizeByes: videoData.fileSizeBytes,
           createdAt: videoData.createdAt.toString(),
-          pendingDeletionDate:
-            videoData.pendingDeletionDate?.toString() ?? null,
+          pendingDeletionDate: videoData.pendingDeletionDate?.toString() ?? null,
         },
       };
     }),

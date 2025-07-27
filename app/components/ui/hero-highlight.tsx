@@ -1,6 +1,6 @@
-import { cn } from "../../../app/lib/utils";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import type React from "react";
+import { cn } from "../../../app/lib/utils";
 
 export const HeroHighlight = ({
   children,
@@ -14,11 +14,7 @@ export const HeroHighlight = ({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  function handleMouseMove({
-    currentTarget,
-    clientX,
-    clientY,
-  }: React.MouseEvent<HTMLDivElement>) {
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
     if (!currentTarget) return;
     const { left, top } = currentTarget.getBoundingClientRect();
 
@@ -27,10 +23,7 @@ export const HeroHighlight = ({
   }
   return (
     <div
-      className={cn(
-        "relative items-center bg-background w-full group",
-        containerClassName
-      )}
+      className={cn("relative items-center bg-background w-full group", containerClassName)}
       onMouseMove={handleMouseMove}
     >
       <div className="absolute inset-0 bg-dot-thick-neutral-200 dark:bg-dot-thick-neutral-800 pointer-events-none" />
@@ -86,7 +79,7 @@ export const Highlight = ({
       }}
       className={cn(
         "relative inline-block pb-1   px-1 rounded-lg bg-gradient-to-r from-indigo-300 to-purple-300 dark:from-indigo-500 dark:to-purple-500",
-        className
+        className,
       )}
     >
       {children}

@@ -1,17 +1,17 @@
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import type { VideoSource } from "@/lib/schema";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { clerkClient } from "@clerk/tanstack-start/server";
+import { notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/start";
+import { getHeaders } from "@tanstack/start/server";
 import { Redis } from "@upstash/redis";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { createSigner } from "fast-jwt";
-import { createServerFn } from "@tanstack/start";
 import { z } from "zod";
-import { notFound } from "@tanstack/react-router";
-import { getHeaders } from "@tanstack/start/server";
-import type { VideoSource } from "@/lib/schema";
 
 dayjs.extend(utc);
 
@@ -35,7 +35,7 @@ export const createVideoTokenServerFn = createServerFn({ method: "POST" })
       videoId: z.string(),
       videoDuration: z.number(),
       userId: z.string().nullable().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const ip = await getIp();
@@ -75,7 +75,7 @@ export async function generateVideoSources(videoSources: VideoSource[]) {
           Bucket: env.VIDEOS_BUCKET_NAME,
           Key: source.key,
         }),
-        { expiresIn: 60 * 60 * 24 * 7 }
+        { expiresIn: 60 * 60 * 24 * 7 },
       );
 
       return {
@@ -85,7 +85,7 @@ export async function generateVideoSources(videoSources: VideoSource[]) {
         height: source.height,
         isNative: source.isNative,
       };
-    })
+    }),
   );
 
   return sources;

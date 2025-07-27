@@ -1,8 +1,8 @@
-import { db } from "../../../app/lib/db";
-import { videos } from "../../../app/lib/schema";
 import { logger, schedules } from "@trigger.dev/sdk/v3";
 import { Redis } from "@upstash/redis";
 import { eq, sql } from "drizzle-orm";
+import { db } from "../../../app/lib/db";
+import { videos } from "../../../app/lib/schema";
 
 const BATCH_SIZE = 15;
 
@@ -21,47 +21,37 @@ export const incrementViewsScheduledTask = schedules.task({
       enableAutoPipelining: true,
     });
 
-    const oldestKeys = await logger.trace(
-      "Get oldest view keys",
-      async (span) => {
-        span.setAttributes({
-          count: BATCH_SIZE,
-          source: "redis",
-        });
+    const oldestKeys = await logger.trace("Get oldest view keys", async (span) => {
+      span.setAttributes({
+        count: BATCH_SIZE,
+        source: "redis",
+      });
 
-        const keys = (await redis.zrange(
-          "views",
-          0,
-          BATCH_SIZE - 1
-        )) as string[];
+      const keys = (await redis.zrange("views", 0, BATCH_SIZE - 1)) as string[];
 
-        span.end();
-        return keys;
-      }
-    );
+      span.end();
+      return keys;
+    });
 
-    const oldestEntries = await logger.trace(
-      "Get oldest entries views",
-      async (span) => {
-        span.setAttributes({
-          keyCount: oldestKeys.length,
-          source: "redis",
-        });
+    const oldestEntries = await logger.trace("Get oldest entries views", async (span) => {
+      span.setAttributes({
+        keyCount: oldestKeys.length,
+        source: "redis",
+      });
 
-        const entries = await Promise.all(
-          oldestKeys.map(async (key) => {
-            return {
-              key,
-              videoId: key.split(":")[1],
-              value: await redis.hget(key, "views"),
-            };
-          })
-        );
+      const entries = await Promise.all(
+        oldestKeys.map(async (key) => {
+          return {
+            key,
+            videoId: key.split(":")[1],
+            value: await redis.hget(key, "views"),
+          };
+        }),
+      );
 
-        span.end();
-        return entries;
-      }
-    );
+      span.end();
+      return entries;
+    });
 
     for (const entry of oldestEntries) {
       if (entry.value === null) {

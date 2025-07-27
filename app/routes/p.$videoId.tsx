@@ -1,44 +1,32 @@
+import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { type VideoData, videoQueryOptions } from "@/lib/query-utils";
+import { seo } from "@/lib/seo";
 import { useUser } from "@clerk/tanstack-start";
+import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { MediaPlayer, MediaProvider, Poster } from "@vidstack/react";
-import {
-  PlyrLayout,
-  plyrLayoutIcons,
-} from "@vidstack/react/player/layouts/plyr";
+import { PlyrLayout, plyrLayoutIcons } from "@vidstack/react/player/layouts/plyr";
 import playerBaseCss from "@vidstack/react/player/styles/base.css?url";
 import playerThemeCss from "@vidstack/react/player/styles/plyr/theme.css?url";
-import plyrCss from "../plyr.css?url";
-import {
-  EyeIcon,
-  Loader2Icon,
-  SquareArrowOutUpRightIcon,
-  VideoIcon,
-} from "lucide-react";
+import { EyeIcon, Loader2Icon, SquareArrowOutUpRightIcon, VideoIcon } from "lucide-react";
 import { AuthorInfo } from "../components/author-info";
 import { ViewIncrementer } from "../components/view-incrementer";
 import { WordyDate } from "../components/wordy-date";
-import { seo } from "@/lib/seo";
-import { Footer } from "@/components/footer";
+import plyrCss from "../plyr.css?url";
 import { queryClient } from "./__root";
-import { type VideoData, videoQueryOptions } from "@/lib/query-utils";
-import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/p/$videoId")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const cachedVideoData = queryClient.getQueryData(
-      videoQueryOptions(params.videoId).queryKey
-    );
+    const cachedVideoData = queryClient.getQueryData(videoQueryOptions(params.videoId).queryKey);
 
     if (cachedVideoData) {
       return cachedVideoData;
     }
 
-    const videoData = await queryClient.fetchQuery(
-      videoQueryOptions(params.videoId)
-    );
+    const videoData = await queryClient.fetchQuery(videoQueryOptions(params.videoId));
 
     return videoData;
   },
@@ -91,10 +79,7 @@ function RouteComponent() {
         )}
         <header className="max-h-16 h-16 flex justify-between items-center px-4 p-2">
           <Link className="flex items-center" to="/" preload="render">
-            <button
-              className="flex-shrink-0 flex items-center z-10"
-              type="button"
-            >
+            <button className="flex-shrink-0 flex items-center z-10" type="button">
               <VideoIcon className="h-8 w-8 text-red-500" />
               <span className="ml-2 text-2xl font-bold">Slipstream</span>
             </button>
@@ -104,10 +89,7 @@ function RouteComponent() {
             to={isViewerAuthor ? "/videos" : "/"}
             preload="intent"
           >
-            <Button
-              variant="outline"
-              className="text-md flex gap-2 items-center rounded-lg h-10"
-            >
+            <Button variant="outline" className="text-md flex gap-2 items-center rounded-lg h-10">
               <SquareArrowOutUpRightIcon className="w-5 h-5" />
               <span className="hidden md:block">
                 {isViewerAuthor ? "Back to your videos" : "Go to Slipstream"}
@@ -116,22 +98,15 @@ function RouteComponent() {
           </Link>
         </header>
         <div className="flex gap-4 p-4 max-w-full overflow-x-hidden h-full flex-col xl:flex-row">
-          <div className="w-full">
-            {videoData && <VideoPlayer video={videoData} />}
-          </div>
+          <div className="w-full">{videoData && <VideoPlayer video={videoData} />}</div>
           <div className="flex flex-col gap-4 min-w-96 w-96 grow">
             <Card className="border-none shadow-none bg-transparent">
               <CardContent className="p-0 space-y-4">
-                <h1 className="text-2xl font-bold">
-                  {videoData?.videoData.title}
-                </h1>
+                <h1 className="text-2xl font-bold">{videoData?.videoData.title}</h1>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between text-sm text-muted-foreground">
                   {videoData?.videoData.videoCreatedAt && (
                     <span>
-                      Uploaded on{" "}
-                      <WordyDate
-                        timestamp={videoData?.videoData.videoCreatedAt}
-                      />
+                      Uploaded on <WordyDate timestamp={videoData?.videoData.videoCreatedAt} />
                     </span>
                   )}
                   <span className="flex items-center gap-1">
@@ -141,8 +116,8 @@ function RouteComponent() {
                 </div>
                 {videoData?.videoData.isProcessing && (
                   <span className="text-sm text-muted flex gap-2">
-                    <Loader2Icon className="animate-spin" /> This video is still
-                    processing. Playback may less smooth than usual
+                    <Loader2Icon className="animate-spin" /> This video is still processing.
+                    Playback may less smooth than usual
                   </span>
                 )}
                 {videoData?.videoData.authorId && (
@@ -178,10 +153,7 @@ function VideoPlayer({ video }: VideoPlayerProps) {
       playsInline={false}
     >
       <MediaProvider />
-      <PlyrLayout
-        thumbnails={video.playbackData.storyboard}
-        icons={plyrLayoutIcons}
-      />
+      <PlyrLayout thumbnails={video.playbackData.storyboard} icons={plyrLayoutIcons} />
     </MediaPlayer>
   );
 }

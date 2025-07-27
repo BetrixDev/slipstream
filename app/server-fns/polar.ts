@@ -99,8 +99,8 @@ export const getCheckoutUrlServerFn = createServerFn({
   .validator(
     z.object({
       interval: z.union([z.literal("month"), z.literal("year")]),
-      productName: z.union([z.literal("pro"), z.literal("premium")]),
-    })
+      productName: z.union([z.literal("pro"), z.literal("premium"), z.literal("ultimate")]),
+    }),
   )
   .handler(async ({ data }) => {
     const { userId } = await getAuth(getWebRequest()!);
@@ -141,9 +141,7 @@ export const getCheckoutUrlServerFn = createServerFn({
 
     const product = products.find((x) => x.nameId === data.productName);
 
-    const selectedPrice = product?.prices.find(
-      (x) => x.interval === data.interval
-    );
+    const selectedPrice = product?.prices.find((x) => x.interval === data.interval);
 
     if (!product || !selectedPrice) {
       throw new Error("Product not found");
@@ -151,7 +149,7 @@ export const getCheckoutUrlServerFn = createServerFn({
 
     const checkout = await polar.checkouts.create({
       productId: selectedPrice.id,
-      customerId: user.polarCustomerId,
+      customerId: customerId,
       customerEmail: user.email,
       successUrl: "https://www.slipstream.video/success",
     });

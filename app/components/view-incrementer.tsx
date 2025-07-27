@@ -12,10 +12,7 @@ type ViewIncrementerProps = {
   videoDuration: number;
 };
 
-export function ViewIncrementer({
-  videoId,
-  videoDuration,
-}: ViewIncrementerProps) {
+export function ViewIncrementer({ videoId, videoDuration }: ViewIncrementerProps) {
   const { data } = useQuery(viewTokenQueryOptions(videoId, videoDuration));
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: not needed
@@ -26,9 +23,12 @@ export function ViewIncrementer({
       return;
     }
 
-    const timeout = setTimeout(() => {
-      incrementViewCount({ data: { token } });
-    }, (videoDuration / 2) * 1000);
+    const timeout = setTimeout(
+      () => {
+        incrementViewCount({ data: { token } });
+      },
+      (videoDuration / 2) * 1000,
+    );
 
     return () => {
       clearTimeout(timeout);

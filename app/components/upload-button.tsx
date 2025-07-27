@@ -1,13 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ArrowUp } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
 import { useDialogsStore } from "@/lib/stores/dialogs";
+import { motion } from "framer-motion";
+import { ArrowUp } from "lucide-react";
+import { useState } from "react";
 
 export function UploadButton() {
-  const openUploadVideoDialog = useDialogsStore(
-    (state) => state.openUploadVideoDialog
-  );
+  const openUploadVideoDialog = useDialogsStore((state) => state.openUploadVideoDialog);
 
   const [isHovering, setIsHovering] = useState(false);
 

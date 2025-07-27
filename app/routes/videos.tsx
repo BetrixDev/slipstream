@@ -1,28 +1,24 @@
-import TopNav from "../components/top-nav";
+import { Footer } from "@/components/footer";
+import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
+import { HeroHighlight } from "@/components/ui/hero-highlight";
+import { Separator } from "@/components/ui/seperator";
+import { VideoCardSkeleton } from "@/components/video-card";
+import { seo } from "@/lib/seo";
+import { humanFileSize } from "@/lib/utils";
+import { useUser } from "@clerk/tanstack-start";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import {
-  usageDataQueryOptions,
-  videoQueryOptions,
-  videosQueryOptions,
-} from "../lib/query-utils";
+import { useEffect } from "react";
 import { DeleteVideoDialog } from "../components/dialogs/delete-video-dialog";
 import { EditVideoDialog } from "../components/dialogs/edit-video-dialog";
 import { UploadVideoDialog } from "../components/dialogs/upload-video-dialog";
 import { FullPageDropzone } from "../components/full-page-dropzone";
-import { queryClient } from "./__root";
+import TopNav from "../components/top-nav";
 import { UploadButton } from "../components/upload-button";
 import { UploadingVideosContainer } from "../components/uploading-videos-container";
 import { VideosBoard } from "../components/videos-board";
-import { useQuery } from "@tanstack/react-query";
-import { seo } from "@/lib/seo";
-import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { Separator } from "@/components/ui/seperator";
-import { Footer } from "@/components/footer";
-import { useEffect } from "react";
-import { HumanFileSizeMotion } from "@/components/human-file-size-motion";
-import { humanFileSize } from "@/lib/utils";
-import { useUser } from "@clerk/tanstack-start";
-import { VideoCardSkeleton } from "@/components/video-card";
+import { usageDataQueryOptions, videoQueryOptions, videosQueryOptions } from "../lib/query-utils";
+import { queryClient } from "./__root";
 
 export const Route = createFileRoute("/videos")({
   component: RouteComponent,

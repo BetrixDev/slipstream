@@ -1,29 +1,18 @@
-import {
-  AbortTaskRunError,
-  logger,
-  metadata,
-  schemaTask,
-  tasks,
-} from "@trigger.dev/sdk/v3";
-import { z } from "zod";
-import type { validateEvent } from "@polar-sh/sdk/webhooks";
+import { FREE_PLAN_VIDEO_RETENION_DAYS, PLAN_STORAGE_SIZES } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { users, videos } from "@/lib/schema";
 import { safeParseAccountTier } from "@/lib/utils";
 import { createClerkClient } from "@clerk/backend";
-import { users, videos } from "@/lib/schema";
+import type { validateEvent } from "@polar-sh/sdk/webhooks";
+import { AbortTaskRunError, logger, metadata, schemaTask, tasks } from "@trigger.dev/sdk/v3";
 import { eq, sql } from "drizzle-orm";
-import {
-  FREE_PLAN_VIDEO_RETENION_DAYS,
-  PLAN_STORAGE_SIZES,
-} from "@/lib/constants";
+import { z } from "zod";
 import type { videoDeletionTask } from "./video-deletion";
 
 export const handlePolarEventTask = schemaTask({
   id: "handle-polar-event",
   schema: z.object({
-    event: z
-      .unknown()
-      .transform((val) => val as ReturnType<typeof validateEvent>),
+    event: z.unknown().transform((val) => val as ReturnType<typeof validateEvent>),
   }),
   machine: {
     preset: "micro",
@@ -41,8 +30,7 @@ export const handlePolarEventTask = schemaTask({
       metadata.set("progress", 15);
 
       const user = await db.query.users.findFirst({
-        where: (table, { eq }) =>
-          eq(table.polarCustomerId, event.data.customer.id),
+        where: (table, { eq }) => eq(table.polarCustomerId, event.data.customer.id),
         columns: {
           id: true,
           accountTier: true,
@@ -56,9 +44,7 @@ export const handlePolarEventTask = schemaTask({
       }
 
       const oldAccountTier = user.accountTier;
-      const newAccountTier = safeParseAccountTier(
-        event.data.product.metadata.productName
-      );
+      const newAccountTier = safeParseAccountTier(event.data.product.metadata.productName);
 
       // biome-ignore lint/suspicious/noExplicitAny: drizzle has stricter types than we need for these batch calls
       const dbCalls: any[] = [
@@ -74,10 +60,7 @@ export const handlePolarEventTask = schemaTask({
 
       if (oldAccountTier === "free") {
         dbCalls.push(
-          db
-            .update(videos)
-            .set({ pendingDeletionDate: null })
-            .where(eq(videos.authorId, user.id))
+          db.update(videos).set({ pendingDeletionDate: null }).where(eq(videos.authorId, user.id)),
         );
       }
 
@@ -96,8 +79,7 @@ export const handlePolarEventTask = schemaTask({
       logger.info("Subscription revoked");
 
       const user = await db.query.users.findFirst({
-        where: (table, { eq }) =>
-          eq(table.polarCustomerId, event.data.customer.id),
+        where: (table, { eq }) => eq(table.polarCustomerId, event.data.customer.id),
         columns: {
           id: true,
           accountTier: true,
@@ -116,9 +98,7 @@ export const handlePolarEventTask = schemaTask({
       const currentAmountOfStorage = PLAN_STORAGE_SIZES[user.accountTier];
       const futureAmountOfStorage = PLAN_STORAGE_SIZES.free;
 
-      const difference = Math.abs(
-        currentAmountOfStorage - futureAmountOfStorage
-      );
+      const difference = Math.abs(currentAmountOfStorage - futureAmountOfStorage);
       let totalSizeRecovered = 0;
 
       const jobs: { payload: { videoId: string } }[] = [];
@@ -148,7 +128,7 @@ export const handlePolarEventTask = schemaTask({
             .update(videos)
             .set({
               pendingDeletionDate: sql.raw(
-                `now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`
+                `now() + INTERVAL '${FREE_PLAN_VIDEO_RETENION_DAYS} days'`,
               ),
             })
             .where(eq(videos.authorId, user.id)),

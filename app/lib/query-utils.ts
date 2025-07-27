@@ -1,28 +1,20 @@
+import { generateVideoSources } from "@/server-fns/video-player";
+import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
 import { queryOptions } from "@tanstack/react-query";
+import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/start";
+import { getWebRequest } from "@tanstack/start/server";
+import { Redis } from "@upstash/redis";
+import dayjs from "dayjs";
+import { and, desc, eq, inArray, not, sum } from "drizzle-orm";
+import { createSigner } from "fast-jwt";
 import { z } from "zod";
 import { authGuardMiddleware } from "../middleware/auth-guard";
+import { MAX_FILE_SIZE_FREE_TIER, MAX_FILE_SIZE_PAID_TIER, PLAN_STORAGE_SIZES } from "./constants";
 import { db } from "./db";
-import { and, desc, eq, inArray, not, sum } from "drizzle-orm";
-import { videos, type VideoStoryboard } from "./schema";
-import {
-  MAX_FILE_SIZE_FREE_TIER,
-  MAX_FILE_SIZE_PAID_TIER,
-  PLAN_STORAGE_SIZES,
-} from "./constants";
-import { clerkClient, getAuth } from "@clerk/tanstack-start/server";
-import {
-  getIpFromHeaders,
-  notNanOrDefault,
-  safeParseAccountTier,
-} from "./utils";
-import { getWebRequest } from "@tanstack/start/server";
-import dayjs from "dayjs";
-import { createSigner } from "fast-jwt";
 import { env } from "./env";
-import { generateVideoSources } from "@/server-fns/video-player";
-import { notFound } from "@tanstack/react-router";
-import { Redis } from "@upstash/redis";
+import { type VideoStoryboard, videos } from "./schema";
+import { getIpFromHeaders, notNanOrDefault, safeParseAccountTier } from "./utils";
 
 export const queryKeys = {
   videos: ["videos"],
@@ -41,7 +33,7 @@ const fetchVideosData = createServerFn({ method: "GET" })
         and(
           eq(table.authorId, context.userId),
           eq(table.isQueuedForDeletion, false),
-          not(inArray(table.status, ["deleting", "uploading"]))
+          not(inArray(table.status, ["deleting", "uploading"])),
         ),
       orderBy: desc(videos.createdAt),
       columns: {
@@ -81,11 +73,7 @@ export const videosQueryOptions = queryOptions({
   queryKey: queryKeys.videos,
   queryFn: () => fetchVideosData(),
   staleTime: ({ state }) => {
-    if (
-      state?.data &&
-      "signedIn" in state.data &&
-      state.data?.signedIn === false
-    ) {
+    if (state?.data && "signedIn" in state.data && state.data?.signedIn === false) {
       return 0;
     }
 
@@ -125,9 +113,7 @@ const fetchVideoData = createServerFn({ method: "POST" })
     });
 
     try {
-      const cachedVideoData = await redis.get<VideoData>(
-        `video:${data.videoId}`
-      );
+      const cachedVideoData = await redis.get<VideoData>(`video:${data.videoId}`);
 
       if (cachedVideoData) {
         return cachedVideoData;
@@ -154,11 +140,7 @@ const fetchVideoData = createServerFn({ method: "POST" })
       },
     });
 
-    if (
-      !videoData ||
-      videoData.status === "deleting" ||
-      videoData.status === "uploading"
-    ) {
+    if (!videoData || videoData.status === "deleting" || videoData.status === "uploading") {
       throw notFound();
     }
 
@@ -171,16 +153,13 @@ const fetchVideoData = createServerFn({ method: "POST" })
     }
 
     const largeThumbnailUrl =
-      videoData.largeThumbnailKey &&
-      `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
+      videoData.largeThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.largeThumbnailKey}`;
 
     const smallThumbnailUrl =
-      videoData.smallThumbnailKey &&
-      `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`;
+      videoData.smallThumbnailKey && `${env.THUMBNAIL_BASE_URL}/${videoData.smallThumbnailKey}`;
 
     const storyboardUrl =
-      videoData.storyboardJson &&
-      `${env.THUMBNAIL_BASE_URL}/${videoData.id}-storyboard.jpg`;
+      videoData.storyboardJson && `${env.THUMBNAIL_BASE_URL}/${videoData.id}-storyboard.jpg`;
 
     const fullVideoData = {
       videoData: {
@@ -219,10 +198,7 @@ export const videoQueryOptions = (videoId: string) =>
     queryKey: queryKeys.video(videoId),
     queryFn: () => fetchVideoData({ data: { videoId: videoId } }),
     staleTime: ({ state }) => {
-      if (
-        state.data?.playbackData === undefined ||
-        state.data?.videoData.isProcessing
-      ) {
+      if (state.data?.playbackData === undefined || state.data?.videoData.isProcessing) {
         return 0;
       }
 
@@ -246,10 +222,7 @@ const fetchUsageDataServerFn = createServerFn({ method: "GET" })
         })
         .from(videos)
         .where(
-          and(
-            eq(videos.authorId, context.userId),
-            inArray(videos.status, ["ready", "processing"])
-          )
+          and(eq(videos.authorId, context.userId), inArray(videos.status, ["ready", "processing"])),
         ),
     ]);
 
@@ -259,9 +232,7 @@ const fetchUsageDataServerFn = createServerFn({ method: "GET" })
       totalStorageUsed: notNanOrDefault(totalVideoStorageUsed),
       maxStorage,
       maxFileUpload:
-        userData?.accountTier === "free"
-          ? MAX_FILE_SIZE_FREE_TIER
-          : MAX_FILE_SIZE_PAID_TIER,
+        userData?.accountTier === "free" ? MAX_FILE_SIZE_FREE_TIER : MAX_FILE_SIZE_PAID_TIER,
     };
   });
 
@@ -298,7 +269,7 @@ const fetchViewTokenServerFn = createServerFn({ method: "POST" })
       videoId: z.string(),
       videoDuration: z.number(),
       userId: z.string().nullable().optional(),
-    })
+    }),
   )
   .handler(async ({ data }) => {
     const webRequest = getWebRequest();

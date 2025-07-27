@@ -1,17 +1,15 @@
-import { useDebounce } from "../lib/hooks/use-debounce";
+import { usageDataQueryOptions } from "@/lib/query-utils";
+import { useDialogsStore } from "@/lib/stores/dialogs";
+import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
 import { Dialog, DialogOverlay, DialogPortal } from "@radix-ui/react-dialog";
+import { useQuery } from "@tanstack/react-query";
 import { Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useUploadingVideosStore } from "@/lib/stores/uploading-videos";
-import { usageDataQueryOptions } from "@/lib/query-utils";
-import { useQuery } from "@tanstack/react-query";
-import { useDialogsStore } from "@/lib/stores/dialogs";
+import { useDebounce } from "../lib/hooks/use-debounce";
 import { Button } from "./ui/button";
 
 export function FullPageDropzone() {
-  const isUploadVideoDialogOpen = useDialogsStore(
-    (s) => s.isUploadVideoDialogOpen
-  );
+  const isUploadVideoDialogOpen = useDialogsStore((s) => s.isUploadVideoDialogOpen);
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -24,29 +22,19 @@ export function FullPageDropzone() {
 
     const maxFileUploadSize = usageData?.maxFileUpload;
     const totalStorageUsed = usageData?.totalStorageUsed;
-    const totalStorageAvailable =
-      (usageData?.maxStorage ?? 0) - (usageData?.totalStorageUsed ?? 0);
+    const totalStorageAvailable = (usageData?.maxStorage ?? 0) - (usageData?.totalStorageUsed ?? 0);
 
     if (!isValidMime) {
       setErrorMessage("Invalid file type");
       return false;
     }
 
-    if (
-      maxFileUploadSize !== undefined &&
-      maxFileUploadSize > 0 &&
-      file.size > maxFileUploadSize
-    ) {
-      setErrorMessage(
-        "File too big! Upgrade your account to a paid tier upload larger files"
-      );
+    if (maxFileUploadSize !== undefined && maxFileUploadSize > 0 && file.size > maxFileUploadSize) {
+      setErrorMessage("File too big! Upgrade your account to a paid tier upload larger files");
       return false;
     }
 
-    if (
-      totalStorageUsed === undefined ||
-      totalStorageUsed + file.size > totalStorageAvailable
-    ) {
+    if (totalStorageUsed === undefined || totalStorageUsed + file.size > totalStorageAvailable) {
       setErrorMessage("Uploading this video would exceed your storage limits");
       return false;
     }
@@ -97,7 +85,7 @@ export function FullPageDropzone() {
 
           setIsDragOver(true);
         },
-        { signal: controller.signal }
+        { signal: controller.signal },
       );
 
       window.addEventListener(
@@ -106,7 +94,7 @@ export function FullPageDropzone() {
           e.preventDefault();
           setIsDragOver(false);
         },
-        { signal: controller.signal }
+        { signal: controller.signal },
       );
 
       window.addEventListener(
@@ -129,7 +117,7 @@ export function FullPageDropzone() {
             }
           }
         },
-        { signal: controller.signal }
+        { signal: controller.signal },
       );
     }
 
@@ -153,9 +141,7 @@ export function FullPageDropzone() {
               <p className="text-neutral-300 dark:text-neutral-500">
                 Drag or drop your video here to upload
               </p>
-              {errorMessage !== undefined && (
-                <p className="text-destructive">{errorMessage}</p>
-              )}
+              {errorMessage !== undefined && <p className="text-destructive">{errorMessage}</p>}
               <Button
                 variant="outline"
                 onClick={() => {
