@@ -1,0 +1,50 @@
+name: SuperSmashBrawl
+version: ${version}
+main: com.supersmashbrawl.SuperSmashBrawlPlugin
+description: ${project.description}
+api-version: "1.21"
+author: YourName
+website: https://github.com/yourusername/super-smash-brawl
+
+softdepend:
+  - PlaceholderAPI
+  - WorldEdit
+
+permissions:
+  supersmashbrawl.*:
+    description: Access to all Super Smash Brawl commands
+    default: op
+    children:
+      supersmashbrawl.admin: true
+      supersmashbrawl.play: true
+      supersmashbrawl.join: true
+      
+  supersmashbrawl.admin:
+    description: Administrative access to Super Smash Brawl
+    default: op
+    
+  supersmashbrawl.play:
+    description: Permission to play minigames
+    default: true
+    
+  supersmashbrawl.join:
+    description: Permission to join game queues
+    default: true
+
+commands:
+  supersmashbrawl:
+    description: Main Super Smash Brawl command
+    aliases: [ssb, brawl]
+    permission: supersmashbrawl.play
+    
+  1v1:
+    description: Join 1v1 minigame queue
+    permission: supersmashbrawl.join
+    
+  queue:
+    description: Manage game queues
+    permission: supersmashbrawl.admin
+    
+  arena:
+    description: Manage game arenas
+    permission: supersmashbrawl.admin

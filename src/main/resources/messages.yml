@@ -1,0 +1,49 @@
+# Super Smash Brawl - Messages Configuration
+# ==========================================
+
+# General
+prefix: "&6[&eSuperSmashBrawl&6] &r"
+
+# Queue Messages
+queue:
+  joined: "&aYou have joined the 1v1 queue!"
+  left: "&cYou have left the 1v1 queue!"
+  already-in-queue: "&cYou are already in a queue!"
+  not-in-queue: "&cYou are not in any queue!"
+  match-found: "&aMatch found! Teleporting to arena..."
+  position: "&eYou are position &6{position} &eof &6{total} &ein the queue"
+
+# Game Messages
+game:
+  starting: "&eGame starting in &6{countdown} &eseconds!"
+  started: "&aGame has started! Fight!"
+  ended: "&eGame ended!"
+  winner: "&6{winner} &awins the match!"
+  draw: "&eThe match ended in a draw!"
+  player-joined: "&a{player} &ehas joined the game!"
+  player-left: "&c{player} &ehas left the game{reason}"
+  spectating: "&eYou are now spectating the game"
+  round-starting: "&eRound &6{round}&e/&6{max_rounds} &estarting..."
+  round-started: "&aRound started! Fight!"
+  round-winner: "&6{winner} &awins round &6{round}&a!"
+  round-hud: "&eRound &6{round} &7| &aYou: &f{player_wins} &7| &c{opponent}: &f{opponent_wins}"
+  final-score: "&6{winner} &awins &6{winner_score}&a-&6{loser_score}&a!"
+
+# Error Messages
+error:
+  no-permission: "&cYou don't have permission to do that!"
+  player-only: "&cThis command can only be used by players!"
+  no-arena-available: "&cNo arena is currently available!"
+  already-in-game: "&cYou are already in a game!"
+  unknown-command: "&cUnknown command! Use help for available commands."
+
+# Admin Messages
+admin:
+  reload-success: "&aPlugin reloaded successfully!"
+  reload-failed: "&cFailed to reload plugin!"
+
+# Reward Messages
+rewards:
+  winner: "&aYou won the match! Here are your rewards:"
+  loser: "&7Thanks for playing! Here are your participation rewards:"
+  draw: "&eThe match was a draw! Here are your rewards:"

@@ -1,0 +1,88 @@
+# Super Smash Brawl - Arenas Configuration
+# ========================================
+# 
+# This file contains all arena configurations.
+# You can create arenas using /arena create <name> command,
+# or manually configure them here.
+#
+# Arena Structure:
+# arenas:
+#   arena_name:
+#     world: "world_name"
+#     center:
+#       x: 0.0
+#       y: 64.0
+#       z: 0.0
+#       yaw: 0.0
+#       pitch: 0.0
+#     spawnPoints:
+#       0:
+#         x: -5.0
+#         y: 64.0
+#         z: 0.0
+#         yaw: 90.0
+#         pitch: 0.0
+#       1:
+#         x: 5.0
+#         y: 64.0
+#         z: 0.0
+#         yaw: -90.0
+#         pitch: 0.0
+#     spectatorSpawn:
+#       x: 0.0
+#       y: 74.0
+#       z: 0.0
+#       yaw: 0.0
+#       pitch: 45.0
+#     minY: 50.0
+#     maxY: 80.0
+#     boundary:
+#       type: "rectangular"  # or "circular"
+#       minX: -20.0
+#       maxX: 20.0
+#       minZ: -20.0
+#       maxZ: 20.0
+#     metadata:
+#       theme: "classic"
+#       difficulty: "medium"
+
+arenas:
+  # Example arena - remove this when you create your own arenas
+  example_arena:
+    world: "world"
+    center:
+      x: 0.0
+      y: 64.0
+      z: 0.0
+      yaw: 0.0
+      pitch: 0.0
+    spawnPoints:
+      0:
+        x: -5.0
+        y: 64.0
+        z: 0.0
+        yaw: 90.0
+        pitch: 0.0
+      1:
+        x: 5.0
+        y: 64.0
+        z: 0.0
+        yaw: -90.0
+        pitch: 0.0
+    spectatorSpawn:
+      x: 0.0
+      y: 74.0
+      z: 0.0
+      yaw: 0.0
+      pitch: 45.0
+    minY: 50.0
+    maxY: 80.0
+    boundary:
+      type: "rectangular"
+      minX: -15.0
+      maxX: 15.0
+      minZ: -15.0
+      maxZ: 15.0
+    metadata:
+      theme: "classic"
+      difficulty: "easy"

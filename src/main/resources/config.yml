@@ -1,0 +1,42 @@
+# Super Smash Brawl - Main Configuration
+# ======================================
+
+# Database Configuration
+database:
+  enabled: false
+  type: "sqlite"
+  host: "localhost"
+  port: 3306
+  database: "supersmashbrawl"
+  username: "root"
+  password: "password"
+
+# Queue Configuration
+queue:
+  max-wait-time: 300  # Maximum wait time in seconds before timeout
+  min-players: 2      # Minimum players required for 1v1
+  max-players: 2      # Maximum players allowed for 1v1
+
+# Game Configuration
+game:
+  countdown-seconds: 10        # Countdown before game starts
+  max-duration-minutes: 10     # Maximum game duration
+  max-rounds: 5               # Maximum rounds for 1v1 (best of 5)
+  respawn-enabled: false      # Whether respawning is allowed
+  spectator-mode: true        # Allow spectators
+
+# Arena Configuration
+arena:
+  auto-cleanup: true          # Automatically clean up arena after games
+  require-boundaries: false   # Require arenas to have boundaries defined
+
+# Performance Settings
+performance:
+  cleanup-interval: 300       # How often to clean up finished games (seconds)
+  save-interval: 600         # How often to save data (seconds)
+
+# Features
+features:
+  metrics: true              # Enable bStats metrics
+  update-checker: true       # Check for plugin updates
+  debug-mode: false         # Enable debug logging

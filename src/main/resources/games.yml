@@ -1,0 +1,81 @@
+# Super Smash Brawl - Games Configuration
+# ======================================
+
+# 1v1 Game Configuration
+1v1:
+  enabled: true
+  display-name: "1v1 Duel"
+  description: "Classic 1 versus 1 combat"
+  
+  # Game Settings
+  settings:
+    max-rounds: 5                    # Best of 5 rounds
+    round-timeout: 300               # 5 minutes per round
+    pre-round-delay: 3               # 3 seconds before each round starts
+    post-round-delay: 5              # 5 seconds after round ends
+    immunity-period: 3               # 3 seconds immunity at round start
+    
+  # Kit Configuration
+  kit:
+    # Weapons
+    weapons:
+      - type: "IRON_SWORD"
+        slot: 0
+        enchantments:
+          SHARPNESS: 1
+      - type: "BOW"
+        slot: 1
+        enchantments:
+          POWER: 1
+    
+    # Items
+    items:
+      - type: "ARROW"
+        slot: 2
+        amount: 32
+      - type: "GOLDEN_APPLE"
+        slot: 3
+        amount: 3
+      - type: "COOKED_BEEF"
+        slot: 4
+        amount: 16
+      - type: "ENDER_PEARL"
+        slot: 5
+        amount: 2
+      - type: "COBWEB"
+        slot: 6
+        amount: 4
+      - type: "SPLASH_POTION"
+        slot: 7
+        potion-type: "HEALING"
+      - type: "SPLASH_POTION"
+        slot: 8
+        potion-type: "SPEED"
+    
+    # Armor
+    armor:
+      helmet: "IRON_HELMET"
+      chestplate: "IRON_CHESTPLATE"
+      leggings: "IRON_LEGGINGS"
+      boots: "IRON_BOOTS"
+      offhand: "SHIELD"
+    
+    # Starting Effects
+    effects:
+      - type: "SATURATION"
+        duration: 600          # 30 seconds
+        amplifier: 0
+      - type: "REGENERATION"
+        duration: 100          # 5 seconds
+        amplifier: 1
+
+# Future Game Types (for expansion)
+# team_deathmatch:
+#   enabled: false
+#   display-name: "Team Deathmatch"
+#   description: "Team versus team combat"
+#   
+# king_of_the_hill:
+#   enabled: false
+#   display-name: "King of the Hill"
+#   description: "Control the high ground"
